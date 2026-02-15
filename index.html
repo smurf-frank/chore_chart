@@ -71,6 +71,20 @@
                             <option value="Sun">Sunday</option>
                         </select>
                     </div>
+                    <hr class="setting-divider">
+                    <div class="setting-section">
+                        <label class="section-label">People</label>
+                        <div id="people-list" class="people-list">
+                            <!-- Dynamically populated -->
+                        </div>
+                        <div class="add-person-form" id="add-person-form">
+                            <input type="text" id="new-person-name" class="text-input text-input-sm" placeholder="Name">
+                            <input type="text" id="new-person-initials" class="text-input text-input-sm"
+                                placeholder="AB" maxlength="3" style="width: 60px;">
+                            <input type="color" id="new-person-color" class="color-input" value="#6c5ce7">
+                            <button id="add-person-btn" class="btn btn-primary btn-sm">+</button>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button id="settings-save-btn" class="btn btn-primary">Save</button>

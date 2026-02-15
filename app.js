@@ -83,12 +83,12 @@ function renderBoard() {
     });
 }
 
-function createMarker(person) {
+function createMarker(actor) {
     const marker = document.createElement('div');
     marker.className = 'marker';
-    marker.style.backgroundColor = person.color;
-    marker.textContent = person.initials;
-    marker.title = person.name;
+    marker.style.backgroundColor = actor.color;
+    marker.textContent = actor.initials;
+    marker.title = actor.name;
     return marker;
 }
 
@@ -105,7 +105,7 @@ function handleCellClick(choreId, dayIndex, people) {
     if (!current) {
         ChoreRepository.setAssignment(choreId, dayIndex, people[0].id);
     } else {
-        const idx = people.findIndex(p => p.id === current.personId);
+        const idx = people.findIndex(p => p.id === current.actorId);
         if (idx < people.length - 1) {
             ChoreRepository.setAssignment(choreId, dayIndex, people[idx + 1].id);
         } else {
@@ -128,6 +128,7 @@ function openSettings() {
     titleInput.value = ChoreRepository.getSetting('chart_title') || 'Chore Chart';
     subtitleInput.value = ChoreRepository.getSetting('chart_subtitle') || 'Digital Magnetic Board';
 
+    renderPeopleList();
     modal.classList.remove('hidden');
 }
 
@@ -146,6 +147,70 @@ function saveSettings() {
 
     closeSettings();
     renderHeader();
+    renderBoard();
+}
+
+// ── People Manager ──────────────────────────────────────────
+
+function renderPeopleList() {
+    const container = document.getElementById('people-list');
+    container.innerHTML = '';
+
+    const people = ChoreRepository.getAllPeople();
+    people.forEach(person => {
+        const item = document.createElement('div');
+        item.className = 'person-item';
+
+        item.innerHTML = `
+            <div class="person-swatch" style="background: ${person.color}"></div>
+            <div class="person-info">
+                <span class="name">${person.name}</span>
+                <span class="initials-badge">${person.initials}</span>
+            </div>
+        `;
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'btn-delete';
+        deleteBtn.textContent = '✕';
+        deleteBtn.title = `Remove ${person.name}`;
+        deleteBtn.addEventListener('click', () => {
+            if (confirm(`Remove ${person.name}? Their assignments will be cleared.`)) {
+                ChoreRepository.removeActor(person.id);
+                renderPeopleList();
+                renderBoard();
+            }
+        });
+        item.appendChild(deleteBtn);
+        container.appendChild(item);
+    });
+
+    if (!people.length) {
+        container.innerHTML = '<div style="color: var(--text-secondary); font-size: 0.85rem; padding: 8px 0;">No people added yet.</div>';
+    }
+}
+
+function addPerson() {
+    const nameInput = document.getElementById('new-person-name');
+    const initialsInput = document.getElementById('new-person-initials');
+    const colorInput = document.getElementById('new-person-color');
+
+    const name = nameInput.value.trim();
+    const initials = initialsInput.value.trim().toUpperCase();
+    const color = colorInput.value;
+
+    if (!name) { nameInput.focus(); return; }
+    if (!initials) { initialsInput.focus(); return; }
+
+    ChoreRepository.addPerson(name, initials, color);
+    nameInput.value = '';
+    initialsInput.value = '';
+
+    // Rotate to a new default color
+    const colors = ['#6c5ce7', '#0984e3', '#00b894', '#fdcb6e', '#e17055', '#d63031', '#a29bfe'];
+    const people = ChoreRepository.getAllPeople();
+    colorInput.value = colors[people.length % colors.length];
+
+    renderPeopleList();
     renderBoard();
 }
 
@@ -175,6 +240,17 @@ function bindEvents() {
     // Close modal on overlay click
     document.getElementById('settings-modal').addEventListener('click', (e) => {
         if (e.target === e.currentTarget) closeSettings();
+    });
+
+    // People Manager
+    document.getElementById('add-person-btn').addEventListener('click', addPerson);
+
+    // Enter key in add-person form
+    document.getElementById('new-person-initials').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') addPerson();
+    });
+    document.getElementById('new-person-name').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') document.getElementById('new-person-initials').focus();
     });
 }
 

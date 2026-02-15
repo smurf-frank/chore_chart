@@ -306,6 +306,124 @@ body {
     margin: 8px 0;
 }
 
+/* People Manager */
+.setting-section {
+    padding: 4px 0;
+}
+
+.section-label {
+    font-weight: 600;
+    color: var(--text-primary);
+    display: block;
+    margin-bottom: 10px;
+}
+
+.people-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.person-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    transition: background 0.15s;
+}
+
+.person-item:hover {
+    background: #eef0f3;
+}
+
+.person-swatch {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.person-info {
+    flex: 1;
+    display: flex;
+    gap: 6px;
+    align-items: baseline;
+}
+
+.person-info .name {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.person-info .initials-badge {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    background: #e4e6eb;
+    padding: 1px 6px;
+    border-radius: 4px;
+}
+
+.btn-delete {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+}
+
+.btn-delete:hover {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.add-person-form {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.text-input-sm {
+    padding: 8px 10px;
+    font-size: 0.85rem;
+}
+
+.color-input {
+    width: 36px;
+    height: 36px;
+    border: 2px solid var(--board-grid);
+    border-radius: 8px;
+    padding: 2px;
+    cursor: pointer;
+    background: none;
+}
+
+.color-input::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+.color-input::-webkit-color-swatch {
+    border: none;
+    border-radius: 5px;
+}
+
+.btn-sm {
+    padding: 8px 14px;
+    font-size: 1rem;
+    border-radius: 8px;
+}
+
 .modal-footer {
     display: flex;
     justify-content: flex-end;

@@ -9,28 +9,94 @@
  */
 
 const ChoreRepository = {
-    // ── People ──────────────────────────────────────────────
+    // ── Actors (polymorphic entity system) ───────────────────
 
-    getAllPeople() {
+    /**
+     * Get all actors, optionally filtered by type.
+     * @param {string} [type] - Optional type filter: 'person', 'group', 'ai_agent', 'webhook', 'chore_chart'
+     * @returns {Array<{id, type, name, initials, color, metadata}>}
+     */
+    getAllActors(type) {
         const db = getDb();
-        const result = db.exec("SELECT id, name, initials, color FROM people ORDER BY id");
+        let sql = "SELECT id, type, name, initials, color, metadata FROM actors";
+        const params = [];
+        if (type) {
+            sql += " WHERE type = ?";
+            params.push(type);
+        }
+        sql += " ORDER BY id";
+        const result = db.exec(sql, params);
         if (!result.length) return [];
         return result[0].values.map(row => ({
-            id: row[0], name: row[1], initials: row[2], color: row[3]
+            id: row[0], type: row[1], name: row[2],
+            initials: row[3], color: row[4],
+            metadata: JSON.parse(row[5] || '{}')
         }));
     },
 
-    addPerson(name, initials, color) {
+    /**
+     * Convenience: get all person-type actors.
+     */
+    getAllPeople() {
+        return this.getAllActors('person');
+    },
+
+    /**
+     * Add a new actor.
+     * @param {string} type - 'person' | 'group' | 'ai_agent' | 'webhook' | 'chore_chart'
+     * @param {string} name
+     * @param {string} initials
+     * @param {string} color
+     * @param {object} [metadata={}]
+     */
+    addActor(type, name, initials, color, metadata = {}) {
         const db = getDb();
-        db.run("INSERT INTO people (name, initials, color) VALUES (?, ?, ?)", [name, initials, color]);
+        db.run(
+            "INSERT INTO actors (type, name, initials, color, metadata) VALUES (?, ?, ?, ?, ?)",
+            [type, name, initials, color, JSON.stringify(metadata)]
+        );
         saveDatabase();
     },
 
-    removePerson(id) {
+    /**
+     * Convenience: add a person.
+     */
+    addPerson(name, initials, color) {
+        this.addActor('person', name, initials, color);
+    },
+
+    /**
+     * Update an actor's fields.
+     * @param {number} id
+     * @param {{name?, initials?, color?, metadata?}} fields
+     */
+    updateActor(id, fields) {
         const db = getDb();
-        db.run("DELETE FROM assignments WHERE person_id = ?", [id]);
-        db.run("DELETE FROM people WHERE id = ?", [id]);
+        const sets = [];
+        const params = [];
+        if (fields.name !== undefined) { sets.push("name = ?"); params.push(fields.name); }
+        if (fields.initials !== undefined) { sets.push("initials = ?"); params.push(fields.initials); }
+        if (fields.color !== undefined) { sets.push("color = ?"); params.push(fields.color); }
+        if (fields.metadata !== undefined) { sets.push("metadata = ?"); params.push(JSON.stringify(fields.metadata)); }
+        if (!sets.length) return;
+        params.push(id);
+        db.run(`UPDATE actors SET ${sets.join(', ')} WHERE id = ?`, params);
         saveDatabase();
+    },
+
+    /**
+     * Remove an actor and their assignments.
+     */
+    removeActor(id) {
+        const db = getDb();
+        db.run("DELETE FROM assignments WHERE actor_id = ?", [id]);
+        db.run("DELETE FROM actors WHERE id = ?", [id]);
+        saveDatabase();
+    },
+
+    // Legacy alias
+    removePerson(id) {
+        this.removeActor(id);
     },
 
     // ── Chores ──────────────────────────────────────────────
@@ -64,10 +130,10 @@ const ChoreRepository = {
     getAllAssignments() {
         const db = getDb();
         const result = db.exec(`
-            SELECT a.chore_id, a.day_index, a.person_id,
-                   p.name, p.initials, p.color
+            SELECT a.chore_id, a.day_index, a.actor_id,
+                   ac.name, ac.initials, ac.color, ac.type
             FROM assignments a
-            JOIN people p ON a.person_id = p.id
+            JOIN actors ac ON a.actor_id = ac.id
         `);
         if (!result.length) return {};
 
@@ -75,22 +141,23 @@ const ChoreRepository = {
         result[0].values.forEach(row => {
             const key = `${row[0]}-${row[1]}`;
             map[key] = {
-                personId: row[2],
+                actorId: row[2],
                 name: row[3],
                 initials: row[4],
-                color: row[5]
+                color: row[5],
+                type: row[6]
             };
         });
         return map;
     },
 
-    setAssignment(choreId, dayIndex, personId) {
+    setAssignment(choreId, dayIndex, actorId) {
         const db = getDb();
         db.run(`
-            INSERT INTO assignments (chore_id, day_index, person_id)
+            INSERT INTO assignments (chore_id, day_index, actor_id)
             VALUES (?, ?, ?)
-            ON CONFLICT(chore_id, day_index) DO UPDATE SET person_id = excluded.person_id
-        `, [choreId, dayIndex, personId]);
+            ON CONFLICT(chore_id, day_index) DO UPDATE SET actor_id = excluded.actor_id
+        `, [choreId, dayIndex, actorId]);
         saveDatabase();
     },
 
