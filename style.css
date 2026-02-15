@@ -126,11 +126,25 @@ body {
     box-shadow: var(--marker-active-shadow);
 }
 
-/* Footer / Controls */
-.app-footer {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
+/* Add Chore Corner Button */
+.add-chore-corner {
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.add-chore-corner:hover {
+    background: var(--accent-color);
+}
+
+.add-chore-corner:hover .add-chore-icon {
+    color: white;
+}
+
+.add-chore-icon {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent-color);
+    line-height: 1;
 }
 
 .btn {

@@ -44,10 +44,18 @@ function renderBoard() {
     const chores = ChoreRepository.getAllChores();
     const assignments = ChoreRepository.getAllAssignments();
 
-    // ── Header Row: empty corner + day names ──
+    // ── Header Row: "+" add-chore button + day names ──
     const corner = document.createElement('div');
-    corner.className = 'board-cell header';
-    corner.textContent = '';
+    corner.className = 'board-cell header add-chore-corner';
+    corner.innerHTML = '<span class="add-chore-icon">+</span>';
+    corner.title = 'Add Chore';
+    corner.addEventListener('click', () => {
+        const name = prompt('Enter chore name:');
+        if (name && name.trim()) {
+            ChoreRepository.addChore(name.trim());
+            renderBoard();
+        }
+    });
     board.appendChild(corner);
 
     orderedDays.forEach(day => {
@@ -217,13 +225,7 @@ function addPerson() {
 // ── Event Binding ───────────────────────────────────────────
 
 function bindEvents() {
-    document.getElementById('add-chore-btn').addEventListener('click', () => {
-        const name = prompt('Enter chore name:');
-        if (name && name.trim()) {
-            ChoreRepository.addChore(name.trim());
-            renderBoard();
-        }
-    });
+
 
     document.getElementById('reset-board-btn').addEventListener('click', () => {
         if (confirm('Clear all assignments for the week?')) {
