@@ -70,6 +70,13 @@ function createSchema(db) {
         );
     `);
 
+    db.run(`
+        CREATE TABLE IF NOT EXISTS settings (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        );
+    `);
+
     // Seed default data if tables are empty
     const peopleCount = db.exec("SELECT COUNT(*) FROM people")[0].values[0][0];
     if (peopleCount === 0) {
@@ -84,6 +91,12 @@ function createSchema(db) {
         db.run("INSERT INTO chores (name, sort_order) VALUES ('Laundry', 2)");
         db.run("INSERT INTO chores (name, sort_order) VALUES ('Vacuuming', 3)");
         db.run("INSERT INTO chores (name, sort_order) VALUES ('Trash', 4)");
+    }
+
+    // Seed default settings
+    const settingsCount = db.exec("SELECT COUNT(*) FROM settings")[0].values[0][0];
+    if (settingsCount === 0) {
+        db.run("INSERT INTO settings (key, value) VALUES ('week_start_day', 'Mon')");
     }
 }
 

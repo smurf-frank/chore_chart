@@ -5,7 +5,17 @@
  * It relies exclusively on ChoreRepository (repository.js) for data access.
  */
 
-const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const ALL_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+/**
+ * Returns the 7-day array rotated so that `startDay` is first.
+ */
+function getOrderedDays() {
+    const startDay = ChoreRepository.getWeekStartDay();
+    const startIndex = ALL_DAYS.indexOf(startDay);
+    if (startIndex <= 0) return [...ALL_DAYS];
+    return [...ALL_DAYS.slice(startIndex), ...ALL_DAYS.slice(0, startIndex)];
+}
 
 async function init() {
     await initDatabase();
@@ -17,6 +27,7 @@ function renderBoard() {
     const board = document.getElementById('chore-board');
     board.innerHTML = '';
 
+    const orderedDays = getOrderedDays();
     const people = ChoreRepository.getAllPeople();
     const chores = ChoreRepository.getAllChores();
     const assignments = ChoreRepository.getAllAssignments();
@@ -27,7 +38,7 @@ function renderBoard() {
     corner.textContent = '';
     board.appendChild(corner);
 
-    DAYS.forEach(day => {
+    orderedDays.forEach(day => {
         const header = document.createElement('div');
         header.className = 'board-cell header';
         header.textContent = day;
@@ -41,7 +52,8 @@ function renderBoard() {
         nameCell.textContent = chore.name;
         board.appendChild(nameCell);
 
-        DAYS.forEach((_, dayIndex) => {
+        orderedDays.forEach(day => {
+            const dayIndex = ALL_DAYS.indexOf(day);
             const cell = document.createElement('div');
             cell.className = 'board-cell';
             cell.dataset.choreId = chore.id;
@@ -79,22 +91,40 @@ function handleCellClick(choreId, dayIndex, people) {
     const current = assignments[key];
 
     if (!current) {
-        // No one assigned → assign first person
         ChoreRepository.setAssignment(choreId, dayIndex, people[0].id);
     } else {
-        // Find current person index
         const idx = people.findIndex(p => p.id === current.personId);
         if (idx < people.length - 1) {
-            // Cycle to next person
             ChoreRepository.setAssignment(choreId, dayIndex, people[idx + 1].id);
         } else {
-            // Past last person → clear
             ChoreRepository.clearAssignment(choreId, dayIndex);
         }
     }
 
     renderBoard();
 }
+
+// ── Settings Modal ──────────────────────────────────────────
+
+function openSettings() {
+    const modal = document.getElementById('settings-modal');
+    const select = document.getElementById('week-start-select');
+    select.value = ChoreRepository.getWeekStartDay();
+    modal.classList.remove('hidden');
+}
+
+function closeSettings() {
+    document.getElementById('settings-modal').classList.add('hidden');
+}
+
+function saveSettings() {
+    const select = document.getElementById('week-start-select');
+    ChoreRepository.setWeekStartDay(select.value);
+    closeSettings();
+    renderBoard();
+}
+
+// ── Event Binding ───────────────────────────────────────────
 
 function bindEvents() {
     document.getElementById('add-chore-btn').addEventListener('click', () => {
@@ -110,6 +140,16 @@ function bindEvents() {
             ChoreRepository.clearAllAssignments();
             renderBoard();
         }
+    });
+
+    // Settings
+    document.getElementById('settings-btn').addEventListener('click', openSettings);
+    document.getElementById('settings-close-btn').addEventListener('click', closeSettings);
+    document.getElementById('settings-save-btn').addEventListener('click', saveSettings);
+
+    // Close modal on overlay click
+    document.getElementById('settings-modal').addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) closeSettings();
     });
 }
 

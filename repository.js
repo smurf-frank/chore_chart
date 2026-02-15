@@ -106,5 +106,31 @@ const ChoreRepository = {
         const db = getDb();
         db.run("DELETE FROM assignments");
         saveDatabase();
+    },
+
+    // ── Settings ────────────────────────────────────────────
+
+    getSetting(key) {
+        const db = getDb();
+        const result = db.exec("SELECT value FROM settings WHERE key = ?", [key]);
+        if (!result.length || !result[0].values.length) return null;
+        return result[0].values[0][0];
+    },
+
+    setSetting(key, value) {
+        const db = getDb();
+        db.run(`
+            INSERT INTO settings (key, value) VALUES (?, ?)
+            ON CONFLICT(key) DO UPDATE SET value = excluded.value
+        `, [key, value]);
+        saveDatabase();
+    },
+
+    getWeekStartDay() {
+        return this.getSetting('week_start_day') || 'Mon';
+    },
+
+    setWeekStartDay(day) {
+        this.setSetting('week_start_day', day);
     }
 };

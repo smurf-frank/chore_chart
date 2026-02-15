@@ -15,8 +15,14 @@
 <body>
     <div id="app" class="app-container">
         <header class="app-header">
-            <h1>Chore Chart</h1>
-            <p class="subtitle">Digital Magnetic Board</p>
+            <div class="header-row">
+                <div class="header-spacer"></div>
+                <div class="header-center">
+                    <h1>Chore Chart</h1>
+                    <p class="subtitle">Digital Magnetic Board</p>
+                </div>
+                <button id="settings-btn" class="btn-icon" title="Settings">⚙️</button>
+            </div>
         </header>
 
         <main class="board-wrapper">
@@ -34,6 +40,33 @@
             <button id="add-chore-btn" class="btn btn-primary">Add Chore</button>
             <button id="reset-board-btn" class="btn btn-secondary">Reset Board</button>
         </footer>
+
+        <!-- Settings Modal -->
+        <div id="settings-modal" class="modal-overlay hidden">
+            <div class="modal">
+                <div class="modal-header">
+                    <h2>Settings</h2>
+                    <button id="settings-close-btn" class="btn-icon">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div class="setting-row">
+                        <label for="week-start-select">Week starts on</label>
+                        <select id="week-start-select" class="select-input">
+                            <option value="Mon">Monday</option>
+                            <option value="Tue">Tuesday</option>
+                            <option value="Wed">Wednesday</option>
+                            <option value="Thu">Thursday</option>
+                            <option value="Fri">Friday</option>
+                            <option value="Sat">Saturday</option>
+                            <option value="Sun">Sunday</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="settings-save-btn" class="btn btn-primary">Save</button>
+                </div>
+            </div>
+        </div>
     </div>
     <script src="https://sql.js.org/dist/sql-wasm.js"></script>
     <script src="db.js"></script>
