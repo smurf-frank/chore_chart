@@ -278,6 +278,34 @@ body {
     border-color: var(--accent-color);
 }
 
+.text-input {
+    width: 100%;
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--board-grid);
+    font-family: var(--font-main);
+    font-size: 0.95rem;
+    background: #f8f9fa;
+    transition: border-color 0.2s;
+}
+
+.text-input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+.setting-row-stacked {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+}
+
+.setting-divider {
+    border: none;
+    border-top: 1px solid var(--board-grid);
+    margin: 8px 0;
+}
+
 .modal-footer {
     display: flex;
     justify-content: flex-end;

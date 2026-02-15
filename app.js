@@ -19,8 +19,20 @@ function getOrderedDays() {
 
 async function init() {
     await initDatabase();
+    renderHeader();
     renderBoard();
     bindEvents();
+}
+
+/**
+ * Renders the chart title and subtitle from settings.
+ */
+function renderHeader() {
+    const title = ChoreRepository.getSetting('chart_title') || 'Chore Chart';
+    const subtitle = ChoreRepository.getSetting('chart_subtitle') || 'Digital Magnetic Board';
+    document.getElementById('chart-title').textContent = title;
+    document.getElementById('chart-subtitle').textContent = subtitle;
+    document.title = `${title} - ${subtitle}`;
 }
 
 function renderBoard() {
@@ -109,7 +121,13 @@ function handleCellClick(choreId, dayIndex, people) {
 function openSettings() {
     const modal = document.getElementById('settings-modal');
     const select = document.getElementById('week-start-select');
+    const titleInput = document.getElementById('chart-title-input');
+    const subtitleInput = document.getElementById('chart-subtitle-input');
+
     select.value = ChoreRepository.getWeekStartDay();
+    titleInput.value = ChoreRepository.getSetting('chart_title') || 'Chore Chart';
+    subtitleInput.value = ChoreRepository.getSetting('chart_subtitle') || 'Digital Magnetic Board';
+
     modal.classList.remove('hidden');
 }
 
@@ -119,8 +137,15 @@ function closeSettings() {
 
 function saveSettings() {
     const select = document.getElementById('week-start-select');
+    const titleInput = document.getElementById('chart-title-input');
+    const subtitleInput = document.getElementById('chart-subtitle-input');
+
     ChoreRepository.setWeekStartDay(select.value);
+    ChoreRepository.setSetting('chart_title', titleInput.value.trim() || 'Chore Chart');
+    ChoreRepository.setSetting('chart_subtitle', subtitleInput.value.trim() || 'Digital Magnetic Board');
+
     closeSettings();
+    renderHeader();
     renderBoard();
 }
 

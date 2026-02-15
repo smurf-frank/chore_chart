@@ -18,8 +18,8 @@
             <div class="header-row">
                 <div class="header-spacer"></div>
                 <div class="header-center">
-                    <h1>Chore Chart</h1>
-                    <p class="subtitle">Digital Magnetic Board</p>
+                    <h1 id="chart-title">Chore Chart</h1>
+                    <p class="subtitle" id="chart-subtitle">Digital Magnetic Board</p>
                 </div>
                 <button id="settings-btn" class="btn-icon" title="Settings">⚙️</button>
             </div>
@@ -49,6 +49,16 @@
                     <button id="settings-close-btn" class="btn-icon">✕</button>
                 </div>
                 <div class="modal-body">
+                    <div class="setting-row setting-row-stacked">
+                        <label for="chart-title-input">Chart Title</label>
+                        <input type="text" id="chart-title-input" class="text-input" placeholder="Chore Chart">
+                    </div>
+                    <div class="setting-row setting-row-stacked">
+                        <label for="chart-subtitle-input">Description</label>
+                        <input type="text" id="chart-subtitle-input" class="text-input"
+                            placeholder="Digital Magnetic Board">
+                    </div>
+                    <hr class="setting-divider">
                     <div class="setting-row">
                         <label for="week-start-select">Week starts on</label>
                         <select id="week-start-select" class="select-input">

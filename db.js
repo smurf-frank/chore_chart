@@ -97,6 +97,8 @@ function createSchema(db) {
     const settingsCount = db.exec("SELECT COUNT(*) FROM settings")[0].values[0][0];
     if (settingsCount === 0) {
         db.run("INSERT INTO settings (key, value) VALUES ('week_start_day', 'Mon')");
+        db.run("INSERT INTO settings (key, value) VALUES ('chart_title', 'Chore Chart')");
+        db.run("INSERT INTO settings (key, value) VALUES ('chart_subtitle', 'Digital Magnetic Board')");
     }
 }
 
