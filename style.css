@@ -200,9 +200,12 @@ body {
     background: #fafafa;
 }
 
-/* Marker Palette */
-.marker-palette-section {
-    margin-bottom: 20px;
+/* Marker Palette Section */
+.palette-section {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 0;
 }
 
 .palette-label {
@@ -211,13 +214,14 @@ body {
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    margin-bottom: 8px;
+    white-space: nowrap;
 }
 
 .palette-markers {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
+    align-items: center;
 }
 
 .palette-empty {
