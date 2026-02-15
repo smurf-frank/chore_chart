@@ -658,6 +658,82 @@
             });
         });
 
+        // ── Reset Board ──────────────────────────────────────────
+
+        describe('Reset Board (clearAllAssignments)', () => {
+            beforeEach(() => { createSchema(_db); });
+
+            it('clears all assignments across all chores and days', () => {
+                const people = ChoreRepository.getAllPeople();
+                const chores = ChoreRepository.getAllChores();
+                // Fill every chore with an assignment on multiple days
+                chores.forEach((chore, i) => {
+                    ChoreRepository.setAssignment(chore.id, 0, people[0].id);
+                    ChoreRepository.setAssignment(chore.id, 1, people[1].id);
+                    ChoreRepository.setAssignment(chore.id, 2, people[2].id);
+                });
+                expect(Object.keys(ChoreRepository.getAllAssignments()).length).toBe(12);
+                ChoreRepository.clearAllAssignments();
+                expect(Object.keys(ChoreRepository.getAllAssignments()).length).toBe(0);
+            });
+
+            it('preserves all chores after reset', () => {
+                const choresBefore = ChoreRepository.getAllChores();
+                const people = ChoreRepository.getAllPeople();
+                choresBefore.forEach(c => ChoreRepository.setAssignment(c.id, 0, people[0].id));
+                ChoreRepository.clearAllAssignments();
+                const choresAfter = ChoreRepository.getAllChores();
+                expect(choresAfter.length).toBe(choresBefore.length);
+                choresAfter.forEach((c, i) => {
+                    expect(c.id).toBe(choresBefore[i].id);
+                    expect(c.name).toBe(choresBefore[i].name);
+                });
+            });
+
+            it('preserves all people after reset', () => {
+                const peopleBefore = ChoreRepository.getAllPeople();
+                peopleBefore.forEach(p => ChoreRepository.setAssignment(1, 0, p.id));
+                ChoreRepository.clearAllAssignments();
+                const peopleAfter = ChoreRepository.getAllPeople();
+                expect(peopleAfter.length).toBe(peopleBefore.length);
+                peopleAfter.forEach((p, i) => {
+                    expect(p.id).toBe(peopleBefore[i].id);
+                    expect(p.name).toBe(peopleBefore[i].name);
+                    expect(p.color).toBe(peopleBefore[i].color);
+                });
+            });
+
+            it('preserves all settings after reset', () => {
+                ChoreRepository.setSetting('chart_title', 'My House');
+                ChoreRepository.setSetting('week_start_day', 'Sun');
+                const people = ChoreRepository.getAllPeople();
+                ChoreRepository.setAssignment(1, 0, people[0].id);
+                ChoreRepository.clearAllAssignments();
+                expect(ChoreRepository.getSetting('chart_title')).toBe('My House');
+                expect(ChoreRepository.getSetting('week_start_day')).toBe('Sun');
+            });
+
+            it('board is assignable again after reset', () => {
+                const people = ChoreRepository.getAllPeople();
+                const chores = ChoreRepository.getAllChores();
+                ChoreRepository.setAssignment(chores[0].id, 0, people[0].id);
+                ChoreRepository.clearAllAssignments();
+                // Re-assign
+                ChoreRepository.setAssignment(chores[0].id, 0, people[1].id);
+                const assignments = ChoreRepository.getAllAssignments();
+                expect(Object.keys(assignments).length).toBe(1);
+                expect(assignments[`${chores[0].id}-0`].actorId).toBe(people[1].id);
+            });
+
+            it('is a no-op when no assignments exist', () => {
+                ChoreRepository.clearAllAssignments();
+                expect(Object.keys(ChoreRepository.getAllAssignments()).length).toBe(0);
+                // Should not throw or affect anything
+                expect(ChoreRepository.getAllChores().length).toBe(4);
+                expect(ChoreRepository.getAllPeople().length).toBe(3);
+            });
+        });
+
         // ── Day Ordering ────────────────────────────────────────
 
         describe('Day Ordering (getOrderedDays)', () => {
