@@ -69,7 +69,24 @@ function renderBoard() {
     chores.forEach(chore => {
         const nameCell = document.createElement('div');
         nameCell.className = 'board-cell chore-name';
-        nameCell.textContent = chore.name;
+
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = chore.name;
+        nameCell.appendChild(nameSpan);
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'chore-delete-btn';
+        deleteBtn.textContent = '×';
+        deleteBtn.title = `Delete ${chore.name}`;
+        deleteBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (confirm(`Delete "${chore.name}" and all its assignments?`)) {
+                ChoreRepository.removeChore(chore.id);
+                renderBoard();
+            }
+        });
+        nameCell.appendChild(deleteBtn);
+
         board.appendChild(nameCell);
 
         orderedDays.forEach(day => {
