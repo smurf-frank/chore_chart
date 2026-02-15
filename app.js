@@ -228,6 +228,7 @@ function bindEvents() {
     document.getElementById('reset-board-btn').addEventListener('click', () => {
         if (confirm('Clear all assignments for the week?')) {
             ChoreRepository.clearAllAssignments();
+            closeSettings();
             renderBoard();
         }
     });

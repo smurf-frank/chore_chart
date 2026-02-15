@@ -424,6 +424,23 @@ body {
     border-radius: 8px;
 }
 
+.btn-danger {
+    background: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fca5a5;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+    color: #fff;
+}
+
+.setting-hint {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 6px;
+}
+
 .modal-footer {
     display: flex;
     justify-content: flex-end;
