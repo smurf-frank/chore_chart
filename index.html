@@ -33,7 +33,8 @@
         </main>
 
         <section class="marker-palette" id="marker-palette">
-            <!-- Markers for household members will be here -->
+            <div class="palette-label">Drag to assign:</div>
+            <div class="palette-markers" id="palette-markers"></div>
         </section>
 
 
@@ -67,6 +68,11 @@
                             <option value="Sat">Saturday</option>
                             <option value="Sun">Sunday</option>
                         </select>
+                    </div>
+                    <div class="setting-row">
+                        <label for="max-markers-input">Max markers per cell</label>
+                        <input type="number" id="max-markers-input" class="text-input text-input-sm" min="0" max="32"
+                            value="2" style="width: 70px;">
                     </div>
                     <hr class="setting-divider">
                     <div class="setting-section">

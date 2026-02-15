@@ -130,8 +130,6 @@ body {
 
 /* Markers (The Magnets) */
 .marker {
-    width: 40px;
-    height: 40px;
     border-radius: 12px;
     background: var(--accent-color);
     box-shadow: var(--marker-shadow);
@@ -140,14 +138,91 @@ body {
     justify-content: center;
     color: white;
     font-weight: 700;
-    cursor: grab;
-    transition: transform 0.2s, box-shadow 0.2s;
     user-select: none;
+    transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
 }
 
-.marker:hover {
+/* Palette markers — full size, draggable */
+.marker-palette {
+    width: 44px;
+    height: 44px;
+    font-size: 0.85rem;
+    cursor: grab;
+}
+
+.marker-palette:hover {
     transform: translateY(-2px);
     box-shadow: var(--marker-active-shadow);
+}
+
+.marker-palette.dragging {
+    opacity: 0.4;
+    transform: scale(0.9);
+}
+
+/* Cell markers — smaller to fit multiple */
+.marker-cell {
+    width: 32px;
+    height: 32px;
+    font-size: 0.7rem;
+    cursor: pointer;
+}
+
+.marker-cell:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 2px #ef4444, var(--marker-shadow);
+}
+
+/* Assignment cells — multi-marker layout */
+.assignment-cell {
+    flex-wrap: wrap;
+    gap: 4px;
+    min-height: 50px;
+    padding: 6px;
+    transition: background 0.15s, box-shadow 0.15s;
+}
+
+/* Drag feedback: valid target glow */
+.assignment-cell.drop-target {
+    background: rgba(0, 132, 255, 0.04);
+}
+
+.assignment-cell.drag-over {
+    background: rgba(0, 132, 255, 0.12);
+    box-shadow: inset 0 0 0 2px var(--accent-color);
+}
+
+.assignment-cell.cell-full {
+    background: #fafafa;
+}
+
+.assignment-cell.cell-full.drop-target {
+    background: #fafafa;
+}
+
+/* Marker Palette */
+.marker-palette-section {
+    margin-bottom: 20px;
+}
+
+.palette-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+}
+
+.palette-markers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.palette-empty {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
 }
 
 /* Add Chore Corner Button */

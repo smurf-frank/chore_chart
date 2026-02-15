@@ -21,6 +21,7 @@ async function init() {
     await initDatabase();
     renderHeader();
     renderBoard();
+    renderPalette();
     bindEvents();
 }
 
@@ -35,14 +36,16 @@ function renderHeader() {
     document.title = `${title} - ${subtitle}`;
 }
 
+// ── Board Rendering ─────────────────────────────────────────
+
 function renderBoard() {
     const board = document.getElementById('chore-board');
     board.innerHTML = '';
 
     const orderedDays = getOrderedDays();
-    const people = ChoreRepository.getAllPeople();
     const chores = ChoreRepository.getAllChores();
     const assignments = ChoreRepository.getAllAssignments();
+    const maxMarkers = ChoreRepository.getMaxMarkersPerCell();
 
     // ── Header Row: "+" add-chore button + day names ──
     const corner = document.createElement('div');
@@ -92,53 +95,103 @@ function renderBoard() {
         orderedDays.forEach(day => {
             const dayIndex = ALL_DAYS.indexOf(day);
             const cell = document.createElement('div');
-            cell.className = 'board-cell';
+            cell.className = 'board-cell assignment-cell';
             cell.dataset.choreId = chore.id;
             cell.dataset.dayIndex = dayIndex;
 
             const key = `${chore.id}-${dayIndex}`;
-            const assignment = assignments[key];
-            if (assignment) {
-                cell.appendChild(createMarker(assignment));
-            }
+            const cellAssignments = assignments[key] || [];
 
-            cell.addEventListener('click', () => handleCellClick(chore.id, dayIndex, people));
+            // Render markers in cell
+            cellAssignments.forEach(a => {
+                const marker = createCellMarker(a, chore.id, dayIndex);
+                cell.appendChild(marker);
+            });
+
+            // Drop target setup
+            const isFull = cellAssignments.length >= maxMarkers;
+            if (isFull) cell.classList.add('cell-full');
+
+            cell.addEventListener('dragover', (e) => {
+                if (isFull) return;
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'copy';
+                cell.classList.add('drag-over');
+            });
+            cell.addEventListener('dragleave', () => {
+                cell.classList.remove('drag-over');
+            });
+            cell.addEventListener('drop', (e) => {
+                e.preventDefault();
+                cell.classList.remove('drag-over');
+                const actorId = parseInt(e.dataTransfer.getData('text/plain'), 10);
+                if (!actorId) return;
+                const added = ChoreRepository.addAssignment(chore.id, dayIndex, actorId);
+                if (added) renderBoard();
+            });
+
             board.appendChild(cell);
         });
     });
 }
 
-function createMarker(actor) {
+/**
+ * Create a marker inside a grid cell — click to remove.
+ */
+function createCellMarker(actor, choreId, dayIndex) {
     const marker = document.createElement('div');
-    marker.className = 'marker';
+    marker.className = 'marker marker-cell';
     marker.style.backgroundColor = actor.color;
     marker.textContent = actor.initials;
-    marker.title = actor.name;
+    marker.title = `${actor.name} (click to remove)`;
+    marker.addEventListener('click', (e) => {
+        e.stopPropagation();
+        ChoreRepository.removeAssignment(choreId, dayIndex, actor.actorId);
+        renderBoard();
+    });
     return marker;
 }
 
-/**
- * Click handler: cycles through people for a cell, then clears.
- */
-function handleCellClick(choreId, dayIndex, people) {
-    if (!people.length) return;
+// ── Marker Palette ──────────────────────────────────────────
 
-    const assignments = ChoreRepository.getAllAssignments();
-    const key = `${choreId}-${dayIndex}`;
-    const current = assignments[key];
+function renderPalette() {
+    const container = document.getElementById('palette-markers');
+    container.innerHTML = '';
 
-    if (!current) {
-        ChoreRepository.setAssignment(choreId, dayIndex, people[0].id);
-    } else {
-        const idx = people.findIndex(p => p.id === current.actorId);
-        if (idx < people.length - 1) {
-            ChoreRepository.setAssignment(choreId, dayIndex, people[idx + 1].id);
-        } else {
-            ChoreRepository.clearAssignment(choreId, dayIndex);
-        }
+    const actors = ChoreRepository.getAllActors();
+    actors.forEach(actor => {
+        const marker = document.createElement('div');
+        marker.className = 'marker marker-palette';
+        marker.style.backgroundColor = actor.color;
+        marker.textContent = actor.initials;
+        marker.title = `Drag ${actor.name} to a cell`;
+        marker.draggable = true;
+
+        marker.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', String(actor.id));
+            e.dataTransfer.effectAllowed = 'copy';
+            marker.classList.add('dragging');
+            // Highlight valid targets
+            document.querySelectorAll('.assignment-cell:not(.cell-full)').forEach(c => {
+                c.classList.add('drop-target');
+            });
+        });
+        marker.addEventListener('dragend', () => {
+            marker.classList.remove('dragging');
+            document.querySelectorAll('.drop-target').forEach(c => {
+                c.classList.remove('drop-target');
+            });
+            document.querySelectorAll('.drag-over').forEach(c => {
+                c.classList.remove('drag-over');
+            });
+        });
+
+        container.appendChild(marker);
+    });
+
+    if (!actors.length) {
+        container.innerHTML = '<span class="palette-empty">No people yet — add in Settings</span>';
     }
-
-    renderBoard();
 }
 
 // ── Settings Modal ──────────────────────────────────────────
@@ -148,10 +201,12 @@ function openSettings() {
     const select = document.getElementById('week-start-select');
     const titleInput = document.getElementById('chart-title-input');
     const subtitleInput = document.getElementById('chart-subtitle-input');
+    const maxInput = document.getElementById('max-markers-input');
 
     select.value = ChoreRepository.getWeekStartDay();
     titleInput.value = ChoreRepository.getSetting('chart_title') || 'Chore Chart';
     subtitleInput.value = ChoreRepository.getSetting('chart_subtitle') || 'Digital Magnetic Board';
+    maxInput.value = ChoreRepository.getMaxMarkersPerCell();
 
     renderPeopleList();
     modal.classList.remove('hidden');
@@ -165,10 +220,12 @@ function saveSettings() {
     const select = document.getElementById('week-start-select');
     const titleInput = document.getElementById('chart-title-input');
     const subtitleInput = document.getElementById('chart-subtitle-input');
+    const maxInput = document.getElementById('max-markers-input');
 
     ChoreRepository.setWeekStartDay(select.value);
     ChoreRepository.setSetting('chart_title', titleInput.value.trim() || 'Chore Chart');
     ChoreRepository.setSetting('chart_subtitle', subtitleInput.value.trim() || 'Digital Magnetic Board');
+    ChoreRepository.setMaxMarkersPerCell(parseInt(maxInput.value, 10));
 
     closeSettings();
     renderHeader();
@@ -202,6 +259,7 @@ function renderPeopleList() {
             if (confirm(`Remove ${person.name}? Their assignments will be cleared.`)) {
                 ChoreRepository.removeActor(person.id);
                 renderPeopleList();
+                renderPalette();
                 renderBoard();
             }
         });
@@ -236,14 +294,13 @@ function addPerson() {
     colorInput.value = colors[people.length % colors.length];
 
     renderPeopleList();
+    renderPalette();
     renderBoard();
 }
 
 // ── Event Binding ───────────────────────────────────────────
 
 function bindEvents() {
-
-
     document.getElementById('reset-board-btn').addEventListener('click', () => {
         if (confirm('Clear all assignments for the week?')) {
             ChoreRepository.clearAllAssignments();

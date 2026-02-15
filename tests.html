@@ -320,9 +320,9 @@
                 expect(count).toBe(4);
             });
 
-            it('should seed 3 default settings', () => {
+            it('should seed 4 default settings', () => {
                 const count = _db.exec("SELECT COUNT(*) FROM settings")[0].values[0][0];
-                expect(count).toBe(3);
+                expect(count).toBe(4);
             });
 
             it('should not re-seed if data exists', () => {
@@ -478,9 +478,9 @@
             });
         });
 
-        // ── Assignments ─────────────────────────────────────────
+        // ── Assignments (Multi-Assignment) ────────────────────────
 
-        describe('Assignment CRUD', () => {
+        describe('Assignment CRUD (multi-assignment)', () => {
             beforeEach(() => { createSchema(_db); });
 
             it('getAllAssignments() returns empty map initially', () => {
@@ -488,62 +488,105 @@
                 expect(Object.keys(assignments).length).toBe(0);
             });
 
-            it('setAssignment() creates a new assignment', () => {
+            it('setAssignment() creates a single-item array', () => {
                 const people = ChoreRepository.getAllPeople();
                 const chores = ChoreRepository.getAllChores();
                 ChoreRepository.setAssignment(chores[0].id, 0, people[0].id);
                 const assignments = ChoreRepository.getAllAssignments();
                 const key = `${chores[0].id}-0`;
-                expect(assignments[key]).toBeTruthy();
-                expect(assignments[key].actorId).toBe(people[0].id);
-                expect(assignments[key].initials).toBe('U1');
+                expect(Array.isArray(assignments[key])).toBe(true);
+                expect(assignments[key].length).toBe(1);
+                expect(assignments[key][0].actorId).toBe(people[0].id);
+                expect(assignments[key][0].initials).toBe('U1');
             });
 
-            it('setAssignment() upserts on same chore+day', () => {
+            it('setAssignment() replaces existing (clears then sets)', () => {
                 const people = ChoreRepository.getAllPeople();
                 const chores = ChoreRepository.getAllChores();
                 ChoreRepository.setAssignment(chores[0].id, 0, people[0].id);
                 ChoreRepository.setAssignment(chores[0].id, 0, people[1].id);
                 const assignments = ChoreRepository.getAllAssignments();
-                expect(Object.keys(assignments).length).toBe(1);
-                expect(assignments[`${chores[0].id}-0`].actorId).toBe(people[1].id);
+                expect(assignments[`${chores[0].id}-0`].length).toBe(1);
+                expect(assignments[`${chores[0].id}-0`][0].actorId).toBe(people[1].id);
             });
 
-            it('clearAssignment() removes specific assignment', () => {
+            it('addAssignment() adds multiple actors to same cell', () => {
                 const people = ChoreRepository.getAllPeople();
                 const chores = ChoreRepository.getAllChores();
-                ChoreRepository.setAssignment(chores[0].id, 0, people[0].id);
-                ChoreRepository.setAssignment(chores[0].id, 1, people[1].id);
+                ChoreRepository.addAssignment(chores[0].id, 0, people[0].id);
+                ChoreRepository.addAssignment(chores[0].id, 0, people[1].id);
+                const assignments = ChoreRepository.getAllAssignments();
+                const key = `${chores[0].id}-0`;
+                expect(assignments[key].length).toBe(2);
+                expect(assignments[key][0].actorId).toBe(people[0].id);
+                expect(assignments[key][1].actorId).toBe(people[1].id);
+            });
+
+            it('addAssignment() rejects duplicates in same cell', () => {
+                const people = ChoreRepository.getAllPeople();
+                const chores = ChoreRepository.getAllChores();
+                const added1 = ChoreRepository.addAssignment(chores[0].id, 0, people[0].id);
+                const added2 = ChoreRepository.addAssignment(chores[0].id, 0, people[0].id);
+                expect(added1).toBe(true);
+                expect(added2).toBe(false);
+                const assignments = ChoreRepository.getAllAssignments();
+                expect(assignments[`${chores[0].id}-0`].length).toBe(1);
+            });
+
+            it('addAssignment() respects max markers per cell', () => {
+                ChoreRepository.setMaxMarkersPerCell(2);
+                const people = ChoreRepository.getAllPeople();
+                const chores = ChoreRepository.getAllChores();
+                expect(ChoreRepository.addAssignment(chores[0].id, 0, people[0].id)).toBe(true);
+                expect(ChoreRepository.addAssignment(chores[0].id, 0, people[1].id)).toBe(true);
+                expect(ChoreRepository.addAssignment(chores[0].id, 0, people[2].id)).toBe(false);
+            });
+
+            it('removeAssignment() removes specific actor from cell', () => {
+                const people = ChoreRepository.getAllPeople();
+                const chores = ChoreRepository.getAllChores();
+                ChoreRepository.addAssignment(chores[0].id, 0, people[0].id);
+                ChoreRepository.addAssignment(chores[0].id, 0, people[1].id);
+                ChoreRepository.removeAssignment(chores[0].id, 0, people[0].id);
+                const assignments = ChoreRepository.getAllAssignments();
+                const key = `${chores[0].id}-0`;
+                expect(assignments[key].length).toBe(1);
+                expect(assignments[key][0].actorId).toBe(people[1].id);
+            });
+
+            it('clearAssignment() removes all actors from cell', () => {
+                const people = ChoreRepository.getAllPeople();
+                const chores = ChoreRepository.getAllChores();
+                ChoreRepository.addAssignment(chores[0].id, 0, people[0].id);
+                ChoreRepository.addAssignment(chores[0].id, 0, people[1].id);
                 ChoreRepository.clearAssignment(chores[0].id, 0);
                 const assignments = ChoreRepository.getAllAssignments();
-                expect(Object.keys(assignments).length).toBe(1);
+                expect(assignments[`${chores[0].id}-0`]).toBe(undefined);
             });
 
             it('clearAllAssignments() removes everything', () => {
                 const people = ChoreRepository.getAllPeople();
                 const chores = ChoreRepository.getAllChores();
-                ChoreRepository.setAssignment(chores[0].id, 0, people[0].id);
-                ChoreRepository.setAssignment(chores[1].id, 1, people[1].id);
-                ChoreRepository.setAssignment(chores[2].id, 2, people[2].id);
+                ChoreRepository.addAssignment(chores[0].id, 0, people[0].id);
+                ChoreRepository.addAssignment(chores[1].id, 1, people[1].id);
+                ChoreRepository.addAssignment(chores[2].id, 2, people[2].id);
                 ChoreRepository.clearAllAssignments();
-                const assignments = ChoreRepository.getAllAssignments();
-                expect(Object.keys(assignments).length).toBe(0);
+                expect(Object.keys(ChoreRepository.getAllAssignments()).length).toBe(0);
             });
 
             it('assignment includes actor type in result', () => {
                 const people = ChoreRepository.getAllPeople();
                 const chores = ChoreRepository.getAllChores();
-                ChoreRepository.setAssignment(chores[0].id, 0, people[0].id);
+                ChoreRepository.addAssignment(chores[0].id, 0, people[0].id);
                 const assignments = ChoreRepository.getAllAssignments();
-                const key = `${chores[0].id}-0`;
-                expect(assignments[key].type).toBe('person');
+                expect(assignments[`${chores[0].id}-0`][0].type).toBe('person');
             });
 
             it('multiple chores can have assignments on the same day', () => {
                 const people = ChoreRepository.getAllPeople();
                 const chores = ChoreRepository.getAllChores();
-                ChoreRepository.setAssignment(chores[0].id, 0, people[0].id);
-                ChoreRepository.setAssignment(chores[1].id, 0, people[1].id);
+                ChoreRepository.addAssignment(chores[0].id, 0, people[0].id);
+                ChoreRepository.addAssignment(chores[1].id, 0, people[1].id);
                 const assignments = ChoreRepository.getAllAssignments();
                 expect(Object.keys(assignments).length).toBe(2);
             });
@@ -581,16 +624,29 @@
                 expect(ChoreRepository.getWeekStartDay()).toBe('Sun');
             });
 
-            it('chart_title default is "Chore Chart"', () => {
+            it('chart_title default is \"Chore Chart\"', () => {
                 expect(ChoreRepository.getSetting('chart_title')).toBe('Chore Chart');
             });
 
-            it('chart_subtitle default is "Digital Magnetic Board"', () => {
+            it('chart_subtitle default is \"Digital Magnetic Board\"', () => {
                 expect(ChoreRepository.getSetting('chart_subtitle')).toBe('Digital Magnetic Board');
+            });
+
+            it('max_markers_per_cell default is 2', () => {
+                expect(ChoreRepository.getMaxMarkersPerCell()).toBe(2);
+            });
+
+            it('setMaxMarkersPerCell() clamps to 0-32', () => {
+                ChoreRepository.setMaxMarkersPerCell(50);
+                expect(ChoreRepository.getMaxMarkersPerCell()).toBe(32);
+                ChoreRepository.setMaxMarkersPerCell(-5);
+                expect(ChoreRepository.getMaxMarkersPerCell()).toBe(0);
+                ChoreRepository.setMaxMarkersPerCell(10);
+                expect(ChoreRepository.getMaxMarkersPerCell()).toBe(10);
             });
         });
 
-        // ── Migration ───────────────────────────────────────────
+        // ── Migration ────────────────────────────────────────────
 
         describe('Migration: people → actors', () => {
             it('migrates legacy people table to actors', () => {
@@ -692,7 +748,8 @@
 
             it('preserves all people after reset', () => {
                 const peopleBefore = ChoreRepository.getAllPeople();
-                peopleBefore.forEach(p => ChoreRepository.setAssignment(1, 0, p.id));
+                ChoreRepository.setMaxMarkersPerCell(32);
+                peopleBefore.forEach((p, i) => ChoreRepository.addAssignment(1, i, p.id));
                 ChoreRepository.clearAllAssignments();
                 const peopleAfter = ChoreRepository.getAllPeople();
                 expect(peopleAfter.length).toBe(peopleBefore.length);
@@ -707,7 +764,7 @@
                 ChoreRepository.setSetting('chart_title', 'My House');
                 ChoreRepository.setSetting('week_start_day', 'Sun');
                 const people = ChoreRepository.getAllPeople();
-                ChoreRepository.setAssignment(1, 0, people[0].id);
+                ChoreRepository.addAssignment(1, 0, people[0].id);
                 ChoreRepository.clearAllAssignments();
                 expect(ChoreRepository.getSetting('chart_title')).toBe('My House');
                 expect(ChoreRepository.getSetting('week_start_day')).toBe('Sun');
@@ -722,7 +779,7 @@
                 ChoreRepository.setAssignment(chores[0].id, 0, people[1].id);
                 const assignments = ChoreRepository.getAllAssignments();
                 expect(Object.keys(assignments).length).toBe(1);
-                expect(assignments[`${chores[0].id}-0`].actorId).toBe(people[1].id);
+                expect(assignments[`${chores[0].id}-0`][0].actorId).toBe(people[1].id);
             });
 
             it('is a no-op when no assignments exist', () => {

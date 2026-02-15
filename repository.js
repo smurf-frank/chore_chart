@@ -127,6 +127,9 @@ const ChoreRepository = {
 
     // ── Assignments ─────────────────────────────────────────
 
+    /**
+     * Get all assignments as a map: { "choreId-dayIndex": [ {actorId, name, initials, color, type}, ... ] }
+     */
     getAllAssignments() {
         const db = getDb();
         const result = db.exec(`
@@ -134,30 +137,77 @@ const ChoreRepository = {
                    ac.name, ac.initials, ac.color, ac.type
             FROM assignments a
             JOIN actors ac ON a.actor_id = ac.id
+            ORDER BY a.id
         `);
         if (!result.length) return {};
 
         const map = {};
         result[0].values.forEach(row => {
             const key = `${row[0]}-${row[1]}`;
-            map[key] = {
+            if (!map[key]) map[key] = [];
+            map[key].push({
                 actorId: row[2],
                 name: row[3],
                 initials: row[4],
                 color: row[5],
                 type: row[6]
-            };
+            });
         });
         return map;
     },
 
+    /**
+     * Add an actor to a cell. Returns false if cell is full or actor already assigned.
+     */
+    addAssignment(choreId, dayIndex, actorId) {
+        const db = getDb();
+        const max = this.getMaxMarkersPerCell();
+
+        // Check current count
+        const countResult = db.exec(
+            "SELECT COUNT(*) FROM assignments WHERE chore_id = ? AND day_index = ?",
+            [choreId, dayIndex]
+        );
+        const count = countResult[0].values[0][0];
+        if (count >= max) return false;
+
+        // Check for duplicate
+        const dupResult = db.exec(
+            "SELECT COUNT(*) FROM assignments WHERE chore_id = ? AND day_index = ? AND actor_id = ?",
+            [choreId, dayIndex, actorId]
+        );
+        if (dupResult[0].values[0][0] > 0) return false;
+
+        db.run(
+            "INSERT INTO assignments (chore_id, day_index, actor_id) VALUES (?, ?, ?)",
+            [choreId, dayIndex, actorId]
+        );
+        saveDatabase();
+        return true;
+    },
+
+    /**
+     * Remove a specific actor from a cell.
+     */
+    removeAssignment(choreId, dayIndex, actorId) {
+        const db = getDb();
+        db.run(
+            "DELETE FROM assignments WHERE chore_id = ? AND day_index = ? AND actor_id = ?",
+            [choreId, dayIndex, actorId]
+        );
+        saveDatabase();
+    },
+
+    /**
+     * Legacy single-assignment: clear cell then set one actor.
+     */
     setAssignment(choreId, dayIndex, actorId) {
         const db = getDb();
-        db.run(`
-            INSERT INTO assignments (chore_id, day_index, actor_id)
-            VALUES (?, ?, ?)
-            ON CONFLICT(chore_id, day_index) DO UPDATE SET actor_id = excluded.actor_id
-        `, [choreId, dayIndex, actorId]);
+        db.run("DELETE FROM assignments WHERE chore_id = ? AND day_index = ?", [choreId, dayIndex]);
+        db.run(
+            "INSERT INTO assignments (chore_id, day_index, actor_id) VALUES (?, ?, ?)",
+            [choreId, dayIndex, actorId]
+        );
         saveDatabase();
     },
 
@@ -199,5 +249,16 @@ const ChoreRepository = {
 
     setWeekStartDay(day) {
         this.setSetting('week_start_day', day);
+    },
+
+    getMaxMarkersPerCell() {
+        const val = this.getSetting('max_markers_per_cell');
+        const n = parseInt(val, 10);
+        return isNaN(n) ? 2 : Math.max(0, Math.min(32, n));
+    },
+
+    setMaxMarkersPerCell(n) {
+        const clamped = Math.max(0, Math.min(32, parseInt(n, 10) || 2));
+        this.setSetting('max_markers_per_cell', String(clamped));
     }
 };

@@ -33,6 +33,7 @@ async function initDatabase() {
     // Run migrations / ensure schema
     createSchema(_db);
     migrateToActors(_db);
+    migrateMultiAssign(_db);
 
     return _db;
 }
@@ -71,7 +72,7 @@ function createSchema(db) {
             actor_id INTEGER NOT NULL,
             FOREIGN KEY (chore_id) REFERENCES chores(id) ON DELETE CASCADE,
             FOREIGN KEY (actor_id) REFERENCES actors(id) ON DELETE CASCADE,
-            UNIQUE(chore_id, day_index)
+            UNIQUE(chore_id, day_index, actor_id)
         );
     `);
 
@@ -104,6 +105,7 @@ function createSchema(db) {
         db.run("INSERT INTO settings (key, value) VALUES ('week_start_day', 'Mon')");
         db.run("INSERT INTO settings (key, value) VALUES ('chart_title', 'Chore Chart')");
         db.run("INSERT INTO settings (key, value) VALUES ('chart_subtitle', 'Digital Magnetic Board')");
+        db.run("INSERT INTO settings (key, value) VALUES ('max_markers_per_cell', '2')");
     }
 }
 
@@ -139,7 +141,7 @@ function migrateToActors(db) {
                 actor_id INTEGER NOT NULL,
                 FOREIGN KEY (chore_id) REFERENCES chores(id) ON DELETE CASCADE,
                 FOREIGN KEY (actor_id) REFERENCES actors(id) ON DELETE CASCADE,
-                UNIQUE(chore_id, day_index)
+                UNIQUE(chore_id, day_index, actor_id)
             )`);
             db.run(`INSERT INTO assignments_new (id, chore_id, day_index, actor_id)
                      SELECT id, chore_id, day_index, person_id FROM assignments`);
@@ -150,6 +152,51 @@ function migrateToActors(db) {
 
     // Drop legacy table
     db.run("DROP TABLE IF EXISTS people");
+    saveDatabase();
+}
+
+/**
+ * Migrate single-assignment constraint to multi-assignment.
+ * Changes UNIQUE(chore_id, day_index) → UNIQUE(chore_id, day_index, actor_id)
+ * Safe to run multiple times.
+ */
+function migrateMultiAssign(db) {
+    // Check current unique constraint via index info
+    const indexes = db.exec(
+        "SELECT sql FROM sqlite_master WHERE type='index' AND tbl_name='assignments'"
+    );
+    // Also check the CREATE TABLE sql for inline UNIQUE
+    const tableSql = db.exec(
+        "SELECT sql FROM sqlite_master WHERE type='table' AND name='assignments'"
+    );
+    if (!tableSql.length || !tableSql[0].values.length) return;
+    const createSql = tableSql[0].values[0][0];
+
+    // If already has the 3-column unique, skip
+    if (createSql.includes('UNIQUE(chore_id, day_index, actor_id)') ||
+        createSql.includes('UNIQUE (chore_id, day_index, actor_id)')) return;
+
+    // Need migration: recreate with new constraint
+    db.run(`CREATE TABLE assignments_multi (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        chore_id INTEGER NOT NULL,
+        day_index INTEGER NOT NULL,
+        actor_id INTEGER NOT NULL,
+        FOREIGN KEY (chore_id) REFERENCES chores(id) ON DELETE CASCADE,
+        FOREIGN KEY (actor_id) REFERENCES actors(id) ON DELETE CASCADE,
+        UNIQUE(chore_id, day_index, actor_id)
+    )`);
+    db.run(`INSERT INTO assignments_multi (id, chore_id, day_index, actor_id)
+             SELECT id, chore_id, day_index, actor_id FROM assignments`);
+    db.run("DROP TABLE assignments");
+    db.run("ALTER TABLE assignments_multi RENAME TO assignments");
+
+    // Seed max_markers_per_cell if not present
+    const existing = db.exec("SELECT value FROM settings WHERE key = 'max_markers_per_cell'");
+    if (!existing.length || !existing[0].values.length) {
+        db.run("INSERT INTO settings (key, value) VALUES ('max_markers_per_cell', '2')");
+    }
+
     saveDatabase();
 }
 
