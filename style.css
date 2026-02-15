@@ -1,0 +1,168 @@
+:root {
+    --bg-color: #f0f2f5;
+    --board-bg: #ffffff;
+    --board-grid: #e1e4e8;
+    --text-primary: #1c1e21;
+    --text-secondary: #65676b;
+    --accent-color: #0084ff;
+    --accent-hover: #0073e6;
+    --marker-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);
+    --marker-active-shadow: 0 10px 15px rgba(0,0,0,0.15), 0 4px 6px rgba(0,0,0,0.1);
+    --font-main: 'Inter', sans-serif;
+    --font-heading: 'Outfit', sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-main);
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    line-height: 1.5;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    min-height: 100vh;
+}
+
+.app-container {
+    width: 100%;
+    max-width: 1000px;
+    background: white;
+    padding: 40px;
+    border-radius: 24px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+}
+
+.app-header {
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.app-header h1 {
+    font-family: var(--font-heading);
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+}
+
+.subtitle {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    margin-top: 4px;
+}
+
+/* Board Layout */
+.board-wrapper {
+    overflow-x: auto;
+    margin-bottom: 30px;
+    border: 1px solid var(--board-grid);
+    border-radius: 12px;
+}
+
+.chore-board {
+    display: grid;
+    grid-template-columns: 200px repeat(7, 1fr);
+    min-width: 800px;
+    background: var(--board-bg);
+}
+
+/* Grid Cells */
+.board-cell {
+    padding: 15px;
+    border-bottom: 1px solid var(--board-grid);
+    border-right: 1px solid var(--board-grid);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 80px;
+}
+
+.board-cell.header {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.board-cell.chore-name {
+    justify-content: flex-start;
+    font-weight: 600;
+    background: #f8f9fa;
+    position: sticky;
+    left: 0;
+    z-index: 5;
+}
+
+/* Markers (The Magnets) */
+.marker {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: var(--accent-color);
+    box-shadow: var(--marker-shadow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    cursor: grab;
+    transition: transform 0.2s, box-shadow 0.2s;
+    user-select: none;
+}
+
+.marker:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--marker-active-shadow);
+}
+
+/* Footer / Controls */
+.app-footer {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.btn {
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: var(--accent-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--accent-hover);
+}
+
+.btn-secondary {
+    background: #e4e6eb;
+    color: var(--text-primary);
+}
+
+.btn-secondary:hover {
+    background: #d8dadf;
+}
+
+@media (max-width: 600px) {
+    .app-container {
+        padding: 20px;
+        border-radius: 0;
+    }
+}
