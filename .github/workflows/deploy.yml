@@ -2,36 +2,152 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: ["master"]
+    branches: ["**"]
+  release:
+    types: [published]
+  delete:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
 concurrency:
-  group: "pages"
+  group: "pages-deploy"
   cancel-in-progress: false
 
 jobs:
   deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    # Don't run on pushes to gh-pages itself
+    if: github.ref != 'refs/heads/gh-pages'
     steps:
-      - name: Checkout
+      - name: Checkout source
         uses: actions/checkout@v4
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          fetch-depth: 0
 
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      # ── Prepare gh-pages branch ──────────────────────────────
+      - name: Prepare gh-pages branch
+        run: |
+          # Fetch gh-pages if it exists, otherwise create an orphan
+          if git ls-remote --heads origin gh-pages | grep -q gh-pages; then
+            git fetch origin gh-pages
+            git worktree add ../gh-pages gh-pages
+          else
+            git worktree add --detach ../gh-pages
+            cd ../gh-pages
+            git checkout --orphan gh-pages
+            git rm -rf . 2>/dev/null || true
+            echo "# GitHub Pages" > README.md
+            echo '["stable"]' > branches.json
+            git add .
+            git commit -m "Initialize gh-pages"
+          fi
+
+      # ── Define app files to copy ─────────────────────────────
+      - name: Set app files list
+        run: |
+          # Only copy app files, not CI/workflow/test files
+          echo "APP_FILES=index.html app.js repository.js db.js style.css sw.js manifest.json" >> $GITHUB_ENV
+
+      # ── Handle branch push ───────────────────────────────────
+      - name: Deploy branch
+        if: github.event_name == 'push'
+        run: |
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          echo "Deploying branch: $BRANCH_NAME"
+
+          # Create branch directory in gh-pages
+          mkdir -p "../gh-pages/$BRANCH_NAME"
+
+          # Copy app files
+          for f in $APP_FILES; do
+            if [ -f "$f" ]; then
+              cp "$f" "../gh-pages/$BRANCH_NAME/"
+            fi
+          done
+
+          # Copy asset directories if they exist
+          for dir in icons screenshots; do
+            if [ -d "$dir" ]; then
+              cp -r "$dir" "../gh-pages/$BRANCH_NAME/"
+            fi
+          done
+
+          # Update branches.json manifest
+          cd ../gh-pages
+          # Build the list from directories that contain index.html
+          echo -n '["stable"' > branches.json
+          for dir in */; do
+            dir="${dir%/}"
+            if [ -f "$dir/index.html" ] && [ "$dir" != "stable" ]; then
+              echo -n ",\"$dir\"" >> branches.json
+            fi
+          done
+          echo ']' >> branches.json
+
+          git add .
+          git diff --cached --quiet || git commit -m "Deploy branch: $BRANCH_NAME"
+          git push origin gh-pages
+
+      # ── Handle release publish ───────────────────────────────
+      - name: Deploy release to root
+        if: github.event_name == 'release'
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          echo "Deploying release: $TAG"
+
+          # Check out the tagged version
+          git checkout "$TAG"
+
+          # Copy app files to gh-pages root
+          for f in $APP_FILES; do
+            if [ -f "$f" ]; then
+              cp "$f" "../gh-pages/"
+            fi
+          done
+
+          # Copy asset directories
+          for dir in icons screenshots; do
+            if [ -d "$dir" ]; then
+              cp -r "$dir" "../gh-pages/"
+            fi
+          done
+
+          cd ../gh-pages
+          git add .
+          git diff --cached --quiet || git commit -m "Deploy release: $TAG"
+          git push origin gh-pages
+
+      # ── Handle branch delete ─────────────────────────────────
+      - name: Clean up deleted branch
+        if: github.event_name == 'delete' && github.event.ref_type == 'branch'
+        run: |
+          BRANCH_NAME="${{ github.event.ref }}"
+          echo "Cleaning up branch: $BRANCH_NAME"
+
+          cd ../gh-pages
+          if [ -d "$BRANCH_NAME" ]; then
+            rm -rf "$BRANCH_NAME"
+
+            # Rebuild branches.json
+            echo -n '["stable"' > branches.json
+            for dir in */; do
+              dir="${dir%/}"
+              if [ -f "$dir/index.html" ] && [ "$dir" != "stable" ]; then
+                echo -n ",\"$dir\"" >> branches.json
+              fi
+            done
+            echo ']' >> branches.json
+
+            git add .
+            git diff --cached --quiet || git commit -m "Remove branch: $BRANCH_NAME"
+            git push origin gh-pages
+          fi

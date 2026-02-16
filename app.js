@@ -452,6 +452,56 @@ function openSettings() {
     toggleColor();
     shadingCheck.onclick = toggleColor;
 
+    // ── Channel Switcher ──────────────────────────────────────
+    const channelSelect = document.getElementById('channel-select');
+    channelSelect.innerHTML = '';
+
+    // Detect current channel from URL path
+    // Path is like /chore_chart/ (stable) or /chore_chart/master/ (branch)
+    const pathParts = window.location.pathname.replace(/\/$/, '').split('/');
+    const repoBase = '/chore_chart';
+    const afterBase = window.location.pathname.replace(repoBase, '').replace(/^\//, '').replace(/\/$/, '');
+    const currentChannel = afterBase || 'stable';
+
+    // Add a default option while loading
+    const loadingOpt = document.createElement('option');
+    loadingOpt.textContent = currentChannel === 'stable' ? '✦ Stable (release)' : currentChannel;
+    loadingOpt.value = currentChannel;
+    channelSelect.appendChild(loadingOpt);
+
+    // Fetch branches.json to populate dynamically
+    const baseUrl = window.location.origin + repoBase;
+    fetch(baseUrl + '/branches.json?' + Date.now())
+        .then(r => r.json())
+        .then(branches => {
+            channelSelect.innerHTML = '';
+            branches.forEach(branch => {
+                const opt = document.createElement('option');
+                opt.value = branch;
+                if (branch === 'stable') {
+                    opt.textContent = '✦ Stable (release)';
+                } else {
+                    opt.textContent = branch;
+                }
+                if (branch === currentChannel) opt.selected = true;
+                channelSelect.appendChild(opt);
+            });
+        })
+        .catch(() => {
+            // If fetch fails (local dev / offline), keep the single option
+        });
+
+    // Navigate on channel change
+    channelSelect.onchange = () => {
+        const selected = channelSelect.value;
+        if (selected === currentChannel) return;
+        if (selected === 'stable') {
+            window.location.href = baseUrl + '/';
+        } else {
+            window.location.href = baseUrl + '/' + selected + '/';
+        }
+    };
+
     modal.classList.remove('hidden');
 }
 
