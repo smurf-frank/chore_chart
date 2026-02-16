@@ -864,6 +864,38 @@
             });
         });
 
+        // ── Chore Reordering ────────────────────────────────────
+        describe('Chore Reordering', () => {
+            beforeEach(() => { createSchema(_db); });
+
+            it('updateChoreOrders() should update sort_order in database', () => {
+                const chores = ChoreRepository.getAllChores();
+                const originalIds = chores.map(c => c.id);
+                const reorderedIds = [originalIds[1], originalIds[0], ...originalIds.slice(2)];
+
+                ChoreRepository.updateChoreOrders(reorderedIds);
+
+                const updatedChores = ChoreRepository.getAllChores();
+                expect(updatedChores[0].id).toBe(reorderedIds[0]);
+                expect(updatedChores[1].id).toBe(reorderedIds[1]);
+                expect(updatedChores[0].sortOrder).toBe(1);
+                expect(updatedChores[1].sortOrder).toBe(2);
+            });
+
+            it('getAllChores() should return chores in sort_order', () => {
+                const chores = ChoreRepository.getAllChores();
+                const ids = chores.map(c => c.id);
+                // Move last to first
+                const lastId = ids.pop();
+                const newOrder = [lastId, ...ids];
+
+                ChoreRepository.updateChoreOrders(newOrder);
+                const result = ChoreRepository.getAllChores();
+                expect(result[0].id).toBe(lastId);
+                expect(result[0].sortOrder).toBe(1);
+            });
+        });
+
         // ── Run ─────────────────────────────────────────────────
         runTests();
     </script>
