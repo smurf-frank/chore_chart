@@ -8,8 +8,9 @@ test('run browser unit tests', async ({ page }) => {
 
     // Wait for the final summary to appear (indicating tests finished)
     // The summary div is populated at the end of runTests()
+    // Wait for the final summary to appear and show results (no longer "Running...")
     const summary = page.locator('#summary');
-    await expect(summary).toBeVisible({ timeout: 10000 });
+    await expect(summary).not.toContainText('Running...', { timeout: 15000 });
 
     // Get the text content of the summary
     const summaryText = await summary.innerText();
