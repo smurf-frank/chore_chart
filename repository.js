@@ -144,6 +144,23 @@ const ChoreRepository = {
     },
 
     /**
+     * Update a chore's fields.
+     * @param {number} id
+     * @param {{name?, sortOrder?}} fields
+     */
+    updateChore(id, fields) {
+        const db = getDb();
+        const sets = [];
+        const params = [];
+        if (fields.name !== undefined) { sets.push("name = ?"); params.push(fields.name); }
+        if (fields.sortOrder !== undefined) { sets.push("sort_order = ?"); params.push(fields.sortOrder); }
+        if (!sets.length) return;
+        params.push(id);
+        db.run(`UPDATE chores SET ${sets.join(', ')} WHERE id = ?`, params);
+        saveDatabase();
+    },
+
+    /**
      * Update the sort_order for a list of chore IDs.
      * @param {number[]} orderedIds 
      */

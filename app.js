@@ -76,9 +76,21 @@ function renderBoard() {
         nameCell.dataset.choreId = chore.id;
         nameCell.dataset.index = index;
 
-        const nameSpan = document.createElement('span');
-        nameSpan.textContent = chore.name;
-        nameCell.appendChild(nameSpan);
+        const nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.className = 'chore-name-input';
+        nameInput.value = chore.name;
+        nameInput.maxLength = 128;
+        nameInput.addEventListener('change', () => {
+            const newName = nameInput.value.trim();
+            if (newName && newName !== chore.name) {
+                ChoreRepository.updateChore(chore.id, { name: newName });
+                renderBoard();
+            } else {
+                nameInput.value = chore.name;
+            }
+        });
+        nameCell.appendChild(nameInput);
 
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'chore-delete-btn';

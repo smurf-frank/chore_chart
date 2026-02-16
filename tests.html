@@ -896,6 +896,31 @@
             });
         });
 
+        // ── Chore Modification ───────────────────────────────────
+        describe('Chore Modification', () => {
+            beforeEach(() => { createSchema(_db); });
+
+            it('updateChore() should update chore name', () => {
+                const chores = ChoreRepository.getAllChores();
+                const id = chores[0].id;
+                ChoreRepository.updateChore(id, { name: 'Clean Windows' });
+
+                const result = ChoreRepository.getAllChores();
+                const updated = result.find(c => c.id === id);
+                expect(updated.name).toBe('Clean Windows');
+            });
+
+            it('updateChore() should update sortOrder', () => {
+                const chores = ChoreRepository.getAllChores();
+                const id = chores[0].id;
+                ChoreRepository.updateChore(id, { sortOrder: 99 });
+
+                const result = ChoreRepository.getAllChores();
+                const updated = result.find(c => c.id === id);
+                expect(updated.sortOrder).toBe(99);
+            });
+        });
+
         // ── Run ─────────────────────────────────────────────────
         runTests();
     </script>
