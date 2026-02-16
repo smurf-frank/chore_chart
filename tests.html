@@ -196,6 +196,9 @@
                     let threw = false;
                     try { actual(); } catch (e) { threw = true; }
                     if (!threw) throw new Error('Expected function to throw');
+                },
+                toBeUndefined() {
+                    if (actual !== undefined) throw new Error(`Expected undefined, got ${JSON.stringify(actual)}`);
                 }
             };
         }
@@ -921,7 +924,22 @@
             });
 
             it('should be able to sort chores alphabetically (A-Z and Z-A)', () => {
-                // ... existing test ...
+                // Clear and add specific chores
+                _db.run("DELETE FROM chores");
+                _db.run("DELETE FROM assignments");
+                ChoreRepository.addChore('Zebra');
+                ChoreRepository.addChore('Apple');
+                ChoreRepository.addChore('Banana');
+
+                let chores = ChoreRepository.getAllChores();
+
+                // Ascending sort
+                chores.sort((a, b) => a.name.localeCompare(b.name));
+                ChoreRepository.updateChoreOrders(chores.map(c => c.id));
+                let result = ChoreRepository.getAllChores();
+                expect(result[0].name).toBe('Apple');
+                expect(result[2].name).toBe('Zebra');
+
                 // Descending sort
                 chores.sort((a, b) => b.name.localeCompare(a.name));
                 ChoreRepository.updateChoreOrders(chores.map(c => c.id));
@@ -967,7 +985,9 @@
 
             it('should fail to move if target cell is full', () => {
                 // Set max to 1
-                ChoreRepository.saveSetting('max_markers', 1);
+                ChoreRepository.setSetting('max_markers_per_cell', 1); // direct setting access or use helper if exists?
+                // Wait, repository has setMaxMarkersPerCell(n) which sets 'max_markers_per_cell'
+                ChoreRepository.setMaxMarkersPerCell(1);
 
                 const people = ChoreRepository.getAllPeople();
                 const chores = ChoreRepository.getAllChores();
