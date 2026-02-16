@@ -81,4 +81,9 @@ graph LR
 ### Pull Request Protocol
 1.  **Update Master Status**: Before submitting a PR, `MASTER_STATUS.md` must be updated to reflect all work done in that branch. This ensures the living document is always in sync with the codebase.
 
+### Versioning
+-   **Semantic Versioning**: The project follows [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
+-   **Current Version**: `v0.0.1` (Initial Release).
+
+
 

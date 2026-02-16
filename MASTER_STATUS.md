@@ -8,6 +8,7 @@
 
 ### Active Sprint / Phase
 **Phase Name**: Project Initialization
+**Version**: v0.0.1
 **Dates**: 2026-02-15 → 2026-02-16
 
 ### This Week's Priority
@@ -73,3 +74,4 @@
 | 2026-02-15 | Antigravity | Implemented comprehensive Group Management (Nesting, Members Menu, Settings UI). |
 | 2026-02-15 | Antigravity | Added Customizable Row Shading (Visuals settings). |
 | 2026-02-15 | Antigravity | Converted to PWA and configured GitHub Pages deployment. |
+| 2026-02-15 | Antigravity | Established SemVer v0.0.1 release baseline. |
