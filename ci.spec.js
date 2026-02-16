@@ -23,5 +23,17 @@ test('run browser unit tests', async ({ page }) => {
 
     // Also verify no "failed" class in the summary (just in case title check isn't enough)
     const failCount = await page.locator('#summary .fail').count();
+
+    // Capture visual and HTML results for the report artifacts
+    await test.info().attach('unit-test-results-screenshot', {
+        body: await page.screenshot({ fullPage: true }),
+        contentType: 'image/png'
+    });
+
+    await test.info().attach('unit-test-results-html', {
+        body: await page.content(),
+        contentType: 'text/html'
+    });
+
     expect(failCount).toBe(0);
 });
