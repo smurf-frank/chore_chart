@@ -77,4 +77,5 @@
 | 2026-02-15 | Antigravity | Converted to PWA and configured GitHub Pages deployment. |
 | 2026-02-15 | Antigravity | Established SemVer v0.0.1 release baseline. |
 | 2026-02-15 | Antigravity | Refined grid layout for tablets (resizable columns, compact rows). |
+| 2026-02-15 | Antigravity | Added full-name tooltips to chore cells on hover. |
 | 2026-02-15 | Antigravity | Created Android Installation Guide (`docs/ANDROID_INSTALL.md`). |

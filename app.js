@@ -146,6 +146,7 @@ function renderBoard() {
         nameInput.type = 'text';
         nameInput.className = 'chore-name-input';
         nameInput.value = chore.name;
+        nameInput.title = chore.name; // Full name on hover
         nameInput.maxLength = 128;
         nameInput.addEventListener('change', () => {
             const newName = nameInput.value.trim();
