@@ -299,20 +299,19 @@ function renderPalette() {
     const container = document.getElementById('palette-markers');
     container.innerHTML = '';
 
-    const actors = ChoreRepository.getAllActors();
-    actors.forEach(actor => {
+    const people = ChoreRepository.getAllPeople();
+    people.forEach(person => {
         const marker = document.createElement('div');
         marker.className = 'marker marker-palette';
-        marker.style.backgroundColor = actor.color;
-        marker.textContent = actor.initials;
-        marker.title = `Drag ${actor.name} to a cell`;
+        marker.style.backgroundColor = person.color;
+        marker.textContent = person.initials;
+        marker.title = `Drag ${person.name} to a cell`;
         marker.draggable = true;
 
         marker.addEventListener('dragstart', (e) => {
-            e.dataTransfer.setData('text/plain', String(actor.id));
+            e.dataTransfer.setData('text/plain', String(person.id));
             e.dataTransfer.effectAllowed = 'copy';
             marker.classList.add('dragging');
-            // Highlight valid targets
             document.querySelectorAll('.assignment-cell:not(.cell-full)').forEach(c => {
                 c.classList.add('drop-target');
             });
@@ -330,7 +329,42 @@ function renderPalette() {
         container.appendChild(marker);
     });
 
-    if (!actors.length) {
+    // Render Groups in Palette (if enabled)
+    const groups = ChoreRepository.getAllGroups();
+    let visibleGroups = 0;
+    groups.forEach(group => {
+        if (!group.showAsMarker) return;
+        visibleGroups++;
+
+        const marker = document.createElement('div');
+        marker.className = 'marker marker-palette marker-group';
+        marker.style.backgroundColor = group.color;
+        marker.textContent = group.initials;
+        marker.title = `Group: ${group.name}`;
+        marker.draggable = true;
+
+        marker.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', String(group.id));
+            e.dataTransfer.effectAllowed = 'copy';
+            marker.classList.add('dragging');
+            document.querySelectorAll('.assignment-cell:not(.cell-full)').forEach(c => {
+                c.classList.add('drop-target');
+            });
+        });
+        marker.addEventListener('dragend', () => {
+            marker.classList.remove('dragging');
+            document.querySelectorAll('.drop-target').forEach(c => {
+                c.classList.remove('drop-target');
+            });
+            document.querySelectorAll('.drag-over').forEach(c => {
+                c.classList.remove('drag-over');
+            });
+        });
+
+        container.appendChild(marker);
+    });
+
+    if (!people.length && !visibleGroups) {
         container.innerHTML = '<span class="palette-empty">No people yet — add in Settings</span>';
     }
 }
@@ -350,6 +384,7 @@ function openSettings() {
     maxInput.value = ChoreRepository.getMaxMarkersPerCell();
 
     renderPeopleList();
+    renderGroupsList();
     modal.classList.remove('hidden');
 }
 
@@ -452,10 +487,207 @@ function renderPeopleList() {
         item.appendChild(deleteBtn);
         container.appendChild(item);
     });
+}
 
-    if (!people.length) {
-        container.innerHTML = '<div style="color: var(--text-secondary); font-size: 0.85rem; padding: 8px 0;">No people added yet.</div>';
+// ── Groups Manager ──────────────────────────────────────────
+
+function renderGroupsList() {
+    const container = document.getElementById('groups-list');
+    if (!container) return; // Guard if element missing
+    container.innerHTML = '';
+
+    const groups = ChoreRepository.getAllGroups();
+    const people = ChoreRepository.getAllPeople();
+
+    groups.forEach(group => {
+        const item = document.createElement('div');
+        item.className = 'group-item-editable';
+        // Add specific style for group items (e.g. border or background)
+        item.style.marginBottom = '12px';
+        item.style.padding = '10px';
+        item.style.border = '1px solid var(--border)';
+        item.style.borderRadius = '8px';
+        item.style.background = 'rgba(255, 255, 255, 0.02)';
+
+        // Header Row: Color | Name | Initials | Delete
+        const headerRow = document.createElement('div');
+        headerRow.style.display = 'flex';
+        headerRow.style.gap = '8px';
+        headerRow.style.alignItems = 'center';
+        headerRow.style.marginBottom = '8px';
+
+        // Color
+        const colorInput = document.createElement('input');
+        colorInput.type = 'color';
+        colorInput.className = 'color-input-sm';
+        colorInput.value = group.color;
+        colorInput.addEventListener('change', () => {
+            ChoreRepository.updateGroup(group.id, { color: colorInput.value });
+            renderPalette();
+            renderBoard();
+        });
+
+        // Name
+        const nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.className = 'text-input text-input-sm';
+        nameInput.value = group.name;
+        nameInput.placeholder = 'Group Name';
+        nameInput.addEventListener('change', () => {
+            const val = nameInput.value.trim();
+            if (val) {
+                ChoreRepository.updateGroup(group.id, { name: val });
+                renderPalette();
+                renderBoard();
+            } else {
+                nameInput.value = group.name;
+            }
+        });
+
+        // Initials
+        const initialsInput = document.createElement('input');
+        initialsInput.type = 'text';
+        initialsInput.className = 'text-input text-input-sm';
+        initialsInput.value = group.initials;
+        initialsInput.placeholder = 'GRP';
+        initialsInput.maxLength = 3;
+        initialsInput.style.width = '50px';
+        initialsInput.addEventListener('change', () => {
+            const val = initialsInput.value.trim().toUpperCase();
+            if (val) {
+                ChoreRepository.updateGroup(group.id, { initials: val });
+                renderPalette();
+                renderBoard();
+            } else {
+                initialsInput.value = group.initials;
+            }
+        });
+
+        // Delete
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'btn-delete';
+        deleteBtn.textContent = '✕';
+        deleteBtn.addEventListener('click', () => {
+            if (confirm(`Remove group "${group.name}"?`)) {
+                ChoreRepository.removeActor(group.id);
+                renderGroupsList();
+                renderPalette();
+                renderBoard();
+            }
+        });
+
+        headerRow.appendChild(colorInput);
+        headerRow.appendChild(nameInput);
+        headerRow.appendChild(initialsInput);
+        headerRow.appendChild(deleteBtn);
+        item.appendChild(headerRow);
+
+        // Options Row: Show as Marker | Membership
+        const optionsRow = document.createElement('div');
+        optionsRow.style.display = 'flex';
+        optionsRow.style.flexDirection = 'column';
+        optionsRow.style.gap = '8px';
+        optionsRow.style.fontSize = '0.9rem';
+
+        // Toggle Marker
+        const markerLabel = document.createElement('label');
+        markerLabel.style.display = 'flex';
+        markerLabel.style.alignItems = 'center';
+        markerLabel.style.gap = '6px';
+        markerLabel.style.cursor = 'pointer';
+
+        const markerCheck = document.createElement('input');
+        markerCheck.type = 'checkbox';
+        markerCheck.checked = group.showAsMarker;
+        markerCheck.addEventListener('change', () => {
+            ChoreRepository.updateGroup(group.id, { showAsMarker: markerCheck.checked });
+            renderPalette();
+        });
+
+        markerLabel.appendChild(markerCheck);
+        markerLabel.appendChild(document.createTextNode('Show as transferable marker'));
+        optionsRow.appendChild(markerLabel);
+
+        // Members Selection
+        const membersLabel = document.createElement('div');
+        membersLabel.textContent = 'Members:';
+        membersLabel.style.fontWeight = '500';
+        membersLabel.style.marginTop = '4px';
+        optionsRow.appendChild(membersLabel);
+
+        const membersContainer = document.createElement('div');
+        membersContainer.style.display = 'flex';
+        membersContainer.style.flexWrap = 'wrap';
+        membersContainer.style.gap = '6px';
+
+        people.forEach(person => {
+            const isMember = group.memberIds.includes(person.id);
+            const chip = document.createElement('div');
+            chip.textContent = person.initials;
+            chip.title = person.name;
+            chip.style.padding = '2px 6px';
+            chip.style.borderRadius = '4px';
+            chip.style.fontSize = '0.8rem';
+            chip.style.cursor = 'pointer';
+            chip.style.border = `1px solid ${person.color}`;
+
+            if (isMember) {
+                chip.style.backgroundColor = person.color;
+                chip.style.color = '#fff'; // Assuming dark bg needs light text, simplistic
+                // Improve contrast logic later if needed
+            } else {
+                chip.style.backgroundColor = 'transparent';
+                chip.style.color = 'var(--text)';
+            }
+
+            chip.addEventListener('click', () => {
+                let newMembers = [...group.memberIds];
+                if (isMember) {
+                    newMembers = newMembers.filter(id => id !== person.id);
+                } else {
+                    newMembers.push(person.id);
+                }
+                ChoreRepository.updateGroup(group.id, { memberIds: newMembers });
+                renderGroupsList(); // Re-render to update UI
+            });
+
+            membersContainer.appendChild(chip);
+        });
+
+        optionsRow.appendChild(membersContainer);
+        item.appendChild(optionsRow);
+        container.appendChild(item);
+    });
+
+    if (!groups.length) {
+        container.innerHTML = '<div style="color: var(--text-secondary); font-size: 0.85rem; padding: 8px 0;">No groups added yet.</div>';
     }
+}
+
+function addGroup() {
+    const nameInput = document.getElementById('new-group-name');
+    const initialsInput = document.getElementById('new-group-initials');
+    const colorInput = document.getElementById('new-group-color');
+
+    const name = nameInput.value.trim();
+    const initials = initialsInput.value.trim().toUpperCase();
+    const color = colorInput.value;
+
+    if (!name) { nameInput.focus(); return; }
+    if (!initials) { initialsInput.focus(); return; }
+
+    ChoreRepository.addGroup(name, initials, color);
+    nameInput.value = '';
+    initialsInput.value = '';
+
+    // Rotate to a new default color
+    const colors = ['#00cec9', '#fab1a0', '#00b894', '#fd79a8', '#6c5ce7', '#ffeaa7'];
+    const groups = ChoreRepository.getAllGroups();
+    colorInput.value = colors[groups.length % colors.length];
+
+    renderGroupsList();
+    renderPalette();
+    renderBoard();
 }
 
 function addPerson() {
@@ -507,6 +739,12 @@ function bindEvents() {
 
     // People Manager
     document.getElementById('add-person-btn').addEventListener('click', addPerson);
+
+    // Group Manager
+    const addGroupBtn = document.getElementById('add-group-btn');
+    if (addGroupBtn) {
+        addGroupBtn.addEventListener('click', addGroup);
+    }
 
     // Enter key in add-person form
     document.getElementById('new-person-initials').addEventListener('keydown', (e) => {

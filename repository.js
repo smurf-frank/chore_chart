@@ -103,11 +103,25 @@ const ChoreRepository = {
     },
 
     /**
-     * Remove an actor and their assignments.
+     * Remove an actor (person or group).
+     * If removing a person, also remove them from any groups they are in.
      */
     removeActor(id) {
         const db = getDb();
+
+        // 1. Remove from assignments
         db.run("DELETE FROM assignments WHERE actor_id = ?", [id]);
+
+        // 2. Remove from groups (if this actor was a member)
+        const groups = this.getAllGroups();
+        groups.forEach(group => {
+            if (group.memberIds && group.memberIds.includes(id)) {
+                const newMembers = group.memberIds.filter(m => m !== id);
+                this.updateActor(group.id, { metadata: { ...group.metadata, memberIds: newMembers } });
+            }
+        });
+
+        // 3. Delete the actor itself
         db.run("DELETE FROM actors WHERE id = ?", [id]);
         saveDatabase();
     },
@@ -115,6 +129,68 @@ const ChoreRepository = {
     // Legacy alias
     removePerson(id) {
         this.removeActor(id);
+    },
+
+    // ── Groups ──────────────────────────────────────────────
+
+    getAllGroups() {
+        const groups = this.getAllActors('group');
+        return groups.map(g => ({
+            ...g,
+            showAsMarker: !!g.metadata.showAsMarker,
+            memberIds: g.metadata.memberIds || []
+        }));
+    },
+
+    addGroup(name, initials, color, showAsMarker = false, memberIds = []) {
+        this.addActor('group', name, initials, color, {
+            showAsMarker,
+            memberIds
+        });
+    },
+
+    updateGroup(id, fields) {
+        // Map top-level fields to metadata if needed
+        const metaUpdates = {};
+        if (fields.showAsMarker !== undefined) metaUpdates.showAsMarker = fields.showAsMarker;
+        if (fields.memberIds !== undefined) metaUpdates.memberIds = fields.memberIds;
+
+        // If we have other metadata updates, merge them
+        if (fields.metadata) {
+            Object.assign(metaUpdates, fields.metadata);
+        }
+
+        const actorUpdates = {};
+        if (fields.name !== undefined) actorUpdates.name = fields.name;
+        if (fields.initials !== undefined) actorUpdates.initials = fields.initials;
+        if (fields.color !== undefined) actorUpdates.color = fields.color;
+
+        if (Object.keys(metaUpdates).length > 0) {
+            // We need to merge with existing metadata to not lose data
+            // But updateActor overwrites metadata.
+            // Wait, updateActor implementation:
+            // if (fields.metadata !== undefined) { sets.push("metadata = ?"); params.push(JSON.stringify(fields.metadata)); }
+            // It completely replaces metadata.
+            // So we must fetch current first?
+            // Actually, let's optimize updateActor to merge?
+            // No, avoid changing core too much. existing usage might rely on overwrite.
+            // Let's safe-merge here.
+
+            const current = this.getAllActors().find(a => a.id === id);
+            if (current) {
+                actorUpdates.metadata = { ...current.metadata, ...metaUpdates };
+            }
+        }
+
+        this.updateActor(id, actorUpdates);
+    },
+
+    getGroupMembers(groupId) {
+        const group = this.getAllGroups().find(g => g.id === groupId);
+        if (!group || !group.memberIds.length) return [];
+
+        const allPeople = this.getAllPeople();
+        return allPeople.filter(p => group.memberIds.includes(p.id));
     },
 
     // ── Chores ──────────────────────────────────────────────

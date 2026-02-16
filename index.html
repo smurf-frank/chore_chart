@@ -96,6 +96,21 @@
                     </div>
                     <hr class="setting-divider">
                     <div class="setting-section">
+                        <label class="section-label">Groups</label>
+                        <div id="groups-list" class="people-list">
+                            <!-- Dynamically populated -->
+                        </div>
+                        <div class="add-person-form" id="add-group-form">
+                            <input type="text" id="new-group-name" class="text-input text-input-sm" maxlength="128"
+                                placeholder="Group Name">
+                            <input type="text" id="new-group-initials" class="text-input text-input-sm"
+                                placeholder="GRP" maxlength="3" style="width: 60px;">
+                            <input type="color" id="new-group-color" class="color-input" value="#00cec9">
+                            <button id="add-group-btn" class="btn btn-primary btn-sm">+</button>
+                        </div>
+                    </div>
+                    <hr class="setting-divider">
+                    <div class="setting-section">
                         <label class="section-label">Danger Zone</label>
                         <button id="reset-board-btn" class="btn btn-danger">Reset Board</button>
                         <p class="setting-hint">Clears all assignments for the week.</p>

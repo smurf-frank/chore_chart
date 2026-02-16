@@ -1015,6 +1015,67 @@
             });
         });
 
+        // ── Group Management ────────────────────────────────────
+        describe('Group Management', () => {
+            beforeEach(() => {
+                createSchema(_db);
+                // Add some people
+                ChoreRepository.addPerson('Bob', 'BOB', '#000000');
+                ChoreRepository.addPerson('Alice', 'ALC', '#ffffff');
+            });
+
+            it('should add a group', () => {
+                ChoreRepository.addGroup('Kids', 'KDS', '#ff0000', true, []);
+                const groups = ChoreRepository.getAllGroups();
+                expect(groups.length).toBe(1);
+                expect(groups[0].name).toBe('Kids');
+                expect(groups[0].type).toBe('group');
+                expect(groups[0].showAsMarker).toBe(true);
+            });
+
+            it('should add members to a group', () => {
+                const people = ChoreRepository.getAllPeople();
+                const bob = people.find(p => p.name === 'Bob');
+
+                ChoreRepository.addGroup('Drivers', 'DRV', '#00ff00', false, [bob.id]);
+
+                const groups = ChoreRepository.getAllGroups();
+                const members = ChoreRepository.getGroupMembers(groups[0].id);
+
+                expect(members.length).toBe(1);
+                expect(members[0].name).toBe('Bob');
+            });
+
+            it('removeActor() should remove person from groups', () => {
+                const people = ChoreRepository.getAllPeople();
+                const bob = people.find(p => p.name === 'Bob');
+
+                ChoreRepository.addGroup('Team', 'TM', '#0000ff', false, [bob.id]);
+                let groups = ChoreRepository.getAllGroups();
+                expect(groups[0].memberIds.includes(bob.id)).toBe(true);
+
+                // Remove Bob
+                ChoreRepository.removeActor(bob.id);
+
+                // Verify Bob is gone from group
+                groups = ChoreRepository.getAllGroups();
+                expect(groups[0].memberIds.includes(bob.id)).toBe(false);
+                expect(groups[0].memberIds.length).toBe(0);
+            });
+
+            it('should update group details', () => {
+                ChoreRepository.addGroup('Old Name', 'OLD', '#000000');
+                const groups = ChoreRepository.getAllGroups();
+                const id = groups[0].id;
+
+                ChoreRepository.updateGroup(id, { name: 'New Name', showAsMarker: true });
+
+                const updated = ChoreRepository.getAllGroups()[0];
+                expect(updated.name).toBe('New Name');
+                expect(updated.showAsMarker).toBe(true);
+            });
+        });
+
         // ── Run ─────────────────────────────────────────────────
         runTests();
     </script>

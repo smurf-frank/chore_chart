@@ -684,3 +684,21 @@ body {
         border-radius: 0;
     }
 }
+
+/* Group Management */
+.group-item-editable {
+    margin-bottom: 12px;
+    padding: 12px;
+    /* Use a subtle background to distinguish groups */
+    background: #f8f9fa;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+}
+
+.marker-group {
+    /* Optional: distinct shape or border for group markers */
+    border-radius: 6px;
+    /* Slightly squarer than round people markers? or keep consistent */
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    font-weight: 800;
+}
