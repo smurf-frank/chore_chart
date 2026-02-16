@@ -46,7 +46,6 @@ body {
 
 .app-header {
     margin-bottom: 30px;
-    text-align: center;
 }
 
 .app-header h1 {
@@ -155,8 +154,10 @@ body {
     transition: background 0.2s, box-shadow 0.2s;
 }
 
-.board-cell.chore-name:active {
-    cursor: grabbing;
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 .board-cell.chore-name.dragging-chore {

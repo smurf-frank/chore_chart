@@ -383,8 +383,8 @@ function openSettings() {
     subtitleInput.value = ChoreRepository.getSetting('chart_subtitle') || 'Digital Magnetic Board';
     maxInput.value = ChoreRepository.getMaxMarkersPerCell();
 
-    renderPeopleList();
-    renderGroupsList();
+    maxInput.value = ChoreRepository.getMaxMarkersPerCell();
+
     modal.classList.remove('hidden');
 }
 
@@ -798,7 +798,28 @@ function bindEvents() {
 
     // Close modal on overlay click
     document.getElementById('settings-modal').addEventListener('click', (e) => {
-        if (e.target === e.currentTarget) closeSettings();
+        if (e.target === document.getElementById('settings-modal')) closeSettings();
+    });
+
+    // Members Modal
+    const membersModal = document.getElementById('members-modal-overlay');
+
+    function openMembers() {
+        renderPeopleList();
+        renderGroupsList();
+        membersModal.classList.remove('hidden');
+    }
+
+    function closeMembers() {
+        membersModal.classList.add('hidden');
+    }
+
+    document.getElementById('members-btn').addEventListener('click', openMembers);
+    document.getElementById('members-close-btn').addEventListener('click', closeMembers);
+    document.getElementById('members-done-btn').addEventListener('click', closeMembers);
+
+    membersModal.addEventListener('click', (e) => {
+        if (e.target === membersModal) closeMembers();
     });
 
     // People Manager
