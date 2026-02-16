@@ -47,6 +47,7 @@
         - **Members Menu**: Dedicated modal for managing People & Groups.
     - **Settings UI**: Scrollable modal, collapsible sections, fixed layout bugs.
     - **Visuals**: Customizable alternating row shading (toggle & color picker).
+    - **Grid Layout**: Optimized for tablets (half-height rows, full width, resizable chore column).
     - **PWA**: Fully fully installable (Manifest + Service Worker) with offline support.
     - **Persistence**: Data saved to `localstorage` via `sql.js`.
 
@@ -75,4 +76,6 @@
 | 2026-02-15 | Antigravity | Added Customizable Row Shading (Visuals settings). |
 | 2026-02-15 | Antigravity | Converted to PWA and configured GitHub Pages deployment. |
 | 2026-02-15 | Antigravity | Established SemVer v0.0.1 release baseline. |
+| 2026-02-15 | Antigravity | Refined grid layout for tablets (resizable columns, compact rows). |
+| 2026-02-15 | Antigravity | Added full-name tooltips to chore cells on hover. |
 | 2026-02-15 | Antigravity | Created Android Installation Guide (`docs/ANDROID_INSTALL.md`). |

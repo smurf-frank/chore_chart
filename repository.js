@@ -471,5 +471,14 @@ const ChoreRepository = {
 
     setRowShadingColor(color) {
         this.setSetting('row_shading_color', color);
+    },
+
+    getChoreColumnWidth() {
+        const w = parseInt(this.getSetting('chore_col_width'), 10);
+        return isNaN(w) ? 200 : w;
+    },
+
+    setChoreColumnWidth(width) {
+        this.setSetting('chore_col_width', width);
     }
 };
