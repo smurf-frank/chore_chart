@@ -6,15 +6,22 @@
 A digital magnetic bulletin board for managing household chores. Designed for simplicity, visibility, and a premium "physical board" aesthetic.
 
 ## ✨ Features
-- **Interactive Grid**: A clean, reactive interface for tracking chores.
-- **Marker System**: Smooth marker placement with a tactile feel.
-- **Persisence Layer**: Locally stored state for quick access (localStorage).
+- **Magnetic Board Interface**: Drag-and-drop markers to assign chores with a tactile feel.
+- **Multi-Assignment**: Assign multiple people to the same chore on the same day.
+- **Interactive Grid**: A clean, reactive interface for tracking weekly tasks.
+- **Persistence Layer**: Locally stored state using SQL.js (SQLite) and `localStorage`.
 - **Responsive Design**: Works perfectly across desktop and tablet displays.
 
+## 🏛 Architecture
+- **Layered Design**: Clear separation between UI (`app.js`), Data Access (`repository.js`), and Database Logic (`db.js`).
+- **Repository Pattern**: Centralized data management for consistency and ease of testing.
+- **Unit Tested**: Comprehensive test suite ensures high reliability and correctness.
+
 ## 🛠 Tech Stack
-- **HTML5 / CSS3**: Vanilla implementation for maximum performance.
-- **JavaScript**: Reactive logic without heavy framework overhead.
-- **Playwright**: End-to-end testing for reliability.
+- **HTML5 / CSS3**: Vanilla implementation for zero-overhead performance.
+- **JavaScript**: Pure JS logic without heavy framework dependencies.
+- **SQL.js**: Client-side SQLite for robust local data management.
+- **Playwright**: End-to-end testing and CI automation.
 - **CodeQL**: Automated security scanning.
 
 ## 🚀 Getting Started
@@ -27,4 +34,7 @@ A digital magnetic bulletin board for managing household chores. Designed for si
    ```
 
 ## ⚖️ License
-This project is licensed under the **AGPLv3 License**. See the `LICENSE` file for details.
+This project is licensed under the **AGPLv3 License**. See the [LICENSE](LICENSE) file for the full text.
+
+---
+*Created by smurf-frank*

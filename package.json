@@ -1,0 +1,14 @@
+{
+    "name": "chore-chart",
+    "version": "1.0.0",
+    "description": "Digital magnetic bulletin board chore chart",
+    "main": "app.js",
+    "scripts": {
+        "test": "playwright test"
+    },
+    "devDependencies": {
+        "@playwright/test": "^1.49.0"
+    },
+    "author": "smurf-frank",
+    "license": "AGPL-3.0"
+}
