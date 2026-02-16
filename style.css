@@ -448,46 +448,69 @@ body {
     margin-bottom: 12px;
 }
 
-.person-item {
+.person-item,
+.person-item-editable {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 8px 12px;
+    gap: 8px;
+    padding: 6px 10px;
     background: #f8f9fa;
     border-radius: 10px;
     transition: background 0.15s;
 }
 
-.person-item:hover {
-    background: #eef0f3;
+.person-item-editable .editable-name {
+    flex: 1;
+    background: transparent;
+    border: 1px solid transparent;
+    padding: 4px 8px;
 }
 
-.person-swatch {
-    width: 28px;
-    height: 28px;
+.person-item-editable .editable-name:hover,
+.person-item-editable .editable-name:focus {
+    background: #fff;
+    border-color: var(--board-grid);
+}
+
+.person-item-editable .editable-initials {
+    width: 44px;
+    background: #e4e6eb;
+    border: 1px solid transparent;
+    text-align: center;
+    font-weight: 700;
+    padding: 4px 0;
+}
+
+.person-item-editable .editable-initials:hover,
+.person-item-editable .editable-initials:focus {
+    background: #fff;
+    border-color: var(--board-grid);
+}
+
+.color-input-sm {
+    width: 32px;
+    height: 32px;
+    border: none;
     border-radius: 8px;
+    padding: 0;
+    cursor: pointer;
+    background: none;
     flex-shrink: 0;
+}
+
+.color-input-sm::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+.color-input-sm::-webkit-color-swatch {
+    border: none;
+    border-radius: 6px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.person-info {
-    flex: 1;
-    display: flex;
-    gap: 6px;
-    align-items: baseline;
-}
-
-.person-info .name {
-    font-weight: 600;
-    font-size: 0.95rem;
-}
-
-.person-info .initials-badge {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    background: #e4e6eb;
-    padding: 1px 6px;
-    border-radius: 4px;
+.person-item:hover,
+.person-item-editable:hover {
+    background: #eef0f3;
 }
 
 .btn-delete {
