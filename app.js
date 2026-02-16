@@ -172,6 +172,17 @@ function renderBoard() {
         });
         nameCell.appendChild(deleteBtn);
 
+        // Rotate button
+        const rotateBtn = document.createElement('button');
+        rotateBtn.className = 'chore-rotate-btn';
+        rotateBtn.textContent = '🔄';
+        rotateBtn.title = `Rotate group assignment for ${chore.name}`;
+        rotateBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openRotationModal(chore.id);
+        });
+        nameCell.appendChild(rotateBtn);
+
         // Drag events for reordering chores
         nameCell.addEventListener('dragstart', (e) => {
             e.dataTransfer.setData('text/chore-id', String(chore.id));
@@ -846,6 +857,82 @@ function addPerson() {
 
 // ── Event Binding ───────────────────────────────────────────
 
+// ── Rotation Modal ──────────────────────────────────────────
+
+function openRotationModal(choreId) {
+    const overlay = document.getElementById('rotation-modal-overlay');
+    document.getElementById('rotation-chore-id').value = choreId;
+
+    // Populate group dropdown
+    const groupSelect = document.getElementById('rotation-group-select');
+    groupSelect.innerHTML = '';
+    const groups = ChoreRepository.getAllGroups();
+    if (!groups.length) {
+        alert('No groups defined. Create a group in the Members menu first.');
+        return;
+    }
+    groups.forEach(g => {
+        const opt = document.createElement('option');
+        opt.value = g.id;
+        opt.textContent = g.name;
+        groupSelect.appendChild(opt);
+    });
+
+    // Populate day dropdown
+    const daySelect = document.getElementById('rotation-day-select');
+    daySelect.innerHTML = '';
+    const orderedDays = getOrderedDays();
+    orderedDays.forEach(day => {
+        const opt = document.createElement('option');
+        opt.value = ALL_DAYS.indexOf(day);
+        opt.textContent = day;
+        daySelect.appendChild(opt);
+    });
+
+    // Populate member dropdown based on selected group
+    populateRotationMembers();
+    groupSelect.addEventListener('change', populateRotationMembers);
+
+    overlay.classList.remove('hidden');
+}
+
+function populateRotationMembers() {
+    const groupId = parseInt(document.getElementById('rotation-group-select').value, 10);
+    const memberSelect = document.getElementById('rotation-member-select');
+    memberSelect.innerHTML = '';
+    const members = ChoreRepository.getGroupMembers(groupId);
+    if (!members.length) {
+        const opt = document.createElement('option');
+        opt.textContent = '(no members)';
+        opt.disabled = true;
+        memberSelect.appendChild(opt);
+        return;
+    }
+    members.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m.id;
+        opt.textContent = m.name;
+        memberSelect.appendChild(opt);
+    });
+}
+
+function closeRotationModal() {
+    document.getElementById('rotation-modal-overlay').classList.add('hidden');
+}
+
+function applyRotation() {
+    const choreId = parseInt(document.getElementById('rotation-chore-id').value, 10);
+    const groupId = parseInt(document.getElementById('rotation-group-select').value, 10);
+    const startMemberId = parseInt(document.getElementById('rotation-member-select').value, 10);
+    const startDayIndex = parseInt(document.getElementById('rotation-day-select').value, 10);
+
+    ChoreRepository.assignGroupRotation(choreId, groupId, startMemberId, startDayIndex);
+    closeRotationModal();
+    renderBoard();
+}
+
+// ── Event Binding ───────────────────────────────────────────
+
 function bindEvents() {
     document.getElementById('reset-board-btn').addEventListener('click', () => {
         if (confirm('Clear all assignments for the week?')) {
@@ -884,6 +971,15 @@ function bindEvents() {
 
     membersModal.addEventListener('click', (e) => {
         if (e.target === membersModal) closeMembers();
+    });
+
+    // Rotation Modal
+    const rotationOverlay = document.getElementById('rotation-modal-overlay');
+    document.getElementById('rotation-close-btn').addEventListener('click', closeRotationModal);
+    document.getElementById('rotation-cancel-btn').addEventListener('click', closeRotationModal);
+    document.getElementById('rotation-apply-btn').addEventListener('click', applyRotation);
+    rotationOverlay.addEventListener('click', (e) => {
+        if (e.target === rotationOverlay) closeRotationModal();
     });
 
     // People Manager
