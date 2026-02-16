@@ -7,12 +7,12 @@
 ## 🎯 Current Focus
 
 ### Active Sprint / Phase
-**Phase Name**: Project Initialization
-**Version**: v0.0.1
+**Phase Name**: Feature Expansion & Security Hardening
+**Version**: v0.0.2
 **Dates**: 2026-02-15 → 2026-02-16
 
 ### This Week's Priority
-**Priority**: Set up project foundation and basic UI structure.
+**Priority**: Implement rotating assignments, multi-channel deployment, and security best practices.
 
 ### Status: 🟢 On Track
 
@@ -22,48 +22,46 @@
 
 ### Completed Milestones
 - ✅ **Project Management Setup** (Completed: 2026-02-15)
-    - Created PROJECT_BIBLE.md and MASTER_STATUS.md.
 - ✅ **Core Architecture Foundation** (Completed: 2026-02-15)
-    - Set up index.html, style.css, and app.js.
-    - Implemented reactive grid rendering and marker logic.
+- ✅ **Project Infrastructure** (Completed: 2026-02-15)
+- ✅ **Release v0.0.1** (Completed: 2026-02-15)
+- ✅ **Release v0.0.2** (Completed: 2026-02-16)
 
 ### In Progress
-- ✅ **Project Infrastructure** (Completed: 2026-02-15)
-    - Added AGPLv3 License and headers.
-    - Set up GitHub Actions CI + CodeQL.
-    - Configured Dependabot.
-    - **Branch Protection**: Enforced PR reviews and passing CI checks for `master`.
-    - **Documentation**: Added status badges to README.
-- ✅ **Feature Implementation** (Completed: 2026-02-15)
-- ✅ **Feature Implementation** (Completed: 2026-02-15)
-    - **Chore Management**:
-        - Inline name editing and drag-and-drop reordering.
-        - Bidirectional sorting (A-Z / Z-A).
-    - **Assignments**: Drag-and-drop assignment of markers between cells.
-    - **Person Management**: Inline editing of names, initials, and colors.
-    - **Group Management**:
-        - Create/Edit/Delete groups.
-        - **Nested Groups**: Support for groups within groups (max depth 3).
-        - **Members Menu**: Dedicated modal for managing People & Groups.
-    - **Settings UI**: Scrollable modal, collapsible sections, fixed layout bugs.
-    - **Visuals**: Customizable alternating row shading (toggle & color picker).
-    - **Grid Layout**: Optimized for tablets (half-height rows, full width, resizable chore column).
-    - **PWA**: Fully fully installable (Manifest + Service Worker) with offline support.
-    - **Persistence**: Data saved to `localstorage` via `sql.js`.
+
+### Done
+- ✅ **Group Rotation Assignment**:
+    - Automated 7-day chore rotation through group members.
+    - Alphabetical member sorting for deterministic assignment.
+    - Modal UI for selecting start member and start day.
+- ✅ **Per-Branch Deployments**:
+    - Automatic deployment of every branch to `/<branch-name>/`.
+    - Release versions deployed to root (`/`).
+    - **Channel Switcher**: Dynamic dropdown in Settings modal to switch between deployments.
+- ✅ **Security Hardening**:
+    - **Service Worker**: Switched to network-first strategy for instant updates.
+    - **GH Actions**: Fixed script injection vulnerability in `deploy.yml`.
+    - **App Logic**: Added allow-list validation for branch navigation (CodeQL).
+    - **PR Protocol**: Mandated security review for all pull requests.
+    - **Commit Signing**: Mandated GPG-signed commits in `PROJECT_BIBLE.md`.
+- ✅ **Visual & UX Refinement**:
+    - Resizable chore column with Settings control.
+    - Full-name tooltips on hover.
+    - PWA Richer Install UI with device screenshots.
 
 ---
 
 ## 📋 Context for Next Session
 
 ### Where You Left Off
-**Last Worked On**: 2026-02-15
+**Last Worked On**: 2026-02-16
 
-**Status**: Repository standardized and secured. Infrastructure merged into `master`. All CI/CD checks passing.
+**Status**: Version 0.0.2 released. Per-branch deployment infrastructure is fully operational on `gh-pages`. Security protocols established in `PROJECT_BIBLE.md`.
 
 ### Next Steps (For Resuming)
-1. Complete chore management (Add/Remove) functionality.
-2. Implement localStorage persistence.
-3. Begin "modify people" feature in a new branch.
+1. Add more sophisticated assignment strategies (e.g. weight-based/fairness logic).
+2. UI/UX polish for the Rotation Modal (previewing the rotation before applying).
+3. Expand PWA offline capabilities (syncing stashed edits).
 
 ---
 
@@ -71,11 +69,9 @@
 
 | Date       | Updated By  | Summary of Changes                        |
 | ---------- | ----------- | ----------------------------------------- |
-| 2026-02-15 | Antigravity | Merged standardized infra (AGPLv3, CI, CodeQL) into master. |
-| 2026-02-15 | Antigravity | Implemented comprehensive Group Management (Nesting, Members Menu, Settings UI). |
-| 2026-02-15 | Antigravity | Added Customizable Row Shading (Visuals settings). |
-| 2026-02-15 | Antigravity | Converted to PWA and configured GitHub Pages deployment. |
-| 2026-02-15 | Antigravity | Established SemVer v0.0.1 release baseline. |
-| 2026-02-15 | Antigravity | Refined grid layout for tablets (resizable columns, compact rows). |
-| 2026-02-15 | Antigravity | Added full-name tooltips to chore cells on hover. |
-| 2026-02-15 | Antigravity | Created Android Installation Guide (`docs/ANDROID_INSTALL.md`). |
+| 2026-02-15 | Antigravity | Initial setup, groups, PWA, and v0.0.1 release. |
+| 2026-02-16 | Antigravity | Implemented Group Rotation feature. |
+| 2026-02-16 | Antigravity | Set up per-branch deployments and channel switcher. |
+| 2026-02-16 | Antigravity | Fixed security vulnerabilities (Actions injection, XSS sink). |
+| 2026-02-16 | Antigravity | Updated PROJECT_BIBLE with security protocols. |
+| 2026-02-16 | Antigravity | Released v0.0.2. |
