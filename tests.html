@@ -919,6 +919,31 @@
                 const updated = result.find(c => c.id === id);
                 expect(updated.sortOrder).toBe(99);
             });
+
+            it('should be able to sort chores alphabetically (A-Z and Z-A)', () => {
+                // Clear and add specific chores
+                _db.run("DELETE FROM chores");
+                _db.run("DELETE FROM assignments");
+                ChoreRepository.addChore('Zebra');
+                ChoreRepository.addChore('Apple');
+                ChoreRepository.addChore('Banana');
+
+                let chores = ChoreRepository.getAllChores();
+
+                // Ascending sort
+                chores.sort((a, b) => a.name.localeCompare(b.name));
+                ChoreRepository.updateChoreOrders(chores.map(c => c.id));
+                let result = ChoreRepository.getAllChores();
+                expect(result[0].name).toBe('Apple');
+                expect(result[2].name).toBe('Zebra');
+
+                // Descending sort
+                chores.sort((a, b) => b.name.localeCompare(a.name));
+                ChoreRepository.updateChoreOrders(chores.map(c => c.id));
+                result = ChoreRepository.getAllChores();
+                expect(result[0].name).toBe('Zebra');
+                expect(result[2].name).toBe('Apple');
+            });
         });
 
         // ── Run ─────────────────────────────────────────────────
