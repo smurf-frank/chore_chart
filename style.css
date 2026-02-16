@@ -253,7 +253,11 @@ body {
     width: 32px;
     height: 32px;
     font-size: 0.7rem;
-    cursor: pointer;
+    cursor: grab;
+}
+
+.marker-cell:active {
+    cursor: grabbing;
 }
 
 .marker-cell:hover {
