@@ -8,6 +8,7 @@
 
 ### Active Sprint / Phase
 **Phase Name**: Project Initialization
+**Version**: v0.0.1
 **Dates**: 2026-02-15 → 2026-02-16
 
 ### This Week's Priority
@@ -46,6 +47,7 @@
         - **Members Menu**: Dedicated modal for managing People & Groups.
     - **Settings UI**: Scrollable modal, collapsible sections, fixed layout bugs.
     - **Visuals**: Customizable alternating row shading (toggle & color picker).
+    - **PWA**: Fully fully installable (Manifest + Service Worker) with offline support.
     - **Persistence**: Data saved to `localstorage` via `sql.js`.
 
 ---
@@ -71,3 +73,5 @@
 | 2026-02-15 | Antigravity | Merged standardized infra (AGPLv3, CI, CodeQL) into master. |
 | 2026-02-15 | Antigravity | Implemented comprehensive Group Management (Nesting, Members Menu, Settings UI). |
 | 2026-02-15 | Antigravity | Added Customizable Row Shading (Visuals settings). |
+| 2026-02-15 | Antigravity | Converted to PWA and configured GitHub Pages deployment. |
+| 2026-02-15 | Antigravity | Established SemVer v0.0.1 release baseline. |
