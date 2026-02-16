@@ -74,3 +74,11 @@ graph LR
 -   **No Backend (v1)**: All data stored locally via sql.js for privacy and simplicity.
 -   **SQL-First**: All data access uses standard SQL to ensure portability to remote backends.
 
+---
+
+## 🔄 Process & Workflow
+
+### Pull Request Protocol
+1.  **Update Master Status**: Before submitting a PR, `MASTER_STATUS.md` must be updated to reflect all work done in that branch. This ensures the living document is always in sync with the codebase.
+
+

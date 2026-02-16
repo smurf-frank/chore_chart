@@ -31,9 +31,21 @@
     - Added AGPLv3 License and headers.
     - Set up GitHub Actions CI + CodeQL.
     - Configured Dependabot.
-- 🔄 **Feature Implementation** (Started: 2026-02-15)
-    - Standardized `master` and created project foundation.
-    - Ongoing work on chore management (Add/Remove).
+    - **Branch Protection**: Enforced PR reviews and passing CI checks for `master`.
+    - **Documentation**: Added status badges to README.
+- ✅ **Feature Implementation** (Completed: 2026-02-15)
+- ✅ **Feature Implementation** (Completed: 2026-02-15)
+    - **Chore Management**:
+        - Inline name editing and drag-and-drop reordering.
+        - Bidirectional sorting (A-Z / Z-A).
+    - **Assignments**: Drag-and-drop assignment of markers between cells.
+    - **Person Management**: Inline editing of names, initials, and colors.
+    - **Group Management**:
+        - Create/Edit/Delete groups.
+        - **Nested Groups**: Support for groups within groups (max depth 3).
+        - **Members Menu**: Dedicated modal for managing People & Groups.
+    - **Settings UI**: Scrollable modal, collapsible sections, fixed layout bugs.
+    - **Persistence**: Data saved to `localstorage` via `sql.js`.
 
 ---
 
@@ -56,3 +68,4 @@
 | Date       | Updated By  | Summary of Changes                        |
 | ---------- | ----------- | ----------------------------------------- |
 | 2026-02-15 | Antigravity | Merged standardized infra (AGPLv3, CI, CodeQL) into master. |
+| 2026-02-15 | Antigravity | Implemented comprehensive Group Management (Nesting, Members Menu, Settings UI). |

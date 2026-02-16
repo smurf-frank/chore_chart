@@ -103,11 +103,25 @@ const ChoreRepository = {
     },
 
     /**
-     * Remove an actor and their assignments.
+     * Remove an actor (person or group).
+     * If removing a person, also remove them from any groups they are in.
      */
     removeActor(id) {
         const db = getDb();
+
+        // 1. Remove from assignments
         db.run("DELETE FROM assignments WHERE actor_id = ?", [id]);
+
+        // 2. Remove from groups (if this actor was a member)
+        const groups = this.getAllGroups();
+        groups.forEach(group => {
+            if (group.memberIds && group.memberIds.includes(id)) {
+                const newMembers = group.memberIds.filter(m => m !== id);
+                this.updateActor(group.id, { metadata: { ...group.metadata, memberIds: newMembers } });
+            }
+        });
+
+        // 3. Delete the actor itself
         db.run("DELETE FROM actors WHERE id = ?", [id]);
         saveDatabase();
     },
@@ -115,6 +129,139 @@ const ChoreRepository = {
     // Legacy alias
     removePerson(id) {
         this.removeActor(id);
+    },
+
+    // ── Groups ──────────────────────────────────────────────
+
+    getAllGroups() {
+        const groups = this.getAllActors('group');
+        return groups.map(g => ({
+            ...g,
+            showAsMarker: !!g.metadata.showAsMarker,
+            memberIds: g.metadata.memberIds || []
+        }));
+    },
+
+    addGroup(name, initials, color, showAsMarker = false, memberIds = []) {
+        this.addActor('group', name, initials, color, {
+            showAsMarker,
+            memberIds
+        });
+    },
+
+    updateGroup(id, fields) {
+        // Map top-level fields to metadata if needed
+        const metaUpdates = {};
+        if (fields.showAsMarker !== undefined) metaUpdates.showAsMarker = fields.showAsMarker;
+        if (fields.memberIds !== undefined) metaUpdates.memberIds = fields.memberIds;
+
+        // If we have other metadata updates, merge them
+        if (fields.metadata) {
+            Object.assign(metaUpdates, fields.metadata);
+        }
+
+        const actorUpdates = {};
+        if (fields.name !== undefined) actorUpdates.name = fields.name;
+        if (fields.initials !== undefined) actorUpdates.initials = fields.initials;
+        if (fields.color !== undefined) actorUpdates.color = fields.color;
+
+        if (Object.keys(metaUpdates).length > 0) {
+            // We need to merge with existing metadata to not lose data
+            // But updateActor overwrites metadata.
+            // Wait, updateActor implementation:
+            // if (fields.metadata !== undefined) { sets.push("metadata = ?"); params.push(JSON.stringify(fields.metadata)); }
+            // It completely replaces metadata.
+            // So we must fetch current first?
+            // Actually, let's optimize updateActor to merge?
+            // No, avoid changing core too much. existing usage might rely on overwrite.
+            // Let's safe-merge here.
+
+            const current = this.getAllActors().find(a => a.id === id);
+            if (current) {
+                actorUpdates.metadata = { ...current.metadata, ...metaUpdates };
+            }
+        }
+
+        this.updateActor(id, actorUpdates);
+    },
+
+    getGroupMembers(groupId) {
+        const group = this.getAllGroups().find(g => g.id === groupId);
+        if (!group || !group.memberIds || !group.memberIds.length) return [];
+
+        const allActors = this.getAllActors();
+        return allActors.filter(a => group.memberIds.includes(a.id));
+    },
+
+    /**
+     * Check if a member can be added to a group.
+     * Enforces:
+     * 1. No self-reference.
+     * 2. No circular dependency.
+     * 3. Max nesting depth of 3 (Groups only).
+     */
+    canAddMember(groupId, memberId) {
+        if (groupId === memberId) return false;
+
+        // 1. Cycle Check: Does memberId set contain groupId?
+        if (this.isDescendant(memberId, groupId)) return false;
+
+        // 2. Depth Check:
+        // Max chain of GROUPS must be <= 3.
+        // We calculate max depth of the member's tree (if it's a group).
+        // Then we calculate max height of the group's ancestors.
+        if (!this.isValidDepth(groupId, memberId)) return false;
+
+        return true;
+    },
+
+    isDescendant(parentId, targetId) {
+        const members = this.getGroupMembers(parentId);
+        for (const m of members) {
+            if (m.id === targetId) return true;
+            if (m.type === 'group') {
+                if (this.isDescendant(m.id, targetId)) return true;
+            }
+        }
+        return false;
+    },
+
+    isValidDepth(parentId, newMemberId, maxLevel = 3) {
+        // Calculate max depth of the new branch (newMember)
+        const childDepth = this.getGroupDepth(newMemberId);
+
+        // Calculate max 'height' of parent (chains leading TO parent)
+        const parentHeight = this.getGroupHeight(parentId);
+
+        // Total chain = Height + 1 (connection) + Depth
+        // Nodes = H + 1 + D.
+        // If H=1 (Parent is root), D=1 (Leaf group), Total = 3 nodes.
+        // If Total > maxLevel, fail.
+        return (parentHeight + childDepth) < maxLevel;
+    },
+
+    // Max length of chain of groups downwards from id
+    getGroupDepth(id) {
+        const actor = this.getAllActors().find(a => a.id === id);
+        if (!actor || actor.type !== 'group') return 0; // People are 0 depth in group-chain
+
+        const members = this.getGroupMembers(id);
+        const groupMembers = members.filter(m => m.type === 'group');
+        if (groupMembers.length === 0) return 1; // Itself is 1
+
+        const depths = groupMembers.map(m => this.getGroupDepth(m.id));
+        return 1 + Math.max(...depths);
+    },
+
+    // Max length of chain of groups upwards to id
+    getGroupHeight(id) {
+        const groups = this.getAllGroups();
+        // Find who has 'id' as member
+        const parents = groups.filter(g => g.memberIds.includes(id));
+        if (parents.length === 0) return 1; // Itself is 1
+
+        const heights = parents.map(p => this.getGroupHeight(p.id));
+        return 1 + Math.max(...heights);
     },
 
     // ── Chores ──────────────────────────────────────────────
