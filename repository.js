@@ -454,5 +454,22 @@ const ChoreRepository = {
     setMaxMarkersPerCell(n) {
         const clamped = Math.max(0, Math.min(32, parseInt(n, 10) || 2));
         this.setSetting('max_markers_per_cell', String(clamped));
+    },
+
+    getRowShadingEnabled() {
+        const val = this.getSetting('row_shading_enabled');
+        return val === 'true';
+    },
+
+    setRowShadingEnabled(enabled) {
+        this.setSetting('row_shading_enabled', String(enabled));
+    },
+
+    getRowShadingColor() {
+        return this.getSetting('row_shading_color') || '#f8f9fa';
+    },
+
+    setRowShadingColor(color) {
+        this.setSetting('row_shading_color', color);
     }
 };

@@ -47,6 +47,12 @@ function renderBoard() {
     const chores = ChoreRepository.getAllChores();
     const assignments = ChoreRepository.getAllAssignments();
     const maxMarkers = ChoreRepository.getMaxMarkersPerCell();
+    const shadingEnabled = ChoreRepository.getRowShadingEnabled();
+    const shadeColor = ChoreRepository.getRowShadingColor();
+
+    if (shadingEnabled) {
+        board.style.setProperty('--row-shade-color', shadeColor);
+    }
 
     // ── Header Row: "+" add-chore button + day names ──
     // ── Header Row: "+" add-chore button + day names ──
@@ -100,8 +106,11 @@ function renderBoard() {
 
     // ── Chore Rows ──
     chores.forEach((chore, index) => {
+        const isShaded = shadingEnabled && (index % 2 !== 0);
+
         const nameCell = document.createElement('div');
         nameCell.className = 'board-cell chore-name';
+        if (isShaded) nameCell.classList.add('board-row-shaded');
         nameCell.draggable = true;
         nameCell.dataset.choreId = chore.id;
         nameCell.dataset.index = index;
@@ -181,6 +190,7 @@ function renderBoard() {
             const dayIndex = ALL_DAYS.indexOf(day);
             const cell = document.createElement('div');
             cell.className = 'board-cell assignment-cell';
+            if (isShaded) cell.classList.add('board-row-shaded');
             cell.dataset.choreId = chore.id;
             cell.dataset.dayIndex = dayIndex;
 
@@ -385,6 +395,25 @@ function openSettings() {
 
     maxInput.value = ChoreRepository.getMaxMarkersPerCell();
 
+    // Visuals
+    const shadingCheck = document.getElementById('row-shading-check');
+    const shadingColor = document.getElementById('row-shading-color');
+    const colorRow = document.getElementById('row-shading-color-row');
+
+    shadingCheck.checked = ChoreRepository.getRowShadingEnabled();
+    shadingColor.value = ChoreRepository.getRowShadingColor();
+
+    // Toggle color picker visibility based on checkbox
+    const toggleColor = () => {
+        if (shadingCheck.checked) {
+            colorRow.style.display = 'flex';
+        } else {
+            colorRow.style.display = 'none';
+        }
+    };
+    toggleColor();
+    shadingCheck.onclick = toggleColor;
+
     modal.classList.remove('hidden');
 }
 
@@ -402,6 +431,12 @@ function saveSettings() {
     ChoreRepository.setSetting('chart_title', titleInput.value.trim() || 'Chore Chart');
     ChoreRepository.setSetting('chart_subtitle', subtitleInput.value.trim() || 'Digital Magnetic Board');
     ChoreRepository.setMaxMarkersPerCell(parseInt(maxInput.value, 10));
+
+    const shadingCheck = document.getElementById('row-shading-check');
+    const shadingColor = document.getElementById('row-shading-color');
+
+    ChoreRepository.setRowShadingEnabled(shadingCheck.checked);
+    ChoreRepository.setRowShadingColor(shadingColor.value);
 
     closeSettings();
     renderHeader();
