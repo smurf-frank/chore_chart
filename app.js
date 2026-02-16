@@ -471,11 +471,14 @@ function openSettings() {
 
     // Fetch branches.json to populate dynamically
     const baseUrl = window.location.origin + repoBase;
+    let availableBranches = [currentChannel];
+
     fetch(baseUrl + '/branches.json?' + Date.now())
         .then(r => r.json())
         .then(branches => {
+            availableBranches = Array.isArray(branches) ? branches.slice() : [];
             channelSelect.innerHTML = '';
-            branches.forEach(branch => {
+            availableBranches.forEach(branch => {
                 const opt = document.createElement('option');
                 opt.value = branch;
                 if (branch === 'stable') {
@@ -491,10 +494,12 @@ function openSettings() {
             // If fetch fails (local dev / offline), keep the single option
         });
 
-    // Navigate on channel change
+    // Navigate on channel change (allow-list validated)
     channelSelect.onchange = () => {
         const selected = channelSelect.value;
         if (selected === currentChannel) return;
+        // Only allow navigation to known-safe branches
+        if (!availableBranches.includes(selected)) return;
         if (selected === 'stable') {
             window.location.href = baseUrl + '/';
         } else {

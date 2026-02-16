@@ -82,6 +82,9 @@ graph LR
 1.  **Update Master Status**: Before submitting a PR, `MASTER_STATUS.md` must be updated to reflect all work done in that branch. This ensures the living document is always in sync with the codebase.
 2.  **Security Review**: After creating a PR, review it for any identified security issues (e.g., CodeQL alerts, dependency vulnerabilities). All security findings **must** be resolved before merging.
 
+### Commit Signing
+-   **All commits must be GPG-signed.** Never use `--no-gpg-sign`. If GPG signing fails, resolve the GPG agent issue rather than bypassing signing.
+
 ### Versioning
 -   **Semantic Versioning**: The project follows [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 -   **Current Version**: `v0.0.1` (Initial Release).
