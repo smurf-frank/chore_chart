@@ -1076,6 +1076,91 @@
             });
         });
 
+        // ── Nested Groups ───────────────────────────────────────
+        describe('Nested Groups', () => {
+            beforeEach(() => {
+                createSchema(_db);
+            });
+
+            it('should allow adding a person to a group (Depth 1)', () => {
+                ChoreRepository.addPerson('P1', 'P1', '#000');
+                const p1 = ChoreRepository.getAllPeople()[0];
+                ChoreRepository.addGroup('G1', 'G1', '#000', false, [p1.id]);
+
+                const g1 = ChoreRepository.getAllGroups()[0];
+                expect(g1.memberIds.includes(p1.id)).toBe(true);
+                expect(ChoreRepository.getGroupDepth(g1.id)).toBe(1);
+            });
+
+            it('should allow nesting G2 -> G1 (Depth 2)', () => {
+                ChoreRepository.addGroup('G2', 'G2', '#000'); // Leaf group
+                const g2 = ChoreRepository.getAllGroups()[0];
+
+                ChoreRepository.addGroup('G1', 'G1', '#000', false, [g2.id]);
+                const g1 = ChoreRepository.getAllGroups()[1];
+
+                expect(g1.memberIds.includes(g2.id)).toBe(true);
+                expect(ChoreRepository.getGroupDepth(g2.id)).toBe(1);
+                expect(ChoreRepository.getGroupDepth(g1.id)).toBe(2);
+            });
+
+            it('should allow nesting G3 -> G2 -> G1 (Depth 3)', () => {
+                ChoreRepository.addGroup('G3', 'G3', '#000');
+                const g3 = ChoreRepository.getAllGroups()[0];
+
+                ChoreRepository.addGroup('G2', 'G2', '#000', false, [g3.id]);
+                const g2 = ChoreRepository.getAllGroups()[1];
+
+                ChoreRepository.addGroup('G1', 'G1', '#000', false, [g2.id]);
+                const g1 = ChoreRepository.getAllGroups()[2];
+
+                expect(ChoreRepository.getGroupDepth(g1.id)).toBe(3);
+            });
+
+            it('should prevent nesting deeper than 3 levels (G4 -> G3 -> G2 -> G1)', () => {
+                // G3 -> G2 -> G1
+                ChoreRepository.addGroup('G1', 'G1', '#000');
+                const g1 = ChoreRepository.getAllGroups()[0];
+                ChoreRepository.addGroup('G2', 'G2', '#000', false, [g1.id]);
+                const g2 = ChoreRepository.getAllGroups()[1];
+                ChoreRepository.addGroup('G3', 'G3', '#000', false, [g2.id]);
+                const g3 = ChoreRepository.getAllGroups()[2];
+
+                // Create G4, try to add G3
+                ChoreRepository.addGroup('G4', 'G4', '#000');
+                const g4 = ChoreRepository.getAllGroups()[3];
+
+                const canAdd = ChoreRepository.canAddMember(g4.id, g3.id);
+                expect(canAdd).toBe(false);
+            });
+
+            it('should prevent circular dependency (A -> B -> A)', () => {
+                ChoreRepository.addGroup('A', 'A', '#000');
+                const a = ChoreRepository.getAllGroups()[0];
+                ChoreRepository.addGroup('B', 'B', '#000', false, [a.id]);
+                const b = ChoreRepository.getAllGroups()[1];
+
+                // Try adding B to A
+                const canAdd = ChoreRepository.canAddMember(a.id, b.id);
+                expect(canAdd).toBe(false);
+            });
+
+            it('getGroupMembers should return both people and groups', () => {
+                ChoreRepository.addPerson('P1', 'P1', '#000');
+                const p1 = ChoreRepository.getAllPeople()[0];
+                ChoreRepository.addGroup('G2', 'G2', '#000', false, [p1.id]);
+                const g2 = ChoreRepository.getAllGroups()[0];
+                ChoreRepository.addGroup('G1', 'G1', '#000', false, [g2.id]);
+                const g1 = ChoreRepository.getAllGroups()[1];
+
+                const members = ChoreRepository.getGroupMembers(g1.id);
+                expect(members.length).toBe(1);
+                expect(members[0].id).toBe(g2.id);
+                expect(members[0].type).toBe('group');
+            });
+        });
+
+
         // ── Run ─────────────────────────────────────────────────
         runTests();
     </script>

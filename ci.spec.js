@@ -4,6 +4,8 @@ const path = require('path');
 test('run browser unit tests', async ({ page }) => {
     // Load the local tests.html file
     const testUrl = `file://${path.resolve(__dirname, 'tests.html')}`;
+    page.on('console', msg => console.log(`PAGE LOG: ${msg.text()}`));
+    page.on('pageerror', err => console.log(`PAGE ERROR: ${err.message}`));
     await page.goto(testUrl);
 
     // Wait for the final summary to appear (indicating tests finished)

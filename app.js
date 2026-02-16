@@ -633,8 +633,7 @@ function renderGroupsList() {
 
             if (isMember) {
                 chip.style.backgroundColor = person.color;
-                chip.style.color = '#fff'; // Assuming dark bg needs light text, simplistic
-                // Improve contrast logic later if needed
+                chip.style.color = '#fff';
             } else {
                 chip.style.backgroundColor = 'transparent';
                 chip.style.color = 'var(--text)';
@@ -648,11 +647,76 @@ function renderGroupsList() {
                     newMembers.push(person.id);
                 }
                 ChoreRepository.updateGroup(group.id, { memberIds: newMembers });
-                renderGroupsList(); // Re-render to update UI
+                renderGroupsList();
             });
 
             membersContainer.appendChild(chip);
         });
+
+        // Separator if we have groups to show
+        const eligibleGroups = groups.filter(g => g.id !== group.id && ChoreRepository.canAddMember(group.id, g.id));
+        const memberGroups = groups.filter(g => g.id !== group.id && group.memberIds.includes(g.id));
+
+        // Combine for display: show matches or currently added ones (even if invalid now, though that shouldn't happen)
+        // Actually, just show all eligible candidates + current members
+        // To simplify: show ALL groups, disable invalid ones.
+
+        if (groups.length > 1) {
+            const divider = document.createElement('div');
+            divider.style.width = '100%';
+            divider.style.height = '1px';
+            divider.style.background = 'var(--border)';
+            divider.style.margin = '4px 0';
+            membersContainer.appendChild(divider);
+
+            groups.forEach(g => {
+                if (g.id === group.id) return; // Skip self
+
+                const isMember = group.memberIds.includes(g.id);
+                const canAdd = ChoreRepository.canAddMember(group.id, g.id);
+
+                if (!isMember && !canAdd) return; // Hide invalid candidates
+
+                const chip = document.createElement('div');
+                chip.textContent = g.initials;
+                chip.title = `Group: ${g.name}`;
+                chip.style.padding = '2px 6px';
+                chip.style.borderRadius = '4px';
+                chip.style.fontSize = '0.8rem';
+                chip.style.cursor = 'pointer';
+                // Dashed border for groups to distinguish
+                chip.style.border = `1px dashed ${g.color}`;
+                chip.style.fontWeight = 'bold';
+
+                if (isMember) {
+                    chip.style.backgroundColor = g.color;
+                    chip.style.color = '#fff';
+                    chip.style.borderStyle = 'solid';
+                } else {
+                    chip.style.backgroundColor = 'transparent';
+                    chip.style.color = 'var(--text)';
+                }
+
+                chip.addEventListener('click', () => {
+                    let newMembers = [...group.memberIds];
+                    if (isMember) {
+                        newMembers = newMembers.filter(id => id !== g.id);
+                        ChoreRepository.updateGroup(group.id, { memberIds: newMembers });
+                        renderGroupsList();
+                    } else {
+                        if (canAdd) {
+                            newMembers.push(g.id);
+                            ChoreRepository.updateGroup(group.id, { memberIds: newMembers });
+                            renderGroupsList();
+                        } else {
+                            alert('Cannot add this group: Max nesting level (3) exceeded or circular dependency.');
+                        }
+                    }
+                });
+
+                membersContainer.appendChild(chip);
+            });
+        }
 
         optionsRow.appendChild(membersContainer);
         item.appendChild(optionsRow);
