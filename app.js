@@ -605,7 +605,7 @@ function renderGroupsList() {
         });
 
         markerLabel.appendChild(markerCheck);
-        markerLabel.appendChild(document.createTextNode('Show as transferable marker'));
+        markerLabel.appendChild(document.createTextNode('Show this marker'));
         optionsRow.appendChild(markerLabel);
 
         // Members Selection
