@@ -129,8 +129,9 @@ jobs:
       # ── Handle branch delete ─────────────────────────────────
       - name: Clean up deleted branch
         if: github.event_name == 'delete' && github.event.ref_type == 'branch'
+        env:
+          BRANCH_NAME: ${{ github.event.ref }}
         run: |
-          BRANCH_NAME="${{ github.event.ref }}"
           echo "Cleaning up branch: $BRANCH_NAME"
 
           cd ../gh-pages
