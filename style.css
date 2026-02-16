@@ -423,11 +423,19 @@ body {
 .modal {
     background: white;
     border-radius: 20px;
-    padding: 28px;
+    padding: 0;
+    /* Removing padding from parent to handle scroll better */
     width: 90%;
     max-width: 420px;
+    max-height: 90vh;
+    /* Limit height */
+    display: flex;
+    /* Flex layout for sticky header/footer */
+    flex-direction: column;
     box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
     animation: modalSlideIn 0.25s ease-out;
+    overflow: hidden;
+    /* Clip children */
 }
 
 @keyframes modalSlideIn {
@@ -443,10 +451,13 @@ body {
 }
 
 .modal-header {
+    padding: 24px 28px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 24px;
+    border-bottom: 1px solid var(--board-grid);
+    flex-shrink: 0;
+    background: white;
 }
 
 .modal-header h2 {
@@ -456,7 +467,19 @@ body {
 }
 
 .modal-body {
-    margin-bottom: 24px;
+    padding: 24px 28px;
+    overflow-y: auto;
+    /* Scrollable content */
+    flex: 1;
+}
+
+.modal-footer {
+    padding: 20px 28px;
+    border-top: 1px solid var(--board-grid);
+    display: flex;
+    justify-content: flex-end;
+    background: #f8f9fa;
+    flex-shrink: 0;
 }
 
 .setting-row {
@@ -523,8 +546,39 @@ body {
 .section-label {
     font-weight: 600;
     color: var(--text-primary);
-    display: block;
+    display: flex;
+    /* Changed to flex for icon alignment */
+    align-items: center;
+    justify-content: space-between;
     margin-bottom: 10px;
+}
+
+/* Collapsible */
+.collapsible-label {
+    cursor: pointer;
+    user-select: none;
+    padding: 6px 0;
+}
+
+.collapsible-label:hover {
+    color: var(--accent-color);
+}
+
+.toggle-icon {
+    font-size: 0.8rem;
+    transition: transform 0.2s;
+}
+
+.setting-section.collapsed .toggle-icon {
+    transform: rotate(-90deg);
+    /* Point right */
+}
+
+/* Hide content when collapsed */
+/* We target specific children by class or generic approach if structure is consistent. */
+/* Based on HTML structure: label is first child. Other children are content. */
+.setting-section.collapsed>*:not(.section-label) {
+    display: none;
 }
 
 .people-list {
