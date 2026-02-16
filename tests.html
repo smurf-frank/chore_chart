@@ -196,6 +196,9 @@
                     let threw = false;
                     try { actual(); } catch (e) { threw = true; }
                     if (!threw) throw new Error('Expected function to throw');
+                },
+                toBeUndefined() {
+                    if (actual !== undefined) throw new Error(`Expected undefined, got ${JSON.stringify(actual)}`);
                 }
             };
         }
@@ -943,6 +946,72 @@
                 result = ChoreRepository.getAllChores();
                 expect(result[0].name).toBe('Zebra');
                 expect(result[2].name).toBe('Apple');
+            });
+        });
+
+        // ── Assignment Movement ─────────────────────────────────
+        describe('Assignment Movement', () => {
+            beforeEach(() => {
+                createSchema(_db);
+                ChoreRepository.addPerson('Bob', 'BOB', '#000000');
+                ChoreRepository.addChore('Task 1');
+            });
+
+            it('should move assignment from one cell to another', () => {
+                const people = ChoreRepository.getAllPeople();
+                const chores = ChoreRepository.getAllChores();
+                const actorId = people[0].id;
+                const choreId = chores[0].id;
+
+                // Assign to Mon (0)
+                ChoreRepository.addAssignment(choreId, 0, actorId);
+                let assignments = ChoreRepository.getAllAssignments();
+                const key1 = `${choreId}-0`;
+                expect(assignments[key1].length).toBe(1);
+
+                // Move to Tue (1) manually (simulating the move logic)
+                // Trigger add to new cell
+                const added = ChoreRepository.addAssignment(choreId, 1, actorId);
+                expect(added).toBe(true);
+                // Remove from old cell
+                ChoreRepository.removeAssignment(choreId, 0, actorId);
+
+                assignments = ChoreRepository.getAllAssignments();
+                const key2 = `${choreId}-1`;
+                expect(assignments[key1]).toBeUndefined();
+                expect(assignments[key2].length).toBe(1);
+                expect(assignments[key2][0].actorId).toBe(actorId);
+            });
+
+            it('should fail to move if target cell is full', () => {
+                // Set max to 1
+                ChoreRepository.setSetting('max_markers_per_cell', 1); // direct setting access or use helper if exists?
+                // Wait, repository has setMaxMarkersPerCell(n) which sets 'max_markers_per_cell'
+                ChoreRepository.setMaxMarkersPerCell(1);
+
+                const people = ChoreRepository.getAllPeople();
+                const chores = ChoreRepository.getAllChores();
+                const actor1 = people[0].id;
+
+                // Add another person
+                ChoreRepository.addPerson('Alice', 'ALC', '#ffffff');
+                const actor2 = ChoreRepository.getAllPeople()[1].id;
+                const choreId = chores[0].id;
+
+                // Assign Actor 1 to Mon
+                ChoreRepository.addAssignment(choreId, 0, actor1);
+                // Assign Actor 2 to Tue
+                ChoreRepository.addAssignment(choreId, 1, actor2);
+
+                // Try move Actor 1 to Tue (should fail)
+                const added = ChoreRepository.addAssignment(choreId, 1, actor1);
+                expect(added).toBe(false);
+
+                // Verify state unchanged
+                const assignments = ChoreRepository.getAllAssignments();
+                expect(assignments[`${choreId}-0`].length).toBe(1);
+                expect(assignments[`${choreId}-1`].length).toBe(1);
+                expect(assignments[`${choreId}-1`][0].actorId).toBe(actor2);
             });
         });
 

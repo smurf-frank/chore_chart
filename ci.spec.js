@@ -19,6 +19,12 @@ test('run browser unit tests', async ({ page }) => {
     // Check the document title for the pass indicator
     // tests.html sets title to "✓ All Passed - Unit Tests" on success
     const title = await page.title();
+    if (!title.includes('✓ All Passed')) {
+        const failures = await page.locator('.test-row.fail').allTextContents();
+        console.log('Test Failures:', failures.join('\n'));
+        const summary = await page.locator('#summary').textContent();
+        console.log('Summary:', summary);
+    }
     expect(title).toContain('✓ All Passed');
 
     // Also verify no "failed" class in the summary (just in case title check isn't enough)

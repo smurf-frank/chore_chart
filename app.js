@@ -210,10 +210,35 @@ function renderBoard() {
                 if (e.dataTransfer.types.includes('text/chore-id')) return;
                 e.preventDefault();
                 cell.classList.remove('drag-over');
+
                 const actorId = parseInt(e.dataTransfer.getData('text/plain'), 10);
                 if (!actorId) return;
-                const added = ChoreRepository.addAssignment(chore.id, dayIndex, actorId);
-                if (added) renderBoard();
+
+                // Check if it's a move or new assignment
+                const sourceData = e.dataTransfer.getData('application/json');
+
+                if (sourceData) {
+                    // Move from another cell
+                    try {
+                        const source = JSON.parse(sourceData);
+                        // If same cell, do nothing
+                        if (source.sourceChoreId === chore.id && source.sourceDayIndex === dayIndex) return;
+
+                        // Try adding to new cell
+                        const added = ChoreRepository.addAssignment(chore.id, dayIndex, actorId);
+                        if (added) {
+                            // If successful, remove from old cell
+                            ChoreRepository.removeAssignment(source.sourceChoreId, source.sourceDayIndex, actorId);
+                            renderBoard();
+                        }
+                    } catch (err) {
+                        console.error('Invalid move data', err);
+                    }
+                } else {
+                    // New assignment from palette
+                    const added = ChoreRepository.addAssignment(chore.id, dayIndex, actorId);
+                    if (added) renderBoard();
+                }
             });
 
             board.appendChild(cell);
@@ -229,7 +254,34 @@ function createCellMarker(actor, choreId, dayIndex) {
     marker.className = 'marker marker-cell';
     marker.style.backgroundColor = actor.color;
     marker.textContent = actor.initials;
-    marker.title = `${actor.name} (click to remove)`;
+    marker.title = `${actor.name} (drag to move, click to remove)`;
+    marker.draggable = true;
+
+    marker.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', String(actor.actorId));
+        e.dataTransfer.setData('application/json', JSON.stringify({
+            sourceChoreId: choreId,
+            sourceDayIndex: dayIndex
+        }));
+        e.dataTransfer.effectAllowed = 'move';
+        marker.classList.add('dragging');
+
+        // Highlight valid targets
+        document.querySelectorAll('.assignment-cell:not(.cell-full)').forEach(c => {
+            c.classList.add('drop-target');
+        });
+    });
+
+    marker.addEventListener('dragend', () => {
+        marker.classList.remove('dragging');
+        document.querySelectorAll('.drop-target').forEach(c => {
+            c.classList.remove('drop-target');
+        });
+        document.querySelectorAll('.drag-over').forEach(c => {
+            c.classList.remove('drag-over');
+        });
+    });
+
     marker.addEventListener('click', (e) => {
         e.stopPropagation();
         ChoreRepository.removeAssignment(choreId, dayIndex, actor.actorId);
