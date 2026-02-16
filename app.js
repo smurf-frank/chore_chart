@@ -6,6 +6,7 @@
  */
 
 const ALL_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+let sortDirection = 'asc'; // 'asc' or 'desc'
 
 /**
  * Returns the 7-day array rotated so that `startDay` is first.
@@ -48,17 +49,46 @@ function renderBoard() {
     const maxMarkers = ChoreRepository.getMaxMarkersPerCell();
 
     // ── Header Row: "+" add-chore button + day names ──
+    // ── Header Row: "+" add-chore button + day names ──
     const corner = document.createElement('div');
-    corner.className = 'board-cell header add-chore-corner';
-    corner.innerHTML = '<span class="add-chore-icon">+</span>';
-    corner.title = 'Add Chore';
-    corner.addEventListener('click', () => {
+    corner.className = 'board-cell header add-chore-corner corner-cell';
+
+    const addBtn = document.createElement('button');
+    addBtn.className = 'add-chore-btn';
+    addBtn.textContent = '+';
+    addBtn.title = 'Add Chore';
+    addBtn.addEventListener('click', () => {
         const name = prompt('Enter chore name:');
         if (name && name.trim()) {
             ChoreRepository.addChore(name.trim());
             renderBoard();
         }
     });
+    corner.appendChild(addBtn);
+
+    const sortBtn = document.createElement('button');
+    sortBtn.className = 'sort-chore-btn';
+    sortBtn.innerHTML = sortDirection === 'asc' ? '↓' : '↑';
+    sortBtn.title = `Sort Chores (${sortDirection === 'asc' ? 'A-Z' : 'Z-A'})`;
+    sortBtn.addEventListener('click', () => {
+        const currentChores = ChoreRepository.getAllChores();
+        currentChores.sort((a, b) => {
+            if (sortDirection === 'asc') {
+                return a.name.localeCompare(b.name);
+            } else {
+                return b.name.localeCompare(a.name);
+            }
+        });
+
+        const orderedIds = currentChores.map(c => c.id);
+        ChoreRepository.updateChoreOrders(orderedIds);
+
+        // Toggle direction for next click
+        sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+        renderBoard();
+    });
+    corner.appendChild(sortBtn);
+
     board.appendChild(corner);
 
     orderedDays.forEach(day => {
