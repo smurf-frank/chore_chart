@@ -110,6 +110,22 @@ body {
     z-index: 5;
     padding-left: 20px;
     padding-right: 10px;
+    cursor: grab;
+    transition: background 0.2s, box-shadow 0.2s;
+}
+
+.board-cell.chore-name:active {
+    cursor: grabbing;
+}
+
+.board-cell.chore-name.dragging-chore {
+    opacity: 0.5;
+    background: #e4e6eb;
+}
+
+.board-cell.chore-name.drag-over-chore {
+    background: #eef0f3;
+    box-shadow: inset 0 -3px 0 var(--accent-color);
 }
 
 .chore-delete-btn {

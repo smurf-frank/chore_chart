@@ -143,6 +143,18 @@ const ChoreRepository = {
         saveDatabase();
     },
 
+    /**
+     * Update the sort_order for a list of chore IDs.
+     * @param {number[]} orderedIds 
+     */
+    updateChoreOrders(orderedIds) {
+        const db = getDb();
+        orderedIds.forEach((id, index) => {
+            db.run("UPDATE chores SET sort_order = ? WHERE id = ?", [index + 1, id]);
+        });
+        saveDatabase();
+    },
+
     // ── Assignments ─────────────────────────────────────────
 
     /**

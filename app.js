@@ -69,9 +69,12 @@ function renderBoard() {
     });
 
     // ── Chore Rows ──
-    chores.forEach(chore => {
+    chores.forEach((chore, index) => {
         const nameCell = document.createElement('div');
         nameCell.className = 'board-cell chore-name';
+        nameCell.draggable = true;
+        nameCell.dataset.choreId = chore.id;
+        nameCell.dataset.index = index;
 
         const nameSpan = document.createElement('span');
         nameSpan.textContent = chore.name;
@@ -89,6 +92,46 @@ function renderBoard() {
             }
         });
         nameCell.appendChild(deleteBtn);
+
+        // Drag events for reordering chores
+        nameCell.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/chore-id', String(chore.id));
+            e.dataTransfer.effectAllowed = 'move';
+            nameCell.classList.add('dragging-chore');
+        });
+
+        nameCell.addEventListener('dragend', () => {
+            nameCell.classList.remove('dragging-chore');
+            document.querySelectorAll('.chore-name').forEach(c => c.classList.remove('drag-over-chore'));
+        });
+
+        nameCell.addEventListener('dragover', (e) => {
+            if (e.dataTransfer.types.includes('text/chore-id')) {
+                e.preventDefault();
+                nameCell.classList.add('drag-over-chore');
+            }
+        });
+
+        nameCell.addEventListener('dragleave', () => {
+            nameCell.classList.remove('drag-over-chore');
+        });
+
+        nameCell.addEventListener('drop', (e) => {
+            const draggedId = parseInt(e.dataTransfer.getData('text/chore-id'), 10);
+            if (!draggedId || draggedId === chore.id) return;
+
+            e.preventDefault();
+            const currentIds = chores.map(c => c.id);
+            const fromIndex = currentIds.indexOf(draggedId);
+            const toIndex = currentIds.indexOf(chore.id);
+
+            // Reorder the array
+            currentIds.splice(fromIndex, 1);
+            currentIds.splice(toIndex, 0, draggedId);
+
+            ChoreRepository.updateChoreOrders(currentIds);
+            renderBoard();
+        });
 
         board.appendChild(nameCell);
 
@@ -108,12 +151,12 @@ function renderBoard() {
                 cell.appendChild(marker);
             });
 
-            // Drop target setup
+            // Drop target setup for markers
             const isFull = cellAssignments.length >= maxMarkers;
             if (isFull) cell.classList.add('cell-full');
 
             cell.addEventListener('dragover', (e) => {
-                if (isFull) return;
+                if (isFull || e.dataTransfer.types.includes('text/chore-id')) return;
                 e.preventDefault();
                 e.dataTransfer.dropEffect = 'copy';
                 cell.classList.add('drag-over');
@@ -122,6 +165,7 @@ function renderBoard() {
                 cell.classList.remove('drag-over');
             });
             cell.addEventListener('drop', (e) => {
+                if (e.dataTransfer.types.includes('text/chore-id')) return;
                 e.preventDefault();
                 cell.classList.remove('drag-over');
                 const actorId = parseInt(e.dataTransfer.getData('text/plain'), 10);
