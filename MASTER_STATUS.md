@@ -27,9 +27,13 @@
     - Implemented reactive grid rendering and marker logic.
 
 ### In Progress
+- ✅ **Project Infrastructure** (Completed: 2026-02-15)
+    - Added AGPLv3 License and headers.
+    - Set up GitHub Actions CI + CodeQL.
+    - Configured Dependabot.
 - 🔄 **Feature Implementation** (Started: 2026-02-15)
-    - Adding data persistence via localStorage.
-    - Implementing chore management (Add/Remove).
+    - Standardized `master` and created project foundation.
+    - Ongoing work on chore management (Add/Remove).
 
 ---
 
@@ -38,12 +42,12 @@
 ### Where You Left Off
 **Last Worked On**: 2026-02-15
 
-**Status**: Initialized project management docs. Currently setting up the Vite environment.
+**Status**: Repository standardized and secured. Infrastructure merged into `master`. All CI/CD checks passing.
 
 ### Next Steps (For Resuming)
-1. Complete Vite initialization.
-2. Verify basic React app runs.
-3. Begin defining core data structures for chores.
+1. Complete chore management (Add/Remove) functionality.
+2. Implement localStorage persistence.
+3. Begin "modify people" feature in a new branch.
 
 ---
 
@@ -51,4 +55,4 @@
 
 | Date       | Updated By  | Summary of Changes                        |
 | ---------- | ----------- | ----------------------------------------- |
-| 2026-02-15 | Antigravity | Initial setup of project management docs. |
+| 2026-02-15 | Antigravity | Merged standardized infra (AGPLv3, CI, CodeQL) into master. |
