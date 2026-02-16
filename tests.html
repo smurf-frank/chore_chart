@@ -825,6 +825,45 @@
             });
         });
 
+        // ── Person Modification ─────────────────────────────────
+        describe('Person Modification', () => {
+            beforeEach(() => { createSchema(_db); });
+
+            it('updateActor() changes person name', () => {
+                const people = ChoreRepository.getAllPeople();
+                const id = people[0].id;
+                ChoreRepository.updateActor(id, { name: 'Updated Name' });
+                const person = ChoreRepository.getAllPeople().find(p => p.id === id);
+                expect(person.name).toBe('Updated Name');
+            });
+
+            it('updateActor() changes person color', () => {
+                const people = ChoreRepository.getAllPeople();
+                const id = people[0].id;
+                ChoreRepository.updateActor(id, { color: '#ffffff' });
+                const person = ChoreRepository.getAllPeople().find(p => p.id === id);
+                expect(person.color).toBe('#ffffff');
+            });
+
+            it('updateActor() changes person initials', () => {
+                const people = ChoreRepository.getAllPeople();
+                const id = people[0].id;
+                ChoreRepository.updateActor(id, { initials: 'XYZ' });
+                const person = ChoreRepository.getAllPeople().find(p => p.id === id);
+                expect(person.initials).toBe('XYZ');
+            });
+
+            it('updateActor() updates multiple fields at once', () => {
+                const people = ChoreRepository.getAllPeople();
+                const id = people[0].id;
+                ChoreRepository.updateActor(id, { name: 'Multi', initials: 'MU', color: '#111111' });
+                const person = ChoreRepository.getAllPeople().find(p => p.id === id);
+                expect(person.name).toBe('Multi');
+                expect(person.initials).toBe('MU');
+                expect(person.color).toBe('#111111');
+            });
+        });
+
         // ── Run ─────────────────────────────────────────────────
         runTests();
     </script>

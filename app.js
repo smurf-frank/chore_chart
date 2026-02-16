@@ -241,15 +241,56 @@ function renderPeopleList() {
     const people = ChoreRepository.getAllPeople();
     people.forEach(person => {
         const item = document.createElement('div');
-        item.className = 'person-item';
+        item.className = 'person-item-editable';
 
-        item.innerHTML = `
-            <div class="person-swatch" style="background: ${person.color}"></div>
-            <div class="person-info">
-                <span class="name">${person.name}</span>
-                <span class="initials-badge">${person.initials}</span>
-            </div>
-        `;
+        // Color Input
+        const colorInput = document.createElement('input');
+        colorInput.type = 'color';
+        colorInput.className = 'color-input-sm';
+        colorInput.value = person.color;
+        colorInput.title = `Change color for ${person.name}`;
+        colorInput.addEventListener('change', () => {
+            ChoreRepository.updateActor(person.id, { color: colorInput.value });
+            renderPalette();
+            renderBoard();
+        });
+
+        // Name Input
+        const nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.className = 'text-input text-input-sm editable-name';
+        nameInput.value = person.name;
+        nameInput.maxLength = 128;
+        nameInput.placeholder = 'Name';
+        nameInput.addEventListener('change', () => {
+            const newName = nameInput.value.trim();
+            if (newName) {
+                ChoreRepository.updateActor(person.id, { name: newName });
+                renderPalette();
+                renderBoard();
+            } else {
+                nameInput.value = person.name; // Revert
+            }
+        });
+
+        // Initials Input
+        const initialsInput = document.createElement('input');
+        initialsInput.type = 'text';
+        initialsInput.className = 'text-input text-input-sm editable-initials';
+        initialsInput.value = person.initials;
+        initialsInput.maxLength = 3;
+        initialsInput.placeholder = 'AB';
+        initialsInput.addEventListener('change', () => {
+            const newInitials = initialsInput.value.trim().toUpperCase();
+            if (newInitials) {
+                ChoreRepository.updateActor(person.id, { initials: newInitials });
+                initialsInput.value = newInitials;
+                renderPalette();
+                renderBoard();
+            } else {
+                initialsInput.value = person.initials; // Revert
+            }
+        });
 
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'btn-delete';
@@ -263,6 +304,10 @@ function renderPeopleList() {
                 renderBoard();
             }
         });
+
+        item.appendChild(colorInput);
+        item.appendChild(nameInput);
+        item.appendChild(initialsInput);
         item.appendChild(deleteBtn);
         container.appendChild(item);
     });
