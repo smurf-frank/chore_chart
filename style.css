@@ -16,6 +16,7 @@
     --marker-active-shadow: 0 10px 15px rgba(0, 0, 0, 0.15), 0 4px 6px rgba(0, 0, 0, 0.1);
     --font-main: 'Inter', sans-serif;
     --font-heading: 'Outfit', sans-serif;
+    --row-shade-color: #f8f9fa;
 }
 
 * {
@@ -158,6 +159,10 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
+}
+
+.board-row-shaded {
+    background-color: var(--row-shade-color) !important;
 }
 
 .board-cell.chore-name.dragging-chore {

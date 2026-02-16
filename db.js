@@ -33,7 +33,9 @@ async function initDatabase() {
     // Run migrations / ensure schema
     createSchema(_db);
     migrateToActors(_db);
+    migrateToActors(_db);
     migrateMultiAssign(_db);
+    seedVisualSettings(_db);
 
     return _db;
 }
@@ -195,6 +197,27 @@ function migrateMultiAssign(db) {
     const existing = db.exec("SELECT value FROM settings WHERE key = 'max_markers_per_cell'");
     if (!existing.length || !existing[0].values.length) {
         db.run("INSERT INTO settings (key, value) VALUES ('max_markers_per_cell', '2')");
+    }
+
+    saveDatabase();
+}
+
+/**
+ * Ensure visual settings exist.
+ */
+function seedVisualSettings(db) {
+    const defaultColor = '#f8f9fa';
+
+    // Check row_shading_enabled
+    const enabled = db.exec("SELECT value FROM settings WHERE key = 'row_shading_enabled'");
+    if (!enabled.length || !enabled[0].values.length) {
+        db.run("INSERT INTO settings (key, value) VALUES ('row_shading_enabled', 'false')");
+    }
+
+    // Check row_shading_color
+    const color = db.exec("SELECT value FROM settings WHERE key = 'row_shading_color'");
+    if (!color.length || !color[0].values.length) {
+        db.run("INSERT INTO settings (key, value) VALUES ('row_shading_color', ?)", [defaultColor]);
     }
 
     saveDatabase();
