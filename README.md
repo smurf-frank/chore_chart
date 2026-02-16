@@ -33,6 +33,9 @@ A digital magnetic bulletin board for managing household chores. Designed for si
    npm run test
    ```
 
+## 📱 Installation on Android
+For detailed instructions on installing this app on an Android tablet, see the [Android Installation Guide](docs/ANDROID_INSTALL.md).
+
 ## ⚖️ License
 This project is licensed under the **AGPLv3 License**. See the [LICENSE](LICENSE) file for the full text.
 
