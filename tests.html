@@ -635,10 +635,23 @@
                 expect(ChoreRepository.getSetting('chart_subtitle')).toBe('Digital Magnetic Board');
             });
 
-            it('max_markers_per_cell default is 2', () => {
+            it('getMaxMarkersPerCell() returns default 2', () => {
                 expect(ChoreRepository.getMaxMarkersPerCell()).toBe(2);
             });
 
+            it('setMaxMarkersPerCell() updates setting', () => {
+                ChoreRepository.setMaxMarkersPerCell(5);
+                expect(ChoreRepository.getMaxMarkersPerCell()).toBe(5);
+            });
+
+            it('getChoreColumnWidth() returns default 200', () => {
+                expect(ChoreRepository.getChoreColumnWidth()).toBe(200);
+            });
+
+            it('setChoreColumnWidth() updates setting', () => {
+                ChoreRepository.setChoreColumnWidth(350);
+                expect(ChoreRepository.getChoreColumnWidth()).toBe(350);
+            });
             it('setMaxMarkersPerCell() clamps to 0-32', () => {
                 ChoreRepository.setMaxMarkersPerCell(50);
                 expect(ChoreRepository.getMaxMarkersPerCell()).toBe(32);

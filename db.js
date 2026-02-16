@@ -220,6 +220,12 @@ function seedVisualSettings(db) {
         db.run("INSERT INTO settings (key, value) VALUES ('row_shading_color', ?)", [defaultColor]);
     }
 
+    // Check chore_col_width
+    const choreColWidth = db.exec("SELECT value FROM settings WHERE key = 'chore_col_width'");
+    if (!choreColWidth.length || !choreColWidth[0].values.length) {
+        db.run("INSERT INTO settings (key, value) VALUES ('chore_col_width', '200')");
+    }
+
     saveDatabase();
 }
 

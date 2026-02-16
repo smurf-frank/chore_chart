@@ -49,7 +49,9 @@ function renderBoard() {
     const maxMarkers = ChoreRepository.getMaxMarkersPerCell();
     const shadingEnabled = ChoreRepository.getRowShadingEnabled();
     const shadeColor = ChoreRepository.getRowShadingColor();
+    const choreColWidth = ChoreRepository.getChoreColumnWidth();
 
+    board.style.setProperty('--chore-col-width', `${choreColWidth}px`);
     if (shadingEnabled) {
         board.style.setProperty('--row-shade-color', shadeColor);
     }
@@ -94,6 +96,31 @@ function renderBoard() {
         renderBoard();
     });
     corner.appendChild(sortBtn);
+
+    const resizeHandle = document.createElement('div');
+    resizeHandle.className = 'resize-handle';
+    resizeHandle.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        const startX = e.pageX;
+        const startWidth = ChoreRepository.getChoreColumnWidth();
+        resizeHandle.classList.add('resizing');
+
+        const onMouseMove = (moveEvent) => {
+            const newWidth = Math.max(100, Math.min(600, startWidth + (moveEvent.pageX - startX)));
+            board.style.setProperty('--chore-col-width', `${newWidth}px`);
+            ChoreRepository.setChoreColumnWidth(newWidth);
+        };
+
+        const onMouseUp = () => {
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+            resizeHandle.classList.remove('resizing');
+        };
+
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+    });
+    corner.appendChild(resizeHandle);
 
     board.appendChild(corner);
 
@@ -387,19 +414,18 @@ function openSettings() {
     const titleInput = document.getElementById('chart-title-input');
     const subtitleInput = document.getElementById('chart-subtitle-input');
     const maxInput = document.getElementById('max-markers-input');
+    const shadingCheck = document.getElementById('row-shading-check');
+    const shadingColor = document.getElementById('row-shading-color');
+    const colorRow = document.getElementById('row-shading-color-row');
+    const choreWidthInput = document.getElementById('chore-width-input');
 
     select.value = ChoreRepository.getWeekStartDay();
     titleInput.value = ChoreRepository.getSetting('chart_title') || 'Chore Chart';
     subtitleInput.value = ChoreRepository.getSetting('chart_subtitle') || 'Digital Magnetic Board';
     maxInput.value = ChoreRepository.getMaxMarkersPerCell();
-
-    maxInput.value = ChoreRepository.getMaxMarkersPerCell();
+    choreWidthInput.value = ChoreRepository.getChoreColumnWidth();
 
     // Visuals
-    const shadingCheck = document.getElementById('row-shading-check');
-    const shadingColor = document.getElementById('row-shading-color');
-    const colorRow = document.getElementById('row-shading-color-row');
-
     shadingCheck.checked = ChoreRepository.getRowShadingEnabled();
     shadingColor.value = ChoreRepository.getRowShadingColor();
 
@@ -434,9 +460,11 @@ function saveSettings() {
 
     const shadingCheck = document.getElementById('row-shading-check');
     const shadingColor = document.getElementById('row-shading-color');
+    const choreWidthInput = document.getElementById('chore-width-input');
 
     ChoreRepository.setRowShadingEnabled(shadingCheck.checked);
     ChoreRepository.setRowShadingColor(shadingColor.value);
+    ChoreRepository.setChoreColumnWidth(parseInt(choreWidthInput.value, 10));
 
     closeSettings();
     renderHeader();
