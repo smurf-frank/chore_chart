@@ -200,7 +200,10 @@ function renderBoard() {
             cell.addEventListener('dragover', (e) => {
                 if (isFull || e.dataTransfer.types.includes('text/chore-id')) return;
                 e.preventDefault();
-                e.dataTransfer.dropEffect = 'copy';
+                // If it's a move from within the grid (has JSON data), use 'move'
+                // Otherwise (from palette), use 'copy'
+                const isMove = e.dataTransfer.types.includes('application/json');
+                e.dataTransfer.dropEffect = isMove ? 'move' : 'copy';
                 cell.classList.add('drag-over');
             });
             cell.addEventListener('dragleave', () => {
