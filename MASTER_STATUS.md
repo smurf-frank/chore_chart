@@ -31,9 +31,15 @@
     - Added AGPLv3 License and headers.
     - Set up GitHub Actions CI + CodeQL.
     - Configured Dependabot.
+    - **Branch Protection**: Enforced PR reviews and passing CI checks for `master`.
+    - **Documentation**: Added status badges to README.
 - ✅ **Feature Implementation** (Completed: 2026-02-15)
-    - **Chore Management**: Add/Edit/Delete chores, drag-and-drop reordering.
-    - **Assignments**: Drag-and-drop assignment of people/groups to chores.
+- ✅ **Feature Implementation** (Completed: 2026-02-15)
+    - **Chore Management**:
+        - Inline name editing and drag-and-drop reordering.
+        - Bidirectional sorting (A-Z / Z-A).
+    - **Assignments**: Drag-and-drop assignment of markers between cells.
+    - **Person Management**: Inline editing of names, initials, and colors.
     - **Group Management**:
         - Create/Edit/Delete groups.
         - **Nested Groups**: Support for groups within groups (max depth 3).
