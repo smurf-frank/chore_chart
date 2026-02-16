@@ -7,9 +7,10 @@ module.exports = defineConfig({
     forbidOnly: !!process.env.CI,
     retries: process.env.CI ? 2 : 0,
     workers: 1,
-    reporter: 'list',
+    reporter: [['list'], ['html', { open: 'never' }]],
     use: {
-        trace: 'on-first-retry',
+        trace: 'retain-on-failure',
+        screenshot: 'only-on-failure',
         headless: true,
     },
     projects: [
