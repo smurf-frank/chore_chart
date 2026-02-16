@@ -190,7 +190,33 @@ const ChoreRepository = {
         if (!group || !group.memberIds || !group.memberIds.length) return [];
 
         const allActors = this.getAllActors();
-        return allActors.filter(a => group.memberIds.includes(a.id));
+        return allActors
+            .filter(a => group.memberIds.includes(a.id))
+            .sort((a, b) => a.name.localeCompare(b.name));
+    },
+
+    /**
+     * Assign a chore to group members in a rotating pattern.
+     * Members are sorted alphabetically. Starting from `startMemberId` on `startDayIndex`,
+     * each subsequent day gets the next member (wrapping around).
+     * All 7 days are filled.
+     * @param {number} choreId
+     * @param {number} groupId
+     * @param {number} startMemberId - ID of the member to start with
+     * @param {number} startDayIndex - Day index (0=Mon..6=Sun) to start on
+     */
+    assignGroupRotation(choreId, groupId, startMemberId, startDayIndex) {
+        const members = this.getGroupMembers(groupId);
+        if (!members.length) return;
+
+        const startIdx = members.findIndex(m => m.id === startMemberId);
+        if (startIdx === -1) return;
+
+        for (let i = 0; i < 7; i++) {
+            const dayIndex = (startDayIndex + i) % 7;
+            const memberIndex = (startIdx + i) % members.length;
+            this.setAssignment(choreId, dayIndex, members[memberIndex].id);
+        }
     },
 
     /**

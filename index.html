@@ -159,6 +159,35 @@
             </div>
         </div>
     </div>
+
+    <!-- Rotation Assignment Modal -->
+    <div id="rotation-modal-overlay" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Rotate Assignment</h2>
+                <button id="rotation-close-btn" class="btn-icon">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="rotation-chore-id">
+                <div class="setting-row setting-row-stacked">
+                    <label for="rotation-group-select">Group</label>
+                    <select id="rotation-group-select" class="select-input"></select>
+                </div>
+                <div class="setting-row setting-row-stacked">
+                    <label for="rotation-member-select">Start with</label>
+                    <select id="rotation-member-select" class="select-input"></select>
+                </div>
+                <div class="setting-row setting-row-stacked">
+                    <label for="rotation-day-select">Start on</label>
+                    <select id="rotation-day-select" class="select-input"></select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="rotation-cancel-btn" class="btn btn-secondary" style="margin-right: 8px;">Cancel</button>
+                <button id="rotation-apply-btn" class="btn btn-primary">Apply</button>
+            </div>
+        </div>
+    </div>
     <script src="https://sql.js.org/dist/sql-wasm.js"></script>
     <script src="db.js"></script>
     <script src="repository.js"></script>
