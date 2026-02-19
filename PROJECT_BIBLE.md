@@ -16,6 +16,7 @@
 - **Physical-to-Digital**: Mimics the tactile feel of a magnetic board with a clean, modern interface.
 - **Visual Clarity**: A bird's-eye view of the week, ensuring responsibility is obvious at a glance.
 - **Mobile-First**: Designed as an Android app (simulated via responsive web) for quick interaction.
+- **Privacy & Security First**: User data is sacred. Local-first architecture ensures data stays on-device whenever possible. Security is a non-negotiable foundation.
 
 ---
 
@@ -26,6 +27,7 @@
 2. **Marker System**: Visual markers (representing people) that can be placed in grid cells to assign responsibility.
 3. **Tactile UX**: Smooth interactions that feel like moving magnets.
 4. **Android Aesthetics**: Ensuring it feels at home on a mobile device.
+5. **Absolute Privacy**: Zero-latency local storage with no external dependencies by default.
 
 ## 🏗️ Technical Foundation
 
@@ -73,6 +75,7 @@ graph LR
 -   **Mobile-First**: The primary interface must be optimized for Android screens.
 -   **No Backend (v1)**: All data stored locally via sql.js for privacy and simplicity.
 -   **SQL-First**: All data access uses standard SQL to ensure portability to remote backends.
+-   **License Constraint**: Only open-source licenses permitting redistribution and hosting (e.g., MIT, OFL, Apache 2.0, AGPL) are permitted for any project assets or libraries.
 
 ---
 
@@ -81,9 +84,11 @@ graph LR
 ### Pull Request Protocol
 1.  **Update Master Status**: Before submitting a PR, `MASTER_STATUS.md` must be updated to reflect all work done in that branch. This ensures the living document is always in sync with the codebase.
 2.  **Security Review**: After creating a PR, review it for any identified security issues (e.g., CodeQL alerts, dependency vulnerabilities). All security findings **must** be resolved before merging.
+3.  **Third-Party License Tracking**: Any new library or asset (fonts, icons, WASM blobs) added to the repository must be documented in `LICENSE-THIRD-PARTY.md` with its source, files, and license.
 
 ### Commit Signing
 -   **All commits must be GPG-signed.** Never use `--no-gpg-sign`. If GPG signing fails, resolve the GPG agent issue rather than bypassing signing.
+-   **Emoji Prefix**: All commit messages must start with a relevant emoji (e.g., ✨ for new features, 🐛 for bug fixes, 📝 for docs). This is enforced via a git hook.
 
 ### Versioning
 -   **Semantic Versioning**: The project follows [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
