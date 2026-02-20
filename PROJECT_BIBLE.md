@@ -76,10 +76,15 @@ graph LR
 -   **No Backend (v1)**: All data stored locally via sql.js for privacy and simplicity.
 -   **SQL-First**: All data access uses standard SQL to ensure portability to remote backends.
 -   **License Constraint**: Only open-source licenses permitting redistribution and hosting (e.g., MIT, OFL, Apache 2.0, AGPL) are permitted for any project assets or libraries.
+-   **Documentation Portability**: For privacy and seamless portability across environments, never reference explicit local machine paths (e.g., `/home/username/`, `C:\Users\`) in commit messages, status documents, implementation plans, or codebase documentation. Always use relative paths or generic variables.
+-   **Secrets Management**: Secrets (passwords, API keys, private keys, etc.) must NEVER be checked into the repository or included in commit messages. All secrets must be handled via secure environment variables or a dedicated key management system.
 
 ---
 
 ## 🔄 Process & Workflow
+
+### Documentation Updates
+-   **Explicit Approval Required**: User input and explicit acceptance are strictly required before committing any changes to `MASTER_STATUS.md` or `PROJECT_BIBLE.md`. Always present the proposed changes to the user and await confirmation before executing the `git commit` command for these files.
 
 ### Pull Request Protocol
 1.  **Update Master Status**: Before submitting a PR, `MASTER_STATUS.md` must be updated to reflect all work done in that branch. This ensures the living document is always in sync with the codebase.

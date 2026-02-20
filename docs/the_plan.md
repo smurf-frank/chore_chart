@@ -14,10 +14,10 @@ Convert the Chore Chart from a pure PWA into an app that runs identically in the
 
 ### Phase 1: Capacitor Core Setup
 
-#### [MODIFY] [package.json](file:///home/frank/cosmos/projects/active/chore_chart/package.json)
-- Add Capacitor dependencies and build/sync scripts as outlined in [next_phase.md](file:///home/frank/cosmos/projects/active/chore_chart/next_phase.md).
+#### [MODIFY] [package.json](package.json)
+- Add Capacitor dependencies and build/sync scripts as outlined in [next_phase.md](next_phase.md).
 
-#### [NEW] [capacitor.config.json](file:///home/frank/cosmos/projects/active/chore_chart/capacitor.config.json)
+#### [NEW] [capacitor.config.json](capacitor.config.json)
 - Define `appId` (`com.smurffrank.chorechart`), `appName`, and `webDir`.
 
 #### Verification (Phase 1)
@@ -27,9 +27,9 @@ Convert the Chore Chart from a pure PWA into an app that runs identically in the
 ---
 
 ### Phase 2: Offline-First Assets
-- [x] **Local Vendor Assets**: [sql-wasm.js](file:///home/frank/cosmos/projects/active/chore_chart/vendor/sql-wasm.js) and [sql-wasm.wasm](file:///home/frank/cosmos/projects/active/chore_chart/vendor/sql-wasm.wasm) are self-hosted in `vendor/`.
-- [x] **Self-hosted Fonts**: Inter and Outfit fonts are bundled in `fonts/` and declared in [fonts.css](file:///home/frank/cosmos/projects/active/chore_chart/fonts.css).
-- [x] **HTML/JS Configuration**: [index.html](file:///home/frank/cosmos/projects/active/chore_chart/index.html) and [db.js](file:///home/frank/cosmos/projects/active/chore_chart/db.js) already point to these local assets.
+- [x] **Local Vendor Assets**: [sql-wasm.js](src/vendor/sql-wasm.js) and [sql-wasm.wasm](src/vendor/sql-wasm.wasm) are self-hosted in `src/vendor/`.
+- [x] **Self-hosted Fonts**: Inter and Outfit fonts are bundled in `src/fonts/` and declared in [fonts.css](src/fonts.css).
+- [x] **HTML/JS Configuration**: [index.html](src/index.html) and [db.js](src/db.js) already point to these local assets.
 
 > [!NOTE]
 > This phase was confirmed to be completed in PR #27. No further action is needed for this component.
@@ -38,23 +38,23 @@ Convert the Chore Chart from a pure PWA into an app that runs identically in the
 
 ### Phase 3: Platform-Aware Data Layer
 
-#### [NEW] [storage-strategy.js](file:///home/frank/cosmos/projects/active/chore_chart/storage-strategy.js)
+#### [NEW] [storage-strategy.js](src/storage-strategy.js)
 - Platform detection logic (`window.Capacitor.isNativePlatform()`).
 
-#### [MODIFY] [db.js](file:///home/frank/cosmos/projects/active/chore_chart/db.js)
+#### [MODIFY] [db.js](src/db.js)
 - Migration to `async` for all schema and migration functions.
 - Implementation of `CapacitorSQLite` for native Android path.
 
-#### [MODIFY] [repository.js](file:///home/frank/cosmos/projects/active/chore_chart/repository.js)
+#### [MODIFY] [repository.js](src/repository.js)
 - **Make all methods `async`**.
 - Handle both synchronous `sql.js` (Web) and asynchronous `CapacitorSQLite` (Android) backends.
 
-#### [MODIFY] [app.js](file:///home/frank/cosmos/projects/active/chore_chart/app.js)
-- Update all calls to `ChoreRepository` and [db.js](file:///home/frank/cosmos/projects/active/chore_chart/db.js) to use `await`.
+#### [MODIFY] [app.js](src/app.js)
+- Update all calls to `ChoreRepository` and [db.js](src/db.js) to use `await`.
 
 #### Verification (Phase 3)
 - [x] **Browser Verification**: Open the app in a browser. Verify all features (add/remove chores, assignments, rotations) work as before.
-- [x] **Data Persistence**: Refresh page and verify data persists in `localStorage` via the async [saveDatabase](file:///home/frank/cosmos/projects/active/chore_chart/db.js#232-242).
+- [x] **Data Persistence**: Refresh page and verify data persists in `localStorage` via the async `saveDatabase`.
 - [x] **Automated Tests**: Run `npm test` (Playwright) and ensure all existing tests pass with the new async architecture.
 
 ---
@@ -62,7 +62,8 @@ Convert the Chore Chart from a pure PWA into an app that runs identically in the
 ## Proposed Changes
 
 ### Phase 4: Android Project Generation
-- Run `npx cap add android` and `npx cap sync`.
+- [x] Run `npx cap add android` and `npx cap sync`.
+- [x] Installed Android Studio and SDK and opened IDE via `npx cap open android`.
 
 #### Verification (Phase 4)
 - [ ] **Android Build**: Run `npx cap open android`. Verify Android Studio opens and the project builds successfully.

@@ -1,7 +1,7 @@
 {
     "appId": "com.smurffrank.chorechart",
     "appName": "Chore Chart",
-    "webDir": ".",
+    "webDir": "src",
     "android": {
         "allowMixedContent": false
     }

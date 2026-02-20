@@ -29,10 +29,18 @@
 
 ### In Progress
 - 🔄 **Capacitor Integration**:
-    - Phase 1 & 3 complete (Dependencies, Async Data Layer).
-    - Phase 4 pending (Android deployment).
+    - Project restructured (`src/`, `tests/`, `docs/`).
+    - Android Studio & SDK installed locally.
+    - Android platform added and synced.
+    - **Pending**: Manual verification of Android build, emulator, and native storage persistence.
 
 ### Done
+- ✅ **Project Restructuring**:
+    - Separated concerns by migrating application code to `src/`, testing suite to `tests/`, and planning documents to `docs/`.
+    - Updated all CI/CD pipelines, test configuration, and internal script references to reflect the new structure.
+- ✅ **Android Development Environment Setup**:
+    - Installed Android Studio (Panda 1) and minimal SDK tools (API 34).
+    - Configured system environment variables (`ANDROID_HOME`, `JAVA_HOME`, `CAPACITOR_ANDROID_STUDIO_PATH`) globally.
 - ✅ **Async Data Layer Migration**:
     - Converted all `ChoreRepository` database transactions to `async/await`.
     - Implemented `StorageStrategy` to swap between Web `sql.js` and Native Capacitor SQLite.
@@ -63,12 +71,13 @@
 ### Where You Left Off
 **Last Worked On**: 2026-02-19
 
-**Status**: Phase 3 of the Capacitor Integration plan is complete. The application and testing suite now natively support asynchronous data operations.
+**Status**: We successfully generated the Capacitor Android project (`npx cap add android` -> `npx cap sync`). Android Studio was installed globally, configured, and is currently open with the newly generated project.
 
 ### Next Steps (For Resuming)
-1. **Phase 4**: Run `npx cap add android` and configure the auto-generated Android studio project.
-2. Build and run the Android emulator to verify the native SQLite database implementation.
-3. Finish the Capacitor app deployment pipeline.
+1. **Resume in Android Studio**: Proceed with the manual Phase 4 Verification steps.
+2. **Android Build**: Wait for Gradle to finish syncing, then verify the project builds successfully.
+3. **Emulator Launch**: Create/launch an Android Virtual Device (AVD) and run the app. Verify that the UI loads and the bundled fonts render correctly.
+4. **Native Storage**: Add an assignment on the emulator, entirely close the app (swipe it away), and reopen it. If the assignment persists, `CapacitorSQLite` integration is fully successful!
 
 ---
 
@@ -83,3 +92,4 @@
 | 2026-02-16 | Antigravity | Updated PROJECT_BIBLE with security protocols. |
 | 2026-02-16 | Antigravity | Released v0.0.2. |
 | 2026-02-19 | Antigravity | Capacitor setup and Phase 3 Async Data Layer Migration complete. |
+| 2026-02-19 | Antigravity | Restructured to src/tests/docs. Installed Android SDK. Generated Android proj. |

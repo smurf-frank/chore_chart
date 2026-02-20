@@ -5,94 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chore Chart - Unit Tests</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --pass: #2ecc71;
-            --fail: #dc2626;
-            --bg: #0f172a;
-            --card: #1e293b;
-            --text: #e2e8f0;
-            --border: #334155;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            padding: 24px;
-            min-height: 100vh;
-            margin: 0;
-        }
-
-        h1 {
-            margin-bottom: 8px;
-            font-size: 1.6rem;
-        }
-
-        .summary {
-            font-size: 0.9rem;
-            margin-bottom: 24px;
-            color: #94a3b8;
-        }
-
-        .summary span {
-            font-weight: 700;
-        }
-
-        .pass {
-            color: var(--pass);
-        }
-
-        .fail {
-            color: var(--fail);
-        }
-
-        .suite {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            margin-bottom: 16px;
-            overflow: hidden;
-        }
-
-        .suite-header {
-            font-weight: 700;
-            padding: 14px 20px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .test-row {
-            padding: 10px 20px 10px 28px;
-            font-size: 0.88rem;
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            border-bottom: 1px solid #1e293b;
-        }
-
-        .test-row:last-child {
-            border-bottom: none;
-        }
-
-        .test-icon {
-            flex-shrink: 0;
-            width: 20px;
-            text-align: center;
-        }
-
-        .test-name {
-            flex: 1;
-        }
-
-        .test-error {
-            font-size: 0.8rem;
-            color: var(--fail);
-            margin-top: 4px;
-            font-family: monospace;
-            white-space: pre-wrap;
-        }
-    </style>
+    <link rel="stylesheet" href="../src/style.css">
+    <link rel="stylesheet" href="../src/fonts.css">
 </head>
 
 <body>
@@ -100,11 +14,14 @@
     <div class="summary" id="summary">Running...</div>
     <div id="results"></div>
 
-    <script src="https://sql.js.org/dist/sql-wasm.js"></script>
-    <script src="storage-strategy.js"></script>
-    <script src="db.js"></script>
-    <script src="repository.js"></script>
+    <script src="../src/vendor/sql-wasm.js"></script>
+    <script src="../src/storage-strategy.js"></script>
+    <script src="../src/db.js"></script>
+    <script src="../src/repository.js"></script>
     <script>
+        // Use a local wasm path directly for the test
+        window.SQL_WASM_PATH = '../src/vendor/sql-wasm.wasm';
+
         // Stub DOMContentLoaded to prevent app.js init() from running
         const origAddEventListener = document.addEventListener;
         document.addEventListener = function (type, fn) {
@@ -112,7 +29,7 @@
             origAddEventListener.call(this, type, fn);
         };
     </script>
-    <script src="app.js"></script>
+    <script src="../src/app.js"></script>
     <script>
         // Restore
         document.addEventListener = origAddEventListener;
