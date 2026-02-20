@@ -12,13 +12,6 @@ Convert the Chore Chart from a pure PWA into an app that runs identically in the
 
 ## Completed Work
 
-### Phase 2: Offline-First Assets
-- [x] **Local Vendor Assets**: [sql-wasm.js](file:///home/frank/cosmos/projects/active/chore_chart/vendor/sql-wasm.js) and [sql-wasm.wasm](file:///home/frank/cosmos/projects/active/chore_chart/vendor/sql-wasm.wasm) are self-hosted in `vendor/`.
-- [x] **Self-hosted Fonts**: Inter and Outfit fonts are bundled in `fonts/` and declared in [fonts.css](file:///home/frank/cosmos/projects/active/chore_chart/fonts.css).
-- [x] **HTML/JS Configuration**: [index.html](file:///home/frank/cosmos/projects/active/chore_chart/index.html) and [db.js](file:///home/frank/cosmos/projects/active/chore_chart/db.js) already point to these local assets.
-
-## Proposed Changes
-
 ### Phase 1: Capacitor Core Setup
 
 #### [MODIFY] [package.json](file:///home/frank/cosmos/projects/active/chore_chart/package.json)
@@ -31,14 +24,12 @@ Convert the Chore Chart from a pure PWA into an app that runs identically in the
 - [x] Run `npm install` and verify no dependency conflicts.
 - [x] Verify `npx cap init` command executes successfully with the new config.
 
-> [!IMPORTANT]
-> **Checkpoint**: I will provide a summary of the setup and verification results, then pause and use `notify_user` to get approval before proceeding to Phase 3.
-
 ---
 
----
-
-### Phase 2: Offline-First Assets (ALREADY COMPLETED)
+### Phase 2: Offline-First Assets
+- [x] **Local Vendor Assets**: [sql-wasm.js](file:///home/frank/cosmos/projects/active/chore_chart/vendor/sql-wasm.js) and [sql-wasm.wasm](file:///home/frank/cosmos/projects/active/chore_chart/vendor/sql-wasm.wasm) are self-hosted in `vendor/`.
+- [x] **Self-hosted Fonts**: Inter and Outfit fonts are bundled in `fonts/` and declared in [fonts.css](file:///home/frank/cosmos/projects/active/chore_chart/fonts.css).
+- [x] **HTML/JS Configuration**: [index.html](file:///home/frank/cosmos/projects/active/chore_chart/index.html) and [db.js](file:///home/frank/cosmos/projects/active/chore_chart/db.js) already point to these local assets.
 
 > [!NOTE]
 > This phase was confirmed to be completed in PR #27. No further action is needed for this component.
@@ -66,10 +57,9 @@ Convert the Chore Chart from a pure PWA into an app that runs identically in the
 - [x] **Data Persistence**: Refresh page and verify data persists in `localStorage` via the async [saveDatabase](file:///home/frank/cosmos/projects/active/chore_chart/db.js#232-242).
 - [x] **Automated Tests**: Run `npm test` (Playwright) and ensure all existing tests pass with the new async architecture.
 
-> [!IMPORTANT]
-> **Checkpoint**: I will provide a summary of the code migration and verification results, then pause and use `notify_user` to get approval before proceeding to Phase 4.
-
 ---
+
+## Proposed Changes
 
 ### Phase 4: Android Project Generation
 - Run `npx cap add android` and `npx cap sync`.
@@ -82,4 +72,3 @@ Convert the Chore Chart from a pure PWA into an app that runs identically in the
 
 > [!IMPORTANT]
 > **Checkpoint Phase 4**: I will bridge the work with a summary and verification results, then pause for your final review.
-
