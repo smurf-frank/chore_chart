@@ -11,8 +11,8 @@ let sortDirection = 'asc'; // 'asc' or 'desc'
 /**
  * Returns the 7-day array rotated so that `startDay` is first.
  */
-function getOrderedDays() {
-    const startDay = ChoreRepository.getWeekStartDay();
+async function getOrderedDays() {
+    const startDay = await ChoreRepository.getWeekStartDay();
     const startIndex = ALL_DAYS.indexOf(startDay);
     if (startIndex <= 0) return [...ALL_DAYS];
     return [...ALL_DAYS.slice(startIndex), ...ALL_DAYS.slice(0, startIndex)];
@@ -20,18 +20,18 @@ function getOrderedDays() {
 
 async function init() {
     await initDatabase();
-    renderHeader();
-    renderBoard();
-    renderPalette();
+    await renderHeader();
+    await renderBoard();
+    await renderPalette();
     bindEvents();
 }
 
 /**
  * Renders the chart title and subtitle from settings.
  */
-function renderHeader() {
-    const title = ChoreRepository.getSetting('chart_title') || 'Chore Chart';
-    const subtitle = ChoreRepository.getSetting('chart_subtitle') || 'Digital Magnetic Board';
+async function renderHeader() {
+    const title = await ChoreRepository.getSetting('chart_title') || 'Chore Chart';
+    const subtitle = await ChoreRepository.getSetting('chart_subtitle') || 'Digital Magnetic Board';
     document.getElementById('chart-title').textContent = title;
     document.getElementById('chart-subtitle').textContent = subtitle;
     document.title = `${title} - ${subtitle}`;
@@ -39,17 +39,17 @@ function renderHeader() {
 
 // ── Board Rendering ─────────────────────────────────────────
 
-function renderBoard() {
+async function renderBoard() {
     const board = document.getElementById('chore-board');
     board.innerHTML = '';
 
-    const orderedDays = getOrderedDays();
-    const chores = ChoreRepository.getAllChores();
-    const assignments = ChoreRepository.getAllAssignments();
-    const maxMarkers = ChoreRepository.getMaxMarkersPerCell();
-    const shadingEnabled = ChoreRepository.getRowShadingEnabled();
-    const shadeColor = ChoreRepository.getRowShadingColor();
-    const choreColWidth = ChoreRepository.getChoreColumnWidth();
+    const orderedDays = await getOrderedDays();
+    const chores = await ChoreRepository.getAllChores();
+    const assignments = await ChoreRepository.getAllAssignments();
+    const maxMarkers = await ChoreRepository.getMaxMarkersPerCell();
+    const shadingEnabled = await ChoreRepository.getRowShadingEnabled();
+    const shadeColor = await ChoreRepository.getRowShadingColor();
+    const choreColWidth = await ChoreRepository.getChoreColumnWidth();
 
     board.style.setProperty('--chore-col-width', `${choreColWidth}px`);
     if (shadingEnabled) {
@@ -65,11 +65,11 @@ function renderBoard() {
     addBtn.className = 'add-chore-btn';
     addBtn.textContent = '+';
     addBtn.title = 'Add Chore';
-    addBtn.addEventListener('click', () => {
+    addBtn.addEventListener('click', async () => {
         const name = prompt('Enter chore name:');
         if (name && name.trim()) {
-            ChoreRepository.addChore(name.trim());
-            renderBoard();
+            await ChoreRepository.addChore(name.trim());
+            await renderBoard();
         }
     });
     corner.appendChild(addBtn);
@@ -78,8 +78,8 @@ function renderBoard() {
     sortBtn.className = 'sort-chore-btn';
     sortBtn.innerHTML = sortDirection === 'asc' ? '↓' : '↑';
     sortBtn.title = `Sort Chores (${sortDirection === 'asc' ? 'A-Z' : 'Z-A'})`;
-    sortBtn.addEventListener('click', () => {
-        const currentChores = ChoreRepository.getAllChores();
+    sortBtn.addEventListener('click', async () => {
+        const currentChores = await ChoreRepository.getAllChores();
         currentChores.sort((a, b) => {
             if (sortDirection === 'asc') {
                 return a.name.localeCompare(b.name);
@@ -89,26 +89,26 @@ function renderBoard() {
         });
 
         const orderedIds = currentChores.map(c => c.id);
-        ChoreRepository.updateChoreOrders(orderedIds);
+        await ChoreRepository.updateChoreOrders(orderedIds);
 
         // Toggle direction for next click
         sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-        renderBoard();
+        await renderBoard();
     });
     corner.appendChild(sortBtn);
 
     const resizeHandle = document.createElement('div');
     resizeHandle.className = 'resize-handle';
-    resizeHandle.addEventListener('mousedown', (e) => {
+    resizeHandle.addEventListener('mousedown', async (e) => {
         e.preventDefault();
         const startX = e.pageX;
-        const startWidth = ChoreRepository.getChoreColumnWidth();
+        const startWidth = await ChoreRepository.getChoreColumnWidth();
         resizeHandle.classList.add('resizing');
 
-        const onMouseMove = (moveEvent) => {
+        const onMouseMove = async (moveEvent) => {
             const newWidth = Math.max(100, Math.min(600, startWidth + (moveEvent.pageX - startX)));
             board.style.setProperty('--chore-col-width', `${newWidth}px`);
-            ChoreRepository.setChoreColumnWidth(newWidth);
+            await ChoreRepository.setChoreColumnWidth(newWidth);
         };
 
         const onMouseUp = () => {
@@ -124,15 +124,16 @@ function renderBoard() {
 
     board.appendChild(corner);
 
-    orderedDays.forEach(day => {
+    for (const day of orderedDays) {
         const header = document.createElement('div');
         header.className = 'board-cell header';
         header.textContent = day;
         board.appendChild(header);
-    });
+    }
 
     // ── Chore Rows ──
-    chores.forEach((chore, index) => {
+    for (let index = 0; index < chores.length; index++) {
+        const chore = chores[index];
         const isShaded = shadingEnabled && (index % 2 !== 0);
 
         const nameCell = document.createElement('div');
@@ -148,11 +149,11 @@ function renderBoard() {
         nameInput.value = chore.name;
         nameInput.title = chore.name; // Full name on hover
         nameInput.maxLength = 128;
-        nameInput.addEventListener('change', () => {
+        nameInput.addEventListener('change', async () => {
             const newName = nameInput.value.trim();
             if (newName && newName !== chore.name) {
-                ChoreRepository.updateChore(chore.id, { name: newName });
-                renderBoard();
+                await ChoreRepository.updateChore(chore.id, { name: newName });
+                await renderBoard();
             } else {
                 nameInput.value = chore.name;
             }
@@ -163,11 +164,11 @@ function renderBoard() {
         deleteBtn.className = 'chore-delete-btn';
         deleteBtn.textContent = '×';
         deleteBtn.title = `Delete ${chore.name}`;
-        deleteBtn.addEventListener('click', (e) => {
+        deleteBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
             if (confirm(`Delete "${chore.name}" and all its assignments?`)) {
-                ChoreRepository.removeChore(chore.id);
-                renderBoard();
+                await ChoreRepository.removeChore(chore.id);
+                await renderBoard();
             }
         });
         nameCell.appendChild(deleteBtn);
@@ -177,36 +178,36 @@ function renderBoard() {
         rotateBtn.className = 'chore-rotate-btn';
         rotateBtn.textContent = '🔄';
         rotateBtn.title = `Rotate group assignment for ${chore.name}`;
-        rotateBtn.addEventListener('click', (e) => {
+        rotateBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
             openRotationModal(chore.id);
         });
         nameCell.appendChild(rotateBtn);
 
         // Drag events for reordering chores
-        nameCell.addEventListener('dragstart', (e) => {
+        nameCell.addEventListener('dragstart', async (e) => {
             e.dataTransfer.setData('text/chore-id', String(chore.id));
             e.dataTransfer.effectAllowed = 'move';
             nameCell.classList.add('dragging-chore');
         });
 
-        nameCell.addEventListener('dragend', () => {
+        nameCell.addEventListener('dragend', async () => {
             nameCell.classList.remove('dragging-chore');
             document.querySelectorAll('.chore-name').forEach(c => c.classList.remove('drag-over-chore'));
         });
 
-        nameCell.addEventListener('dragover', (e) => {
+        nameCell.addEventListener('dragover', async (e) => {
             if (e.dataTransfer.types.includes('text/chore-id')) {
                 e.preventDefault();
                 nameCell.classList.add('drag-over-chore');
             }
         });
 
-        nameCell.addEventListener('dragleave', () => {
+        nameCell.addEventListener('dragleave', async () => {
             nameCell.classList.remove('drag-over-chore');
         });
 
-        nameCell.addEventListener('drop', (e) => {
+        nameCell.addEventListener('drop', async (e) => {
             const draggedId = parseInt(e.dataTransfer.getData('text/chore-id'), 10);
             if (!draggedId || draggedId === chore.id) return;
 
@@ -219,13 +220,13 @@ function renderBoard() {
             currentIds.splice(fromIndex, 1);
             currentIds.splice(toIndex, 0, draggedId);
 
-            ChoreRepository.updateChoreOrders(currentIds);
-            renderBoard();
+            await ChoreRepository.updateChoreOrders(currentIds);
+            await renderBoard();
         });
 
         board.appendChild(nameCell);
 
-        orderedDays.forEach(day => {
+        for (const day of orderedDays) {
             const dayIndex = ALL_DAYS.indexOf(day);
             const cell = document.createElement('div');
             cell.className = 'board-cell assignment-cell';
@@ -246,7 +247,7 @@ function renderBoard() {
             const isFull = cellAssignments.length >= maxMarkers;
             if (isFull) cell.classList.add('cell-full');
 
-            cell.addEventListener('dragover', (e) => {
+            cell.addEventListener('dragover', async (e) => {
                 if (isFull || e.dataTransfer.types.includes('text/chore-id')) return;
                 e.preventDefault();
                 // If it's a move from within the grid (has JSON data), use 'move'
@@ -255,10 +256,10 @@ function renderBoard() {
                 e.dataTransfer.dropEffect = isMove ? 'move' : 'copy';
                 cell.classList.add('drag-over');
             });
-            cell.addEventListener('dragleave', () => {
+            cell.addEventListener('dragleave', async () => {
                 cell.classList.remove('drag-over');
             });
-            cell.addEventListener('drop', (e) => {
+            cell.addEventListener('drop', async (e) => {
                 if (e.dataTransfer.types.includes('text/chore-id')) return;
                 e.preventDefault();
                 cell.classList.remove('drag-over');
@@ -277,25 +278,25 @@ function renderBoard() {
                         if (source.sourceChoreId === chore.id && source.sourceDayIndex === dayIndex) return;
 
                         // Try adding to new cell
-                        const added = ChoreRepository.addAssignment(chore.id, dayIndex, actorId);
+                        const added = await ChoreRepository.addAssignment(chore.id, dayIndex, actorId);
                         if (added) {
                             // If successful, remove from old cell
-                            ChoreRepository.removeAssignment(source.sourceChoreId, source.sourceDayIndex, actorId);
-                            renderBoard();
+                            await ChoreRepository.removeAssignment(source.sourceChoreId, source.sourceDayIndex, actorId);
+                            await renderBoard();
                         }
                     } catch (err) {
                         console.error('Invalid move data', err);
                     }
                 } else {
                     // New assignment from palette
-                    const added = ChoreRepository.addAssignment(chore.id, dayIndex, actorId);
-                    if (added) renderBoard();
+                    const added = await ChoreRepository.addAssignment(chore.id, dayIndex, actorId);
+                    if (added) await renderBoard();
                 }
             });
 
             board.appendChild(cell);
-        });
-    });
+        }
+    }
 }
 
 /**
@@ -309,7 +310,7 @@ function createCellMarker(actor, choreId, dayIndex) {
     marker.title = `${actor.name} (drag to move, click to remove)`;
     marker.draggable = true;
 
-    marker.addEventListener('dragstart', (e) => {
+    marker.addEventListener('dragstart', async (e) => {
         e.dataTransfer.setData('text/plain', String(actor.actorId));
         e.dataTransfer.setData('application/json', JSON.stringify({
             sourceChoreId: choreId,
@@ -324,7 +325,7 @@ function createCellMarker(actor, choreId, dayIndex) {
         });
     });
 
-    marker.addEventListener('dragend', () => {
+    marker.addEventListener('dragend', async () => {
         marker.classList.remove('dragging');
         document.querySelectorAll('.drop-target').forEach(c => {
             c.classList.remove('drop-target');
@@ -334,22 +335,22 @@ function createCellMarker(actor, choreId, dayIndex) {
         });
     });
 
-    marker.addEventListener('click', (e) => {
+    marker.addEventListener('click', async (e) => {
         e.stopPropagation();
-        ChoreRepository.removeAssignment(choreId, dayIndex, actor.actorId);
-        renderBoard();
+        await ChoreRepository.removeAssignment(choreId, dayIndex, actor.actorId);
+        await renderBoard();
     });
     return marker;
 }
 
 // ── Marker Palette ──────────────────────────────────────────
 
-function renderPalette() {
+async function renderPalette() {
     const container = document.getElementById('palette-markers');
     container.innerHTML = '';
 
-    const people = ChoreRepository.getAllPeople();
-    people.forEach(person => {
+    const people = await ChoreRepository.getAllPeople();
+    for (const person of people) {
         const marker = document.createElement('div');
         marker.className = 'marker marker-palette';
         marker.style.backgroundColor = person.color;
@@ -357,7 +358,7 @@ function renderPalette() {
         marker.title = `Drag ${person.name} to a cell`;
         marker.draggable = true;
 
-        marker.addEventListener('dragstart', (e) => {
+        marker.addEventListener('dragstart', async (e) => {
             e.dataTransfer.setData('text/plain', String(person.id));
             e.dataTransfer.effectAllowed = 'copy';
             marker.classList.add('dragging');
@@ -365,7 +366,7 @@ function renderPalette() {
                 c.classList.add('drop-target');
             });
         });
-        marker.addEventListener('dragend', () => {
+        marker.addEventListener('dragend', async () => {
             marker.classList.remove('dragging');
             document.querySelectorAll('.drop-target').forEach(c => {
                 c.classList.remove('drop-target');
@@ -376,12 +377,13 @@ function renderPalette() {
         });
 
         container.appendChild(marker);
-    });
+    }
 
     // Render Groups in Palette (if enabled)
-    const groups = ChoreRepository.getAllGroups();
+    const groups = await ChoreRepository.getAllGroups();
     let visibleGroups = 0;
-    groups.forEach(group => {
+    for (let i = 0; i < groups.length; i++) {
+        const group = groups[i];
         if (!group.showAsMarker) return;
         visibleGroups++;
 
@@ -392,7 +394,7 @@ function renderPalette() {
         marker.title = `Group: ${group.name}`;
         marker.draggable = true;
 
-        marker.addEventListener('dragstart', (e) => {
+        marker.addEventListener('dragstart', async (e) => {
             e.dataTransfer.setData('text/plain', String(group.id));
             e.dataTransfer.effectAllowed = 'copy';
             marker.classList.add('dragging');
@@ -400,7 +402,7 @@ function renderPalette() {
                 c.classList.add('drop-target');
             });
         });
-        marker.addEventListener('dragend', () => {
+        marker.addEventListener('dragend', async () => {
             marker.classList.remove('dragging');
             document.querySelectorAll('.drop-target').forEach(c => {
                 c.classList.remove('drop-target');
@@ -411,7 +413,7 @@ function renderPalette() {
         });
 
         container.appendChild(marker);
-    });
+    }
 
     if (!people.length && !visibleGroups) {
         container.innerHTML = '<span class="palette-empty">No people yet — add in Settings</span>';
@@ -420,7 +422,7 @@ function renderPalette() {
 
 // ── Settings Modal ──────────────────────────────────────────
 
-function openSettings() {
+async function openSettings() {
     const modal = document.getElementById('settings-modal');
     const select = document.getElementById('week-start-select');
     const titleInput = document.getElementById('chart-title-input');
@@ -431,15 +433,15 @@ function openSettings() {
     const colorRow = document.getElementById('row-shading-color-row');
     const choreWidthInput = document.getElementById('chore-width-input');
 
-    select.value = ChoreRepository.getWeekStartDay();
-    titleInput.value = ChoreRepository.getSetting('chart_title') || 'Chore Chart';
-    subtitleInput.value = ChoreRepository.getSetting('chart_subtitle') || 'Digital Magnetic Board';
-    maxInput.value = ChoreRepository.getMaxMarkersPerCell();
-    choreWidthInput.value = ChoreRepository.getChoreColumnWidth();
+    select.value = await ChoreRepository.getWeekStartDay();
+    titleInput.value = await ChoreRepository.getSetting('chart_title') || 'Chore Chart';
+    subtitleInput.value = await ChoreRepository.getSetting('chart_subtitle') || 'Digital Magnetic Board';
+    maxInput.value = await ChoreRepository.getMaxMarkersPerCell();
+    choreWidthInput.value = await ChoreRepository.getChoreColumnWidth();
 
     // Visuals
-    shadingCheck.checked = ChoreRepository.getRowShadingEnabled();
-    shadingColor.value = ChoreRepository.getRowShadingColor();
+    shadingCheck.checked = await ChoreRepository.getRowShadingEnabled();
+    shadingColor.value = await ChoreRepository.getRowShadingColor();
 
     // Toggle color picker visibility based on checkbox
     const toggleColor = () => {
@@ -510,42 +512,42 @@ function openSettings() {
     modal.classList.remove('hidden');
 }
 
-function closeSettings() {
+async function closeSettings() {
     document.getElementById('settings-modal').classList.add('hidden');
 }
 
-function saveSettings() {
+async function saveSettings() {
     const select = document.getElementById('week-start-select');
     const titleInput = document.getElementById('chart-title-input');
     const subtitleInput = document.getElementById('chart-subtitle-input');
     const maxInput = document.getElementById('max-markers-input');
 
-    ChoreRepository.setWeekStartDay(select.value);
-    ChoreRepository.setSetting('chart_title', titleInput.value.trim() || 'Chore Chart');
-    ChoreRepository.setSetting('chart_subtitle', subtitleInput.value.trim() || 'Digital Magnetic Board');
-    ChoreRepository.setMaxMarkersPerCell(parseInt(maxInput.value, 10));
+    await ChoreRepository.setWeekStartDay(select.value);
+    await ChoreRepository.setSetting('chart_title', titleInput.value.trim() || 'Chore Chart');
+    await ChoreRepository.setSetting('chart_subtitle', subtitleInput.value.trim() || 'Digital Magnetic Board');
+    await ChoreRepository.setMaxMarkersPerCell(parseInt(maxInput.value, 10));
 
     const shadingCheck = document.getElementById('row-shading-check');
     const shadingColor = document.getElementById('row-shading-color');
     const choreWidthInput = document.getElementById('chore-width-input');
 
-    ChoreRepository.setRowShadingEnabled(shadingCheck.checked);
-    ChoreRepository.setRowShadingColor(shadingColor.value);
-    ChoreRepository.setChoreColumnWidth(parseInt(choreWidthInput.value, 10));
+    await ChoreRepository.setRowShadingEnabled(shadingCheck.checked);
+    await ChoreRepository.setRowShadingColor(shadingColor.value);
+    await ChoreRepository.setChoreColumnWidth(parseInt(choreWidthInput.value, 10));
 
     closeSettings();
-    renderHeader();
-    renderBoard();
+    await renderHeader();
+    await renderBoard();
 }
 
 // ── People Manager ──────────────────────────────────────────
 
-function renderPeopleList() {
+async function renderPeopleList() {
     const container = document.getElementById('people-list');
     container.innerHTML = '';
 
-    const people = ChoreRepository.getAllPeople();
-    people.forEach(person => {
+    const people = await ChoreRepository.getAllPeople();
+    for (const person of people) {
         const item = document.createElement('div');
         item.className = 'person-item-editable';
 
@@ -555,10 +557,10 @@ function renderPeopleList() {
         colorInput.className = 'color-input-sm';
         colorInput.value = person.color;
         colorInput.title = `Change color for ${person.name}`;
-        colorInput.addEventListener('change', () => {
-            ChoreRepository.updateActor(person.id, { color: colorInput.value });
-            renderPalette();
-            renderBoard();
+        colorInput.addEventListener('change', async () => {
+            await ChoreRepository.updateActor(person.id, { color: colorInput.value });
+            await renderPalette();
+            await renderBoard();
         });
 
         // Name Input
@@ -568,12 +570,12 @@ function renderPeopleList() {
         nameInput.value = person.name;
         nameInput.maxLength = 128;
         nameInput.placeholder = 'Name';
-        nameInput.addEventListener('change', () => {
+        nameInput.addEventListener('change', async () => {
             const newName = nameInput.value.trim();
             if (newName) {
-                ChoreRepository.updateActor(person.id, { name: newName });
-                renderPalette();
-                renderBoard();
+                await ChoreRepository.updateActor(person.id, { name: newName });
+                await renderPalette();
+                await renderBoard();
             } else {
                 nameInput.value = person.name; // Revert
             }
@@ -586,13 +588,13 @@ function renderPeopleList() {
         initialsInput.value = person.initials;
         initialsInput.maxLength = 3;
         initialsInput.placeholder = 'AB';
-        initialsInput.addEventListener('change', () => {
+        initialsInput.addEventListener('change', async () => {
             const newInitials = initialsInput.value.trim().toUpperCase();
             if (newInitials) {
-                ChoreRepository.updateActor(person.id, { initials: newInitials });
+                await ChoreRepository.updateActor(person.id, { initials: newInitials });
                 initialsInput.value = newInitials;
-                renderPalette();
-                renderBoard();
+                await renderPalette();
+                await renderBoard();
             } else {
                 initialsInput.value = person.initials; // Revert
             }
@@ -602,12 +604,12 @@ function renderPeopleList() {
         deleteBtn.className = 'btn-delete';
         deleteBtn.textContent = '✕';
         deleteBtn.title = `Remove ${person.name}`;
-        deleteBtn.addEventListener('click', () => {
+        deleteBtn.addEventListener('click', async () => {
             if (confirm(`Remove ${person.name}? Their assignments will be cleared.`)) {
-                ChoreRepository.removeActor(person.id);
+                await ChoreRepository.removeActor(person.id);
                 renderPeopleList();
-                renderPalette();
-                renderBoard();
+                await renderPalette();
+                await renderBoard();
             }
         });
 
@@ -616,20 +618,21 @@ function renderPeopleList() {
         item.appendChild(initialsInput);
         item.appendChild(deleteBtn);
         container.appendChild(item);
-    });
+    }
 }
 
 // ── Groups Manager ──────────────────────────────────────────
 
-function renderGroupsList() {
+async function renderGroupsList() {
     const container = document.getElementById('groups-list');
     if (!container) return; // Guard if element missing
     container.innerHTML = '';
 
-    const groups = ChoreRepository.getAllGroups();
-    const people = ChoreRepository.getAllPeople();
+    const groups = await ChoreRepository.getAllGroups();
+    const people = await ChoreRepository.getAllPeople();
 
-    groups.forEach(group => {
+    for (let i = 0; i < groups.length; i++) {
+        const group = groups[i];
         const item = document.createElement('div');
         item.className = 'group-item-editable';
         // Add specific style for group items (e.g. border or background)
@@ -651,10 +654,10 @@ function renderGroupsList() {
         colorInput.type = 'color';
         colorInput.className = 'color-input-sm';
         colorInput.value = group.color;
-        colorInput.addEventListener('change', () => {
-            ChoreRepository.updateGroup(group.id, { color: colorInput.value });
-            renderPalette();
-            renderBoard();
+        colorInput.addEventListener('change', async () => {
+            await ChoreRepository.updateGroup(group.id, { color: colorInput.value });
+            await renderPalette();
+            await renderBoard();
         });
 
         // Name
@@ -663,12 +666,12 @@ function renderGroupsList() {
         nameInput.className = 'text-input text-input-sm';
         nameInput.value = group.name;
         nameInput.placeholder = 'Group Name';
-        nameInput.addEventListener('change', () => {
+        nameInput.addEventListener('change', async () => {
             const val = nameInput.value.trim();
             if (val) {
-                ChoreRepository.updateGroup(group.id, { name: val });
-                renderPalette();
-                renderBoard();
+                await ChoreRepository.updateGroup(group.id, { name: val });
+                await renderPalette();
+                await renderBoard();
             } else {
                 nameInput.value = group.name;
             }
@@ -682,12 +685,12 @@ function renderGroupsList() {
         initialsInput.placeholder = 'GRP';
         initialsInput.maxLength = 3;
         initialsInput.style.width = '50px';
-        initialsInput.addEventListener('change', () => {
+        initialsInput.addEventListener('change', async () => {
             const val = initialsInput.value.trim().toUpperCase();
             if (val) {
-                ChoreRepository.updateGroup(group.id, { initials: val });
-                renderPalette();
-                renderBoard();
+                await ChoreRepository.updateGroup(group.id, { initials: val });
+                await renderPalette();
+                await renderBoard();
             } else {
                 initialsInput.value = group.initials;
             }
@@ -697,12 +700,12 @@ function renderGroupsList() {
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'btn-delete';
         deleteBtn.textContent = '✕';
-        deleteBtn.addEventListener('click', () => {
+        deleteBtn.addEventListener('click', async () => {
             if (confirm(`Remove group "${group.name}"?`)) {
-                ChoreRepository.removeActor(group.id);
+                await ChoreRepository.removeActor(group.id);
                 renderGroupsList();
-                renderPalette();
-                renderBoard();
+                await renderPalette();
+                await renderBoard();
             }
         });
 
@@ -729,9 +732,9 @@ function renderGroupsList() {
         const markerCheck = document.createElement('input');
         markerCheck.type = 'checkbox';
         markerCheck.checked = group.showAsMarker;
-        markerCheck.addEventListener('change', () => {
-            ChoreRepository.updateGroup(group.id, { showAsMarker: markerCheck.checked });
-            renderPalette();
+        markerCheck.addEventListener('change', async () => {
+            await ChoreRepository.updateGroup(group.id, { showAsMarker: markerCheck.checked });
+            await renderPalette();
         });
 
         markerLabel.appendChild(markerCheck);
@@ -750,7 +753,7 @@ function renderGroupsList() {
         membersContainer.style.flexWrap = 'wrap';
         membersContainer.style.gap = '6px';
 
-        people.forEach(person => {
+        for (const person of people) {
             const isMember = group.memberIds.includes(person.id);
             const chip = document.createElement('div');
             chip.textContent = person.initials;
@@ -769,22 +772,27 @@ function renderGroupsList() {
                 chip.style.color = 'var(--text)';
             }
 
-            chip.addEventListener('click', () => {
+            chip.addEventListener('click', async () => {
                 let newMembers = [...group.memberIds];
                 if (isMember) {
                     newMembers = newMembers.filter(id => id !== person.id);
                 } else {
                     newMembers.push(person.id);
                 }
-                ChoreRepository.updateGroup(group.id, { memberIds: newMembers });
+                await ChoreRepository.updateGroup(group.id, { memberIds: newMembers });
                 renderGroupsList();
             });
 
             membersContainer.appendChild(chip);
-        });
+        }
 
         // Separator if we have groups to show
-        const eligibleGroups = groups.filter(g => g.id !== group.id && ChoreRepository.canAddMember(group.id, g.id));
+        const eligibleGroups = [];
+        for (const g of groups) {
+            if (g.id !== group.id && await ChoreRepository.canAddMember(group.id, g.id)) {
+                eligibleGroups.push(g);
+            }
+        }
         const memberGroups = groups.filter(g => g.id !== group.id && group.memberIds.includes(g.id));
 
         // Combine for display: show matches or currently added ones (even if invalid now, though that shouldn't happen)
@@ -799,11 +807,11 @@ function renderGroupsList() {
             divider.style.margin = '4px 0';
             membersContainer.appendChild(divider);
 
-            groups.forEach(g => {
+            for (const g of groups) {
                 if (g.id === group.id) return; // Skip self
 
                 const isMember = group.memberIds.includes(g.id);
-                const canAdd = ChoreRepository.canAddMember(group.id, g.id);
+                const canAdd = await ChoreRepository.canAddMember(group.id, g.id);
 
                 if (!isMember && !canAdd) return; // Hide invalid candidates
 
@@ -827,16 +835,16 @@ function renderGroupsList() {
                     chip.style.color = 'var(--text)';
                 }
 
-                chip.addEventListener('click', () => {
+                chip.addEventListener('click', async () => {
                     let newMembers = [...group.memberIds];
                     if (isMember) {
                         newMembers = newMembers.filter(id => id !== g.id);
-                        ChoreRepository.updateGroup(group.id, { memberIds: newMembers });
+                        await ChoreRepository.updateGroup(group.id, { memberIds: newMembers });
                         renderGroupsList();
                     } else {
                         if (canAdd) {
                             newMembers.push(g.id);
-                            ChoreRepository.updateGroup(group.id, { memberIds: newMembers });
+                            await ChoreRepository.updateGroup(group.id, { memberIds: newMembers });
                             renderGroupsList();
                         } else {
                             alert('Cannot add this group: Max nesting level (3) exceeded or circular dependency.');
@@ -845,20 +853,20 @@ function renderGroupsList() {
                 });
 
                 membersContainer.appendChild(chip);
-            });
+            }
         }
 
         optionsRow.appendChild(membersContainer);
         item.appendChild(optionsRow);
         container.appendChild(item);
-    });
+    }
 
     if (!groups.length) {
         container.innerHTML = '<div style="color: var(--text-secondary); font-size: 0.85rem; padding: 8px 0;">No groups added yet.</div>';
     }
 }
 
-function addGroup() {
+async function addGroup() {
     const nameInput = document.getElementById('new-group-name');
     const initialsInput = document.getElementById('new-group-initials');
     const colorInput = document.getElementById('new-group-color');
@@ -870,21 +878,21 @@ function addGroup() {
     if (!name) { nameInput.focus(); return; }
     if (!initials) { initialsInput.focus(); return; }
 
-    ChoreRepository.addGroup(name, initials, color);
+    await ChoreRepository.addGroup(name, initials, color);
     nameInput.value = '';
     initialsInput.value = '';
 
     // Rotate to a new default color
     const colors = ['#00cec9', '#fab1a0', '#00b894', '#fd79a8', '#6c5ce7', '#ffeaa7'];
-    const groups = ChoreRepository.getAllGroups();
+    const groups = await ChoreRepository.getAllGroups();
     colorInput.value = colors[groups.length % colors.length];
 
     renderGroupsList();
-    renderPalette();
-    renderBoard();
+    await renderPalette();
+    await renderBoard();
 }
 
-function addPerson() {
+async function addPerson() {
     const nameInput = document.getElementById('new-person-name');
     const initialsInput = document.getElementById('new-person-initials');
     const colorInput = document.getElementById('new-person-color');
@@ -896,53 +904,53 @@ function addPerson() {
     if (!name) { nameInput.focus(); return; }
     if (!initials) { initialsInput.focus(); return; }
 
-    ChoreRepository.addPerson(name, initials, color);
+    await ChoreRepository.addPerson(name, initials, color);
     nameInput.value = '';
     initialsInput.value = '';
 
     // Rotate to a new default color
     const colors = ['#6c5ce7', '#0984e3', '#00b894', '#fdcb6e', '#e17055', '#d63031', '#a29bfe'];
-    const people = ChoreRepository.getAllPeople();
+    const people = await ChoreRepository.getAllPeople();
     colorInput.value = colors[people.length % colors.length];
 
     renderPeopleList();
-    renderPalette();
-    renderBoard();
+    await renderPalette();
+    await renderBoard();
 }
 
 // ── Event Binding ───────────────────────────────────────────
 
 // ── Rotation Modal ──────────────────────────────────────────
 
-function openRotationModal(choreId) {
+async function openRotationModal(choreId) {
     const overlay = document.getElementById('rotation-modal-overlay');
     document.getElementById('rotation-chore-id').value = choreId;
 
     // Populate group dropdown
     const groupSelect = document.getElementById('rotation-group-select');
     groupSelect.innerHTML = '';
-    const groups = ChoreRepository.getAllGroups();
+    const groups = await ChoreRepository.getAllGroups();
     if (!groups.length) {
         alert('No groups defined. Create a group in the Members menu first.');
         return;
     }
-    groups.forEach(g => {
+    for (const g of groups) {
         const opt = document.createElement('option');
         opt.value = g.id;
         opt.textContent = g.name;
         groupSelect.appendChild(opt);
-    });
+    }
 
     // Populate day dropdown
     const daySelect = document.getElementById('rotation-day-select');
     daySelect.innerHTML = '';
-    const orderedDays = getOrderedDays();
-    orderedDays.forEach(day => {
+    const orderedDays = await getOrderedDays();
+    for (const day of orderedDays) {
         const opt = document.createElement('option');
         opt.value = ALL_DAYS.indexOf(day);
         opt.textContent = day;
         daySelect.appendChild(opt);
-    });
+    }
 
     // Populate member dropdown based on selected group
     populateRotationMembers();
@@ -951,11 +959,11 @@ function openRotationModal(choreId) {
     overlay.classList.remove('hidden');
 }
 
-function populateRotationMembers() {
+async function populateRotationMembers() {
     const groupId = parseInt(document.getElementById('rotation-group-select').value, 10);
     const memberSelect = document.getElementById('rotation-member-select');
     memberSelect.innerHTML = '';
-    const members = ChoreRepository.getGroupMembers(groupId);
+    const members = await ChoreRepository.getGroupMembers(groupId);
     if (!members.length) {
         const opt = document.createElement('option');
         opt.textContent = '(no members)';
@@ -971,29 +979,29 @@ function populateRotationMembers() {
     });
 }
 
-function closeRotationModal() {
+async function closeRotationModal() {
     document.getElementById('rotation-modal-overlay').classList.add('hidden');
 }
 
-function applyRotation() {
+async function applyRotation() {
     const choreId = parseInt(document.getElementById('rotation-chore-id').value, 10);
     const groupId = parseInt(document.getElementById('rotation-group-select').value, 10);
     const startMemberId = parseInt(document.getElementById('rotation-member-select').value, 10);
     const startDayIndex = parseInt(document.getElementById('rotation-day-select').value, 10);
 
-    ChoreRepository.assignGroupRotation(choreId, groupId, startMemberId, startDayIndex);
+    await ChoreRepository.assignGroupRotation(choreId, groupId, startMemberId, startDayIndex);
     closeRotationModal();
-    renderBoard();
+    await renderBoard();
 }
 
 // ── Event Binding ───────────────────────────────────────────
 
 function bindEvents() {
-    document.getElementById('reset-board-btn').addEventListener('click', () => {
+    document.getElementById('reset-board-btn').addEventListener('click', async () => {
         if (confirm('Clear all assignments for the week?')) {
-            ChoreRepository.clearAllAssignments();
+            await ChoreRepository.clearAllAssignments();
             closeSettings();
-            renderBoard();
+            await renderBoard();
         }
     });
 
@@ -1003,7 +1011,7 @@ function bindEvents() {
     document.getElementById('settings-save-btn').addEventListener('click', saveSettings);
 
     // Close modal on overlay click
-    document.getElementById('settings-modal').addEventListener('click', (e) => {
+    document.getElementById('settings-modal').addEventListener('click', async (e) => {
         if (e.target === document.getElementById('settings-modal')) closeSettings();
     });
 
@@ -1024,7 +1032,7 @@ function bindEvents() {
     document.getElementById('members-close-btn').addEventListener('click', closeMembers);
     document.getElementById('members-done-btn').addEventListener('click', closeMembers);
 
-    membersModal.addEventListener('click', (e) => {
+    membersModal.addEventListener('click', async (e) => {
         if (e.target === membersModal) closeMembers();
     });
 
@@ -1033,7 +1041,7 @@ function bindEvents() {
     document.getElementById('rotation-close-btn').addEventListener('click', closeRotationModal);
     document.getElementById('rotation-cancel-btn').addEventListener('click', closeRotationModal);
     document.getElementById('rotation-apply-btn').addEventListener('click', applyRotation);
-    rotationOverlay.addEventListener('click', (e) => {
+    rotationOverlay.addEventListener('click', async (e) => {
         if (e.target === rotationOverlay) closeRotationModal();
     });
 
@@ -1047,10 +1055,10 @@ function bindEvents() {
     }
 
     // Enter key in add-person form
-    document.getElementById('new-person-initials').addEventListener('keydown', (e) => {
+    document.getElementById('new-person-initials').addEventListener('keydown', async (e) => {
         if (e.key === 'Enter') addPerson();
     });
-    document.getElementById('new-person-name').addEventListener('keydown', (e) => {
+    document.getElementById('new-person-name').addEventListener('keydown', async (e) => {
         if (e.key === 'Enter') document.getElementById('new-person-initials').focus();
     });
 }
