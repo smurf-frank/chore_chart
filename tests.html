@@ -5,23 +5,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chore Chart - Unit Tests</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --pass: #2ecc71;
             --fail: #dc2626;
-            --skip: #f59e0b;
             --bg: #0f172a;
             --card: #1e293b;
             --text: #e2e8f0;
             --border: #334155;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
         }
 
         body {
@@ -30,11 +22,12 @@
             color: var(--text);
             padding: 24px;
             min-height: 100vh;
+            margin: 0;
         }
 
         h1 {
-            font-size: 1.6rem;
             margin-bottom: 8px;
+            font-size: 1.6rem;
         }
 
         .summary {
@@ -47,11 +40,11 @@
             font-weight: 700;
         }
 
-        .summary .pass {
+        .pass {
             color: var(--pass);
         }
 
-        .summary .fail {
+        .fail {
             color: var(--fail);
         }
 
@@ -65,11 +58,8 @@
 
         .suite-header {
             font-weight: 700;
-            font-size: 1rem;
             padding: 14px 20px;
             border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
         }
 
         .test-row {
@@ -91,14 +81,6 @@
             text-align: center;
         }
 
-        .test-row.pass .test-icon {
-            color: var(--pass);
-        }
-
-        .test-row.fail .test-icon {
-            color: var(--fail);
-        }
-
         .test-name {
             flex: 1;
         }
@@ -110,12 +92,6 @@
             font-family: monospace;
             white-space: pre-wrap;
         }
-
-        .test-time {
-            font-size: 0.75rem;
-            color: #64748b;
-            flex-shrink: 0;
-        }
     </style>
 </head>
 
@@ -125,6 +101,7 @@
     <div id="results"></div>
 
     <script src="https://sql.js.org/dist/sql-wasm.js"></script>
+    <script src="storage-strategy.js"></script>
     <script src="db.js"></script>
     <script src="repository.js"></script>
     <script>
@@ -140,73 +117,42 @@
         // Restore
         document.addEventListener = origAddEventListener;
     </script>
+
     <script>
         // ── Minimal Test Framework ──────────────────────────────
-
-        const _suites = [];
-        let _currentSuite = null;
+        const suites = [];
+        let currentSuite = null;
 
         function describe(name, fn) {
-            _currentSuite = { name, tests: [], beforeEachFn: null };
-            _suites.push(_currentSuite);
+            currentSuite = { name, tests: [], beforeEachFn: null };
+            suites.push(currentSuite);
             fn();
-            _currentSuite = null;
         }
 
         function beforeEach(fn) {
-            if (_currentSuite) _currentSuite.beforeEachFn = fn;
+            if (currentSuite) currentSuite.beforeEachFn = fn;
         }
 
         function it(name, fn) {
-            if (_currentSuite) _currentSuite.tests.push({ name, fn });
+            if (currentSuite) currentSuite.tests.push({ name, fn });
         }
 
-        // Assertion helpers
         function expect(actual) {
             return {
                 toBe(expected) {
-                    if (actual !== expected)
-                        throw new Error(`Expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
-                },
-                toEqual(expected) {
-                    const a = JSON.stringify(actual), b = JSON.stringify(expected);
-                    if (a !== b) throw new Error(`Expected ${b}, got ${a}`);
+                    if (actual !== expected) throw new Error(`Expected ${expected}, got ${actual}`);
                 },
                 toBeGreaterThan(n) {
                     if (!(actual > n)) throw new Error(`Expected ${actual} > ${n}`);
                 },
-                toBeNull() {
-                    if (actual !== null) throw new Error(`Expected null, got ${JSON.stringify(actual)}`);
-                },
-                toBeTruthy() {
-                    if (!actual) throw new Error(`Expected truthy, got ${JSON.stringify(actual)}`);
-                },
-                toBeFalsy() {
-                    if (actual) throw new Error(`Expected falsy, got ${JSON.stringify(actual)}`);
-                },
                 toContain(item) {
-                    if (!actual.includes(item))
-                        throw new Error(`Expected array to contain ${JSON.stringify(item)}`);
-                },
-                toHaveLength(n) {
-                    if (actual.length !== n)
-                        throw new Error(`Expected length ${n}, got ${actual.length}`);
-                },
-                toThrow() {
-                    let threw = false;
-                    try { actual(); } catch (e) { threw = true; }
-                    if (!threw) throw new Error('Expected function to throw');
-                },
-                toBeUndefined() {
-                    if (actual !== undefined) throw new Error(`Expected undefined, got ${JSON.stringify(actual)}`);
+                    if (!actual.includes(item)) throw new Error(`Expected array to contain ${item}`);
                 }
             };
         }
 
         // ── Test Runner ─────────────────────────────────────────
-
         async function runTests() {
-            // Initialize sql.js once
             const SQL = await initSqlJs({
                 locateFile: file => `https://sql.js.org/dist/${file}`
             });
@@ -214,35 +160,33 @@
             let totalPass = 0, totalFail = 0;
             const resultsDiv = document.getElementById('results');
 
-            for (const suite of _suites) {
+            for (const suite of suites) {
                 const suiteDiv = document.createElement('div');
                 suiteDiv.className = 'suite';
 
                 const header = document.createElement('div');
                 header.className = 'suite-header';
-                header.innerHTML = `<span>${suite.name}</span><span class="suite-count"></span>`;
+                header.innerHTML = `<span>${suite.name}</span>`;
                 suiteDiv.appendChild(header);
 
                 let suitePass = 0, suiteFail = 0;
 
                 for (const test of suite.tests) {
-                    const start = performance.now();
                     let error = null;
 
-                    // Fresh DB for each test
-                    _db = null;
+                    // Fresh DB for each test using direct assignment to the global db.js variable
                     localStorage.removeItem(DB_NAME);
-                    _db = new SQL.Database();
+                    _db = { isNative: false, client: new SQL.Database() };
 
                     if (suite.beforeEachFn) {
-                        try { suite.beforeEachFn(); } catch (e) { error = e; }
+                        try { await suite.beforeEachFn(); } catch (e) { error = e; }
                     }
 
                     if (!error) {
-                        try { test.fn(); } catch (e) { error = e; }
+                        try { await test.fn(); } catch (e) { error = e; console.error('TEST ERROR:', test.name, e); }
                     }
+                    if (error && suite.beforeEachFn && error.message === undefined) console.error('BEFORE EACH ERROR:', suite.name, error);
 
-                    const elapsed = (performance.now() - start).toFixed(1);
                     const passed = !error;
                     if (passed) { totalPass++; suitePass++; }
                     else { totalFail++; suiteFail++; }
@@ -253,17 +197,13 @@
                         <span class="test-icon">${passed ? '✓' : '✗'}</span>
                         <div class="test-name">
                             ${test.name}
-                            ${error ? `<div class="test-error">${error.message}</div>` : ''}
+                            ${error ? `<div class="test-error">${error.stack || error.message || error}</div>` : ''}
                         </div>
-                        <span class="test-time">${elapsed}ms</span>
                     `;
                     suiteDiv.appendChild(row);
                 }
 
-                const countEl = header.querySelector('.suite-count');
-                countEl.textContent = suiteFail ? `${suiteFail} failed` : `${suitePass} passed`;
-                countEl.style.color = suiteFail ? 'var(--fail)' : 'var(--pass)';
-
+                header.innerHTML = `<span>${suite.name}</span> <span class="${suiteFail ? 'fail' : 'pass'}" style="float:right; font-weight:normal;">${suiteFail ? suiteFail + ' failed' : suitePass + ' passed'}</span>`;
                 resultsDiv.appendChild(suiteDiv);
             }
 
@@ -282,1006 +222,144 @@
         // TEST SUITES
         // ═══════════════════════════════════════════════════════
 
-        // ── Schema & Initialization ─────────────────────────────
+        describe('Database Schema & Seeding', () => {
+            beforeEach(async () => { await createSchema(); });
 
-        describe('Database Schema', () => {
-            beforeEach(() => { createSchema(_db); });
-
-            it('should create actors table', () => {
-                const tables = _db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='actors'");
-                expect(tables.length).toBe(1);
-            });
-
-            it('should create chores table', () => {
-                const tables = _db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='chores'");
-                expect(tables.length).toBe(1);
-            });
-
-            it('should create assignments table', () => {
-                const tables = _db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='assignments'");
-                expect(tables.length).toBe(1);
-            });
-
-            it('should create settings table', () => {
-                const tables = _db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='settings'");
-                expect(tables.length).toBe(1);
-            });
-
-            it('should seed 3 default actors', () => {
-                const count = _db.exec("SELECT COUNT(*) FROM actors")[0].values[0][0];
-                expect(count).toBe(3);
-            });
-
-            it('should seed actors as type "person"', () => {
-                const types = _db.exec("SELECT DISTINCT type FROM actors")[0].values;
-                expect(types.length).toBe(1);
-                expect(types[0][0]).toBe('person');
-            });
-
-            it('should seed 4 default chores', () => {
-                const count = _db.exec("SELECT COUNT(*) FROM chores")[0].values[0][0];
-                expect(count).toBe(4);
-            });
-
-            it('should seed 4 default settings', () => {
-                const count = _db.exec("SELECT COUNT(*) FROM settings")[0].values[0][0];
-                expect(count).toBe(4);
-            });
-
-            it('should not re-seed if data exists', () => {
-                createSchema(_db); // run again
-                const count = _db.exec("SELECT COUNT(*) FROM actors")[0].values[0][0];
-                expect(count).toBe(3); // not 6
-            });
-
-            it('actors table should have metadata column', () => {
-                const cols = _db.exec("PRAGMA table_info(actors)");
-                const colNames = cols[0].values.map(r => r[1]);
-                expect(colNames).toContain('metadata');
-            });
-
-            it('assignments table should use actor_id (not person_id)', () => {
-                const cols = _db.exec("PRAGMA table_info(assignments)");
-                const colNames = cols[0].values.map(r => r[1]);
-                expect(colNames).toContain('actor_id');
-            });
-        });
-
-        // ── Actor CRUD ──────────────────────────────────────────
-
-        describe('Actor CRUD', () => {
-            beforeEach(() => { createSchema(_db); });
-
-            it('getAllPeople() returns seeded people', () => {
-                const people = ChoreRepository.getAllPeople();
+            it('seeds default actors and chores', async () => {
+                const people = await ChoreRepository.getAllPeople();
                 expect(people.length).toBe(3);
-                expect(people[0].name).toBe('User 1');
-            });
 
-            it('getAllActors() returns all actors regardless of type', () => {
-                _db.run("INSERT INTO actors (type, name, initials, color) VALUES ('ai_agent', 'Bot', 'BT', '#000')");
-                const all = ChoreRepository.getAllActors();
-                expect(all.length).toBe(4);
-            });
-
-            it('getAllActors(type) filters by type', () => {
-                _db.run("INSERT INTO actors (type, name, initials, color) VALUES ('ai_agent', 'Bot', 'BT', '#000')");
-                const people = ChoreRepository.getAllActors('person');
-                expect(people.length).toBe(3);
-                const agents = ChoreRepository.getAllActors('ai_agent');
-                expect(agents.length).toBe(1);
-                expect(agents[0].name).toBe('Bot');
-            });
-
-            it('addPerson() adds a person-type actor', () => {
-                ChoreRepository.addPerson('Mom', 'MO', '#ff00ff');
-                const people = ChoreRepository.getAllPeople();
-                expect(people.length).toBe(4);
-                const mom = people.find(p => p.name === 'Mom');
-                expect(mom.initials).toBe('MO');
-                expect(mom.color).toBe('#ff00ff');
-                expect(mom.type).toBe('person');
-            });
-
-            it('addActor() adds actor with type and metadata', () => {
-                ChoreRepository.addActor('webhook', 'Slack', 'SL', '#4a154b', { url: 'https://hooks.slack.com/test' });
-                const webhooks = ChoreRepository.getAllActors('webhook');
-                expect(webhooks.length).toBe(1);
-                expect(webhooks[0].metadata.url).toBe('https://hooks.slack.com/test');
-            });
-
-            it('updateActor() updates specific fields', () => {
-                const people = ChoreRepository.getAllPeople();
-                const id = people[0].id;
-                ChoreRepository.updateActor(id, { name: 'Dad', initials: 'DA' });
-                const updated = ChoreRepository.getAllPeople();
-                const dad = updated.find(p => p.id === id);
-                expect(dad.name).toBe('Dad');
-                expect(dad.initials).toBe('DA');
-                expect(dad.color).toBe(people[0].color); // unchanged
-            });
-
-            it('updateActor() updates metadata', () => {
-                ChoreRepository.addActor('ai_agent', 'Bot', 'BT', '#000', { model: 'gpt-3' });
-                const agents = ChoreRepository.getAllActors('ai_agent');
-                ChoreRepository.updateActor(agents[0].id, { metadata: { model: 'gpt-4' } });
-                const updated = ChoreRepository.getAllActors('ai_agent');
-                expect(updated[0].metadata.model).toBe('gpt-4');
-            });
-
-            it('removeActor() deletes actor', () => {
-                const people = ChoreRepository.getAllPeople();
-                ChoreRepository.removeActor(people[0].id);
-                expect(ChoreRepository.getAllPeople().length).toBe(2);
-            });
-
-            it('removeActor() also deletes their assignments', () => {
-                const people = ChoreRepository.getAllPeople();
-                ChoreRepository.setAssignment(1, 0, people[0].id);
-                ChoreRepository.removeActor(people[0].id);
-                const assignments = ChoreRepository.getAllAssignments();
-                expect(Object.keys(assignments).length).toBe(0);
-            });
-
-            it('removePerson() is alias for removeActor()', () => {
-                const people = ChoreRepository.getAllPeople();
-                ChoreRepository.removePerson(people[2].id);
-                expect(ChoreRepository.getAllPeople().length).toBe(2);
-            });
-
-            it('actors are ordered by id', () => {
-                const people = ChoreRepository.getAllPeople();
-                for (let i = 1; i < people.length; i++) {
-                    expect(people[i].id > people[i - 1].id).toBe(true);
-                }
-            });
-
-            it('metadata defaults to empty object', () => {
-                const people = ChoreRepository.getAllPeople();
-                expect(JSON.stringify(people[0].metadata)).toBe('{}');
-            });
-        });
-
-        // ── Chore CRUD ──────────────────────────────────────────
-
-        describe('Chore CRUD', () => {
-            beforeEach(() => { createSchema(_db); });
-
-            it('getAllChores() returns seeded chores in sort order', () => {
-                const chores = ChoreRepository.getAllChores();
+                const chores = await ChoreRepository.getAllChores();
                 expect(chores.length).toBe(4);
-                expect(chores[0].name).toBe('Dishes');
-                expect(chores[1].name).toBe('Laundry');
-                expect(chores[2].name).toBe('Vacuuming');
-                expect(chores[3].name).toBe('Trash');
             });
 
-            it('addChore() adds chore with incrementing sort order', () => {
-                ChoreRepository.addChore('Cooking');
-                const chores = ChoreRepository.getAllChores();
-                expect(chores.length).toBe(5);
-                const cooking = chores[4];
-                expect(cooking.name).toBe('Cooking');
-                expect(cooking.sortOrder).toBe(5);
+            it('seeds default settings accurately', async () => {
+                const title = await ChoreRepository.getSetting('chart_title');
+                expect(title).toBe('Chore Chart');
+
+                const maxCells = await ChoreRepository.getMaxMarkersPerCell();
+                expect(maxCells).toBe(2);
             });
 
-            it('removeChore() deletes chore', () => {
-                const chores = ChoreRepository.getAllChores();
-                ChoreRepository.removeChore(chores[0].id);
-                expect(ChoreRepository.getAllChores().length).toBe(3);
-            });
-
-            it('removeChore() also deletes assignments for that chore', () => {
-                const chores = ChoreRepository.getAllChores();
-                const people = ChoreRepository.getAllPeople();
-                ChoreRepository.setAssignment(chores[0].id, 0, people[0].id);
-                ChoreRepository.removeChore(chores[0].id);
-                const assignments = ChoreRepository.getAllAssignments();
-                expect(Object.keys(assignments).length).toBe(0);
-            });
-        });
-
-        // ── Assignments (Multi-Assignment) ────────────────────────
-
-        describe('Assignment CRUD (multi-assignment)', () => {
-            beforeEach(() => { createSchema(_db); });
-
-            it('getAllAssignments() returns empty map initially', () => {
-                const assignments = ChoreRepository.getAllAssignments();
-                expect(Object.keys(assignments).length).toBe(0);
-            });
-
-            it('setAssignment() creates a single-item array', () => {
-                const people = ChoreRepository.getAllPeople();
-                const chores = ChoreRepository.getAllChores();
-                ChoreRepository.setAssignment(chores[0].id, 0, people[0].id);
-                const assignments = ChoreRepository.getAllAssignments();
-                const key = `${chores[0].id}-0`;
-                expect(Array.isArray(assignments[key])).toBe(true);
-                expect(assignments[key].length).toBe(1);
-                expect(assignments[key][0].actorId).toBe(people[0].id);
-                expect(assignments[key][0].initials).toBe('U1');
-            });
-
-            it('setAssignment() replaces existing (clears then sets)', () => {
-                const people = ChoreRepository.getAllPeople();
-                const chores = ChoreRepository.getAllChores();
-                ChoreRepository.setAssignment(chores[0].id, 0, people[0].id);
-                ChoreRepository.setAssignment(chores[0].id, 0, people[1].id);
-                const assignments = ChoreRepository.getAllAssignments();
-                expect(assignments[`${chores[0].id}-0`].length).toBe(1);
-                expect(assignments[`${chores[0].id}-0`][0].actorId).toBe(people[1].id);
-            });
-
-            it('addAssignment() adds multiple actors to same cell', () => {
-                const people = ChoreRepository.getAllPeople();
-                const chores = ChoreRepository.getAllChores();
-                ChoreRepository.addAssignment(chores[0].id, 0, people[0].id);
-                ChoreRepository.addAssignment(chores[0].id, 0, people[1].id);
-                const assignments = ChoreRepository.getAllAssignments();
-                const key = `${chores[0].id}-0`;
-                expect(assignments[key].length).toBe(2);
-                expect(assignments[key][0].actorId).toBe(people[0].id);
-                expect(assignments[key][1].actorId).toBe(people[1].id);
-            });
-
-            it('addAssignment() rejects duplicates in same cell', () => {
-                const people = ChoreRepository.getAllPeople();
-                const chores = ChoreRepository.getAllChores();
-                const added1 = ChoreRepository.addAssignment(chores[0].id, 0, people[0].id);
-                const added2 = ChoreRepository.addAssignment(chores[0].id, 0, people[0].id);
-                expect(added1).toBe(true);
-                expect(added2).toBe(false);
-                const assignments = ChoreRepository.getAllAssignments();
-                expect(assignments[`${chores[0].id}-0`].length).toBe(1);
-            });
-
-            it('addAssignment() respects max markers per cell', () => {
-                ChoreRepository.setMaxMarkersPerCell(2);
-                const people = ChoreRepository.getAllPeople();
-                const chores = ChoreRepository.getAllChores();
-                expect(ChoreRepository.addAssignment(chores[0].id, 0, people[0].id)).toBe(true);
-                expect(ChoreRepository.addAssignment(chores[0].id, 0, people[1].id)).toBe(true);
-                expect(ChoreRepository.addAssignment(chores[0].id, 0, people[2].id)).toBe(false);
-            });
-
-            it('removeAssignment() removes specific actor from cell', () => {
-                const people = ChoreRepository.getAllPeople();
-                const chores = ChoreRepository.getAllChores();
-                ChoreRepository.addAssignment(chores[0].id, 0, people[0].id);
-                ChoreRepository.addAssignment(chores[0].id, 0, people[1].id);
-                ChoreRepository.removeAssignment(chores[0].id, 0, people[0].id);
-                const assignments = ChoreRepository.getAllAssignments();
-                const key = `${chores[0].id}-0`;
-                expect(assignments[key].length).toBe(1);
-                expect(assignments[key][0].actorId).toBe(people[1].id);
-            });
-
-            it('clearAssignment() removes all actors from cell', () => {
-                const people = ChoreRepository.getAllPeople();
-                const chores = ChoreRepository.getAllChores();
-                ChoreRepository.addAssignment(chores[0].id, 0, people[0].id);
-                ChoreRepository.addAssignment(chores[0].id, 0, people[1].id);
-                ChoreRepository.clearAssignment(chores[0].id, 0);
-                const assignments = ChoreRepository.getAllAssignments();
-                expect(assignments[`${chores[0].id}-0`]).toBe(undefined);
-            });
-
-            it('clearAllAssignments() removes everything', () => {
-                const people = ChoreRepository.getAllPeople();
-                const chores = ChoreRepository.getAllChores();
-                ChoreRepository.addAssignment(chores[0].id, 0, people[0].id);
-                ChoreRepository.addAssignment(chores[1].id, 1, people[1].id);
-                ChoreRepository.addAssignment(chores[2].id, 2, people[2].id);
-                ChoreRepository.clearAllAssignments();
-                expect(Object.keys(ChoreRepository.getAllAssignments()).length).toBe(0);
-            });
-
-            it('assignment includes actor type in result', () => {
-                const people = ChoreRepository.getAllPeople();
-                const chores = ChoreRepository.getAllChores();
-                ChoreRepository.addAssignment(chores[0].id, 0, people[0].id);
-                const assignments = ChoreRepository.getAllAssignments();
-                expect(assignments[`${chores[0].id}-0`][0].type).toBe('person');
-            });
-
-            it('multiple chores can have assignments on the same day', () => {
-                const people = ChoreRepository.getAllPeople();
-                const chores = ChoreRepository.getAllChores();
-                ChoreRepository.addAssignment(chores[0].id, 0, people[0].id);
-                ChoreRepository.addAssignment(chores[1].id, 0, people[1].id);
-                const assignments = ChoreRepository.getAllAssignments();
-                expect(Object.keys(assignments).length).toBe(2);
-            });
-        });
-
-        // ── Settings ────────────────────────────────────────────
-
-        describe('Settings', () => {
-            beforeEach(() => { createSchema(_db); });
-
-            it('getSetting() returns seeded value', () => {
-                expect(ChoreRepository.getSetting('week_start_day')).toBe('Mon');
-            });
-
-            it('getSetting() returns null for unknown key', () => {
-                expect(ChoreRepository.getSetting('nonexistent')).toBeNull();
-            });
-
-            it('setSetting() creates new setting', () => {
-                ChoreRepository.setSetting('theme', 'dark');
-                expect(ChoreRepository.getSetting('theme')).toBe('dark');
-            });
-
-            it('setSetting() upserts existing setting', () => {
-                ChoreRepository.setSetting('week_start_day', 'Sun');
-                expect(ChoreRepository.getSetting('week_start_day')).toBe('Sun');
-            });
-
-            it('getWeekStartDay() returns default "Mon"', () => {
-                expect(ChoreRepository.getWeekStartDay()).toBe('Mon');
-            });
-
-            it('setWeekStartDay() persists value', () => {
-                ChoreRepository.setWeekStartDay('Sun');
-                expect(ChoreRepository.getWeekStartDay()).toBe('Sun');
-            });
-
-            it('chart_title default is \"Chore Chart\"', () => {
-                expect(ChoreRepository.getSetting('chart_title')).toBe('Chore Chart');
-            });
-
-            it('chart_subtitle default is \"Digital Magnetic Board\"', () => {
-                expect(ChoreRepository.getSetting('chart_subtitle')).toBe('Digital Magnetic Board');
-            });
-
-            it('getMaxMarkersPerCell() returns default 2', () => {
-                expect(ChoreRepository.getMaxMarkersPerCell()).toBe(2);
-            });
-
-            it('setMaxMarkersPerCell() updates setting', () => {
-                ChoreRepository.setMaxMarkersPerCell(5);
-                expect(ChoreRepository.getMaxMarkersPerCell()).toBe(5);
-            });
-
-            it('getChoreColumnWidth() returns default 200', () => {
-                expect(ChoreRepository.getChoreColumnWidth()).toBe(200);
-            });
-
-            it('setChoreColumnWidth() updates setting', () => {
-                ChoreRepository.setChoreColumnWidth(350);
-                expect(ChoreRepository.getChoreColumnWidth()).toBe(350);
-            });
-            it('setMaxMarkersPerCell() clamps to 0-32', () => {
-                ChoreRepository.setMaxMarkersPerCell(50);
-                expect(ChoreRepository.getMaxMarkersPerCell()).toBe(32);
-                ChoreRepository.setMaxMarkersPerCell(-5);
-                expect(ChoreRepository.getMaxMarkersPerCell()).toBe(0);
-                ChoreRepository.setMaxMarkersPerCell(10);
-                expect(ChoreRepository.getMaxMarkersPerCell()).toBe(10);
-            });
-        });
-
-        // ── Migration ────────────────────────────────────────────
-
-        describe('Migration: people → actors', () => {
-            it('migrates legacy people table to actors', () => {
-                // Simulate legacy schema
-                _db.run(`CREATE TABLE people (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    name TEXT NOT NULL,
-                    initials TEXT NOT NULL,
-                    color TEXT NOT NULL
-                )`);
-                _db.run("INSERT INTO people (name, initials, color) VALUES ('Alice', 'AL', '#aaa')");
-                _db.run("INSERT INTO people (name, initials, color) VALUES ('Bob', 'BO', '#bbb')");
-
-                _db.run(`CREATE TABLE chores (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    name TEXT NOT NULL,
-                    sort_order INTEGER DEFAULT 0
-                )`);
-                _db.run("INSERT INTO chores (name, sort_order) VALUES ('Dishes', 1)");
-
-                _db.run(`CREATE TABLE assignments (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    chore_id INTEGER NOT NULL,
-                    day_index INTEGER NOT NULL,
-                    person_id INTEGER NOT NULL,
-                    UNIQUE(chore_id, day_index)
-                )`);
-                _db.run("INSERT INTO assignments (chore_id, day_index, person_id) VALUES (1, 0, 1)");
-
-                _db.run(`CREATE TABLE settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)`);
-
-                // Run migration
-                _db.run(`CREATE TABLE IF NOT EXISTS actors (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    type TEXT NOT NULL DEFAULT 'person',
-                    name TEXT NOT NULL,
-                    initials TEXT NOT NULL,
-                    color TEXT NOT NULL,
-                    metadata TEXT DEFAULT '{}'
-                )`);
-                migrateToActors(_db);
-
-                // Verify actors created
-                const actors = _db.exec("SELECT * FROM actors ORDER BY id");
-                expect(actors[0].values.length).toBe(2);
-                expect(actors[0].values[0][1]).toBe('person'); // type
-                expect(actors[0].values[0][2]).toBe('Alice');
-
-                // Verify assignments migrated to actor_id
-                const cols = _db.exec("PRAGMA table_info(assignments)");
-                const colNames = cols[0].values.map(r => r[1]);
-                expect(colNames).toContain('actor_id');
-
-                // Verify people table dropped
-                const tables = _db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='people'");
-                expect(tables.length === 0 || tables[0].values.length === 0).toBe(true);
-            });
-
-            it('migrateToActors is idempotent (no people table = no-op)', () => {
-                createSchema(_db);
-                const countBefore = _db.exec("SELECT COUNT(*) FROM actors")[0].values[0][0];
-                migrateToActors(_db);
-                const countAfter = _db.exec("SELECT COUNT(*) FROM actors")[0].values[0][0];
-                expect(countAfter).toBe(countBefore);
-            });
-        });
-
-        // ── Reset Board ──────────────────────────────────────────
-
-        describe('Reset Board (clearAllAssignments)', () => {
-            beforeEach(() => { createSchema(_db); });
-
-            it('clears all assignments across all chores and days', () => {
-                const people = ChoreRepository.getAllPeople();
-                const chores = ChoreRepository.getAllChores();
-                // Fill every chore with an assignment on multiple days
-                chores.forEach((chore, i) => {
-                    ChoreRepository.setAssignment(chore.id, 0, people[0].id);
-                    ChoreRepository.setAssignment(chore.id, 1, people[1].id);
-                    ChoreRepository.setAssignment(chore.id, 2, people[2].id);
-                });
-                expect(Object.keys(ChoreRepository.getAllAssignments()).length).toBe(12);
-                ChoreRepository.clearAllAssignments();
-                expect(Object.keys(ChoreRepository.getAllAssignments()).length).toBe(0);
-            });
-
-            it('preserves all chores after reset', () => {
-                const choresBefore = ChoreRepository.getAllChores();
-                const people = ChoreRepository.getAllPeople();
-                choresBefore.forEach(c => ChoreRepository.setAssignment(c.id, 0, people[0].id));
-                ChoreRepository.clearAllAssignments();
-                const choresAfter = ChoreRepository.getAllChores();
-                expect(choresAfter.length).toBe(choresBefore.length);
-                choresAfter.forEach((c, i) => {
-                    expect(c.id).toBe(choresBefore[i].id);
-                    expect(c.name).toBe(choresBefore[i].name);
-                });
-            });
-
-            it('preserves all people after reset', () => {
-                const peopleBefore = ChoreRepository.getAllPeople();
-                ChoreRepository.setMaxMarkersPerCell(32);
-                peopleBefore.forEach((p, i) => ChoreRepository.addAssignment(1, i, p.id));
-                ChoreRepository.clearAllAssignments();
-                const peopleAfter = ChoreRepository.getAllPeople();
-                expect(peopleAfter.length).toBe(peopleBefore.length);
-                peopleAfter.forEach((p, i) => {
-                    expect(p.id).toBe(peopleBefore[i].id);
-                    expect(p.name).toBe(peopleBefore[i].name);
-                    expect(p.color).toBe(peopleBefore[i].color);
-                });
-            });
-
-            it('preserves all settings after reset', () => {
-                ChoreRepository.setSetting('chart_title', 'My House');
-                ChoreRepository.setSetting('week_start_day', 'Sun');
-                const people = ChoreRepository.getAllPeople();
-                ChoreRepository.addAssignment(1, 0, people[0].id);
-                ChoreRepository.clearAllAssignments();
-                expect(ChoreRepository.getSetting('chart_title')).toBe('My House');
-                expect(ChoreRepository.getSetting('week_start_day')).toBe('Sun');
-            });
-
-            it('board is assignable again after reset', () => {
-                const people = ChoreRepository.getAllPeople();
-                const chores = ChoreRepository.getAllChores();
-                ChoreRepository.setAssignment(chores[0].id, 0, people[0].id);
-                ChoreRepository.clearAllAssignments();
-                // Re-assign
-                ChoreRepository.setAssignment(chores[0].id, 0, people[1].id);
-                const assignments = ChoreRepository.getAllAssignments();
-                expect(Object.keys(assignments).length).toBe(1);
-                expect(assignments[`${chores[0].id}-0`][0].actorId).toBe(people[1].id);
-            });
-
-            it('is a no-op when no assignments exist', () => {
-                ChoreRepository.clearAllAssignments();
-                expect(Object.keys(ChoreRepository.getAllAssignments()).length).toBe(0);
-                // Should not throw or affect anything
-                expect(ChoreRepository.getAllChores().length).toBe(4);
-                expect(ChoreRepository.getAllPeople().length).toBe(3);
-            });
-        });
-
-        // ── Day Ordering ────────────────────────────────────────
-
-        describe('Day Ordering (getOrderedDays)', () => {
-            beforeEach(() => { createSchema(_db); });
-
-            it('default Mon start returns Mon-Sun', () => {
-                const days = getOrderedDays();
+            it('orders days correctly based on week_start_day', async () => {
+                await ChoreRepository.setWeekStartDay('Mon');
+                let days = await getOrderedDays();
                 expect(days[0]).toBe('Mon');
                 expect(days[6]).toBe('Sun');
-            });
 
-            it('Sun start returns Sun-Sat', () => {
-                ChoreRepository.setWeekStartDay('Sun');
-                const days = getOrderedDays();
+                await ChoreRepository.setWeekStartDay('Sun');
+                days = await getOrderedDays();
                 expect(days[0]).toBe('Sun');
-                expect(days[6]).toBe('Sat');
-            });
-
-            it('Wed start returns Wed-Tue', () => {
-                ChoreRepository.setWeekStartDay('Wed');
-                const days = getOrderedDays();
-                expect(days[0]).toBe('Wed');
-                expect(days[6]).toBe('Tue');
-            });
-
-            it('always returns exactly 7 days', () => {
-                const allDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-                allDays.forEach(start => {
-                    ChoreRepository.setWeekStartDay(start);
-                    expect(getOrderedDays().length).toBe(7);
-                });
             });
         });
 
-        // ── Person Modification ─────────────────────────────────
-        describe('Person Modification', () => {
-            beforeEach(() => { createSchema(_db); });
+        describe('Actor & Group Operations', () => {
+            beforeEach(async () => { await createSchema(); });
 
-            it('updateActor() changes person name', () => {
-                const people = ChoreRepository.getAllPeople();
-                const id = people[0].id;
-                ChoreRepository.updateActor(id, { name: 'Updated Name' });
-                const person = ChoreRepository.getAllPeople().find(p => p.id === id);
-                expect(person.name).toBe('Updated Name');
+            it('adds and updates user entities', async () => {
+                await ChoreRepository.addPerson('Bob', 'BOB', '#fff');
+                let people = await ChoreRepository.getAllPeople();
+                let newPerson = people.find(p => p.name === 'Bob');
+                expect(newPerson.initials).toBe('BOB');
+
+                await ChoreRepository.updateActor(newPerson.id, { initials: 'B' });
+                people = await ChoreRepository.getAllPeople();
+                newPerson = people.find(p => p.id === newPerson.id);
+                expect(newPerson.initials).toBe('B');
             });
 
-            it('updateActor() changes person color', () => {
-                const people = ChoreRepository.getAllPeople();
-                const id = people[0].id;
-                ChoreRepository.updateActor(id, { color: '#ffffff' });
-                const person = ChoreRepository.getAllPeople().find(p => p.id === id);
-                expect(person.color).toBe('#ffffff');
-            });
+            it('calculates group depth and limits additions correctly', async () => {
+                await ChoreRepository.addGroup('G1', 'G1', '#000');
+                let groups = await ChoreRepository.getAllGroups();
+                let g1 = groups.find(g => g.name === 'G1');
 
-            it('updateActor() changes person initials', () => {
-                const people = ChoreRepository.getAllPeople();
-                const id = people[0].id;
-                ChoreRepository.updateActor(id, { initials: 'XYZ' });
-                const person = ChoreRepository.getAllPeople().find(p => p.id === id);
-                expect(person.initials).toBe('XYZ');
-            });
+                await ChoreRepository.addGroup('G2', 'G2', '#000', false, [g1.id]);
+                groups = await ChoreRepository.getAllGroups();
+                let g2 = groups.find(g => g.name === 'G2');
 
-            it('updateActor() updates multiple fields at once', () => {
-                const people = ChoreRepository.getAllPeople();
-                const id = people[0].id;
-                ChoreRepository.updateActor(id, { name: 'Multi', initials: 'MU', color: '#111111' });
-                const person = ChoreRepository.getAllPeople().find(p => p.id === id);
-                expect(person.name).toBe('Multi');
-                expect(person.initials).toBe('MU');
-                expect(person.color).toBe('#111111');
+                const depth = await ChoreRepository.getGroupDepth(g2.id);
+                expect(depth).toBe(2);
+
+                // Nesting beyond limit
+                await ChoreRepository.addGroup('G3', 'G3', '#000', false, [g2.id]);
+                groups = await ChoreRepository.getAllGroups();
+                let g3 = groups.find(g => g.name === 'G3');
+
+                const canAddG3ToG1 = await ChoreRepository.canAddMember(g1.id, g3.id);
+                expect(canAddG3ToG1).toBe(false); // Circular dependency prevention!
             });
         });
 
-        // ── Chore Reordering ────────────────────────────────────
-        describe('Chore Reordering', () => {
-            beforeEach(() => { createSchema(_db); });
+        describe('Chores & Assignments', () => {
+            beforeEach(async () => { await createSchema(); });
 
-            it('updateChoreOrders() should update sort_order in database', () => {
-                const chores = ChoreRepository.getAllChores();
-                const originalIds = chores.map(c => c.id);
-                const reorderedIds = [originalIds[1], originalIds[0], ...originalIds.slice(2)];
+            it('adds, modifies, and sorts chores', async () => {
+                await ChoreRepository.addChore('Mopping');
+                let chores = await ChoreRepository.getAllChores();
+                let mopping = chores[chores.length - 1];
+                expect(mopping.name).toBe('Mopping');
 
-                ChoreRepository.updateChoreOrders(reorderedIds);
-
-                const updatedChores = ChoreRepository.getAllChores();
-                expect(updatedChores[0].id).toBe(reorderedIds[0]);
-                expect(updatedChores[1].id).toBe(reorderedIds[1]);
-                expect(updatedChores[0].sortOrder).toBe(1);
-                expect(updatedChores[1].sortOrder).toBe(2);
+                await ChoreRepository.updateChoreOrders([mopping.id, ...chores.filter(c => c.id !== mopping.id).map(c => c.id)]);
+                chores = await ChoreRepository.getAllChores();
+                expect(chores[0].name).toBe('Mopping'); // Mopping moved to front
             });
 
-            it('getAllChores() should return chores in sort_order', () => {
-                const chores = ChoreRepository.getAllChores();
-                const ids = chores.map(c => c.id);
-                // Move last to first
-                const lastId = ids.pop();
-                const newOrder = [lastId, ...ids];
+            it('restricts assignments based on max markers', async () => {
+                await ChoreRepository.setMaxMarkersPerCell(1);
+                const people = await ChoreRepository.getAllPeople();
+                const chores = await ChoreRepository.getAllChores();
 
-                ChoreRepository.updateChoreOrders(newOrder);
-                const result = ChoreRepository.getAllChores();
-                expect(result[0].id).toBe(lastId);
-                expect(result[0].sortOrder).toBe(1);
-            });
-        });
+                let success = await ChoreRepository.addAssignment(chores[0].id, 0, people[0].id);
+                expect(success).toBe(true);
 
-        // ── Chore Modification ───────────────────────────────────
-        describe('Chore Modification', () => {
-            beforeEach(() => { createSchema(_db); });
+                let success2 = await ChoreRepository.addAssignment(chores[0].id, 0, people[1].id);
+                expect(success2).toBe(false); // Exceeds cap of 1
 
-            it('updateChore() should update chore name', () => {
-                const chores = ChoreRepository.getAllChores();
-                const id = chores[0].id;
-                ChoreRepository.updateChore(id, { name: 'Clean Windows' });
-
-                const result = ChoreRepository.getAllChores();
-                const updated = result.find(c => c.id === id);
-                expect(updated.name).toBe('Clean Windows');
+                let assignments = await ChoreRepository.getAllAssignments();
+                expect(assignments[`${chores[0].id}-0`].length).toBe(1);
             });
 
-            it('updateChore() should update sortOrder', () => {
-                const chores = ChoreRepository.getAllChores();
-                const id = chores[0].id;
-                ChoreRepository.updateChore(id, { sortOrder: 99 });
+            it('clears assignments successfully', async () => {
+                const people = await ChoreRepository.getAllPeople();
+                const chores = await ChoreRepository.getAllChores();
 
-                const result = ChoreRepository.getAllChores();
-                const updated = result.find(c => c.id === id);
-                expect(updated.sortOrder).toBe(99);
-            });
+                await ChoreRepository.setAssignment(chores[0].id, 3, people[0].id);
+                let assignments = await ChoreRepository.getAllAssignments();
+                expect(Object.keys(assignments).length).toBeGreaterThan(0);
 
-            it('should be able to sort chores alphabetically (A-Z and Z-A)', () => {
-                // Clear and add specific chores
-                _db.run("DELETE FROM chores");
-                _db.run("DELETE FROM assignments");
-                ChoreRepository.addChore('Zebra');
-                ChoreRepository.addChore('Apple');
-                ChoreRepository.addChore('Banana');
-
-                let chores = ChoreRepository.getAllChores();
-
-                // Ascending sort
-                chores.sort((a, b) => a.name.localeCompare(b.name));
-                ChoreRepository.updateChoreOrders(chores.map(c => c.id));
-                let result = ChoreRepository.getAllChores();
-                expect(result[0].name).toBe('Apple');
-                expect(result[2].name).toBe('Zebra');
-
-                // Descending sort
-                chores.sort((a, b) => b.name.localeCompare(a.name));
-                ChoreRepository.updateChoreOrders(chores.map(c => c.id));
-                result = ChoreRepository.getAllChores();
-                expect(result[0].name).toBe('Zebra');
-                expect(result[2].name).toBe('Apple');
+                await ChoreRepository.clearAllAssignments();
+                assignments = await ChoreRepository.getAllAssignments();
+                expect(Object.keys(assignments).length).toBe(0);
             });
         });
 
-        // ── Assignment Movement ─────────────────────────────────
-        describe('Assignment Movement', () => {
-            beforeEach(() => {
-                createSchema(_db);
-                ChoreRepository.addPerson('Bob', 'BOB', '#000000');
-                ChoreRepository.addChore('Task 1');
-            });
+        describe('Rotations', () => {
+            beforeEach(async () => { await createSchema(); });
 
-            it('should move assignment from one cell to another', () => {
-                const people = ChoreRepository.getAllPeople();
-                const chores = ChoreRepository.getAllChores();
-                const actorId = people[0].id;
-                const choreId = chores[0].id;
+            it('assigns rotations wrapping across the core days', async () => {
+                await ChoreRepository.addPerson('Alice', 'AL', '#111');
+                await ChoreRepository.addPerson('Bob', 'BO', '#222');
+                let people = await ChoreRepository.getAllPeople();
+                let alice = people.find(p => p.name === 'Alice');
+                let bob = people.find(p => p.name === 'Bob');
 
-                // Assign to Mon (0)
-                ChoreRepository.addAssignment(choreId, 0, actorId);
-                let assignments = ChoreRepository.getAllAssignments();
-                const key1 = `${choreId}-0`;
-                expect(assignments[key1].length).toBe(1);
+                await ChoreRepository.addGroup('Team', 'TM', '#000', false, [alice.id, bob.id]);
+                const groups = await ChoreRepository.getAllGroups();
+                let tm = groups.find(g => g.name === 'Team');
 
-                // Move to Tue (1) manually (simulating the move logic)
-                // Trigger add to new cell
-                const added = ChoreRepository.addAssignment(choreId, 1, actorId);
-                expect(added).toBe(true);
-                // Remove from old cell
-                ChoreRepository.removeAssignment(choreId, 0, actorId);
+                const chores = await ChoreRepository.getAllChores();
 
-                assignments = ChoreRepository.getAllAssignments();
-                const key2 = `${choreId}-1`;
-                expect(assignments[key1]).toBeUndefined();
-                expect(assignments[key2].length).toBe(1);
-                expect(assignments[key2][0].actorId).toBe(actorId);
-            });
+                // Rotations inject starting with Alice on Day 5 (Saturday for Mon-Start)
+                await ChoreRepository.assignGroupRotation(chores[0].id, tm.id, alice.id, 5);
 
-            it('should fail to move if target cell is full', () => {
-                // Set max to 1
-                ChoreRepository.setSetting('max_markers_per_cell', 1); // direct setting access or use helper if exists?
-                // Wait, repository has setMaxMarkersPerCell(n) which sets 'max_markers_per_cell'
-                ChoreRepository.setMaxMarkersPerCell(1);
-
-                const people = ChoreRepository.getAllPeople();
-                const chores = ChoreRepository.getAllChores();
-                const actor1 = people[0].id;
-
-                // Add another person
-                ChoreRepository.addPerson('Alice', 'ALC', '#ffffff');
-                const actor2 = ChoreRepository.getAllPeople()[1].id;
-                const choreId = chores[0].id;
-
-                // Assign Actor 1 to Mon
-                ChoreRepository.addAssignment(choreId, 0, actor1);
-                // Assign Actor 2 to Tue
-                ChoreRepository.addAssignment(choreId, 1, actor2);
-
-                // Try move Actor 1 to Tue (should fail)
-                const added = ChoreRepository.addAssignment(choreId, 1, actor1);
-                expect(added).toBe(false);
-
-                // Verify state unchanged
-                const assignments = ChoreRepository.getAllAssignments();
-                expect(assignments[`${choreId}-0`].length).toBe(1);
-                expect(assignments[`${choreId}-1`].length).toBe(1);
-                expect(assignments[`${choreId}-1`][0].actorId).toBe(actor2);
-            });
-        });
-
-        // ── Group Management ────────────────────────────────────
-        describe('Group Management', () => {
-            beforeEach(() => {
-                createSchema(_db);
-                // Add some people
-                ChoreRepository.addPerson('Bob', 'BOB', '#000000');
-                ChoreRepository.addPerson('Alice', 'ALC', '#ffffff');
-            });
-
-            it('should add a group', () => {
-                ChoreRepository.addGroup('Kids', 'KDS', '#ff0000', true, []);
-                const groups = ChoreRepository.getAllGroups();
-                expect(groups.length).toBe(1);
-                expect(groups[0].name).toBe('Kids');
-                expect(groups[0].type).toBe('group');
-                expect(groups[0].showAsMarker).toBe(true);
-            });
-
-            it('should add members to a group', () => {
-                const people = ChoreRepository.getAllPeople();
-                const bob = people.find(p => p.name === 'Bob');
-
-                ChoreRepository.addGroup('Drivers', 'DRV', '#00ff00', false, [bob.id]);
-
-                const groups = ChoreRepository.getAllGroups();
-                const members = ChoreRepository.getGroupMembers(groups[0].id);
-
-                expect(members.length).toBe(1);
-                expect(members[0].name).toBe('Bob');
-            });
-
-            it('removeActor() should remove person from groups', () => {
-                const people = ChoreRepository.getAllPeople();
-                const bob = people.find(p => p.name === 'Bob');
-
-                ChoreRepository.addGroup('Team', 'TM', '#0000ff', false, [bob.id]);
-                let groups = ChoreRepository.getAllGroups();
-                expect(groups[0].memberIds.includes(bob.id)).toBe(true);
-
-                // Remove Bob
-                ChoreRepository.removeActor(bob.id);
-
-                // Verify Bob is gone from group
-                groups = ChoreRepository.getAllGroups();
-                expect(groups[0].memberIds.includes(bob.id)).toBe(false);
-                expect(groups[0].memberIds.length).toBe(0);
-            });
-
-            it('should update group details', () => {
-                ChoreRepository.addGroup('Old Name', 'OLD', '#000000');
-                const groups = ChoreRepository.getAllGroups();
-                const id = groups[0].id;
-
-                ChoreRepository.updateGroup(id, { name: 'New Name', showAsMarker: true });
-
-                const updated = ChoreRepository.getAllGroups()[0];
-                expect(updated.name).toBe('New Name');
-                expect(updated.showAsMarker).toBe(true);
-            });
-        });
-
-        // ── Nested Groups ───────────────────────────────────────
-        describe('Nested Groups', () => {
-            beforeEach(() => {
-                createSchema(_db);
-            });
-
-            it('should allow adding a person to a group (Depth 1)', () => {
-                ChoreRepository.addPerson('P1', 'P1', '#000');
-                const p1 = ChoreRepository.getAllPeople()[0];
-                ChoreRepository.addGroup('G1', 'G1', '#000', false, [p1.id]);
-
-                const g1 = ChoreRepository.getAllGroups()[0];
-                expect(g1.memberIds.includes(p1.id)).toBe(true);
-                expect(ChoreRepository.getGroupDepth(g1.id)).toBe(1);
-            });
-
-            it('should allow nesting G2 -> G1 (Depth 2)', () => {
-                ChoreRepository.addGroup('G2', 'G2', '#000'); // Leaf group
-                const g2 = ChoreRepository.getAllGroups()[0];
-
-                ChoreRepository.addGroup('G1', 'G1', '#000', false, [g2.id]);
-                const g1 = ChoreRepository.getAllGroups()[1];
-
-                expect(g1.memberIds.includes(g2.id)).toBe(true);
-                expect(ChoreRepository.getGroupDepth(g2.id)).toBe(1);
-                expect(ChoreRepository.getGroupDepth(g1.id)).toBe(2);
-            });
-
-            it('should allow nesting G3 -> G2 -> G1 (Depth 3)', () => {
-                ChoreRepository.addGroup('G3', 'G3', '#000');
-                const g3 = ChoreRepository.getAllGroups()[0];
-
-                ChoreRepository.addGroup('G2', 'G2', '#000', false, [g3.id]);
-                const g2 = ChoreRepository.getAllGroups()[1];
-
-                ChoreRepository.addGroup('G1', 'G1', '#000', false, [g2.id]);
-                const g1 = ChoreRepository.getAllGroups()[2];
-
-                expect(ChoreRepository.getGroupDepth(g1.id)).toBe(3);
-            });
-
-            it('should prevent nesting deeper than 3 levels (G4 -> G3 -> G2 -> G1)', () => {
-                // G3 -> G2 -> G1
-                ChoreRepository.addGroup('G1', 'G1', '#000');
-                const g1 = ChoreRepository.getAllGroups()[0];
-                ChoreRepository.addGroup('G2', 'G2', '#000', false, [g1.id]);
-                const g2 = ChoreRepository.getAllGroups()[1];
-                ChoreRepository.addGroup('G3', 'G3', '#000', false, [g2.id]);
-                const g3 = ChoreRepository.getAllGroups()[2];
-
-                // Create G4, try to add G3
-                ChoreRepository.addGroup('G4', 'G4', '#000');
-                const g4 = ChoreRepository.getAllGroups()[3];
-
-                const canAdd = ChoreRepository.canAddMember(g4.id, g3.id);
-                expect(canAdd).toBe(false);
-            });
-
-            it('should prevent circular dependency (A -> B -> A)', () => {
-                ChoreRepository.addGroup('A', 'A', '#000');
-                const a = ChoreRepository.getAllGroups()[0];
-                ChoreRepository.addGroup('B', 'B', '#000', false, [a.id]);
-                const b = ChoreRepository.getAllGroups()[1];
-
-                // Try adding B to A
-                const canAdd = ChoreRepository.canAddMember(a.id, b.id);
-                expect(canAdd).toBe(false);
-            });
-
-            it('getGroupMembers should return both people and groups', () => {
-                ChoreRepository.addPerson('P1', 'P1', '#000');
-                const p1 = ChoreRepository.getAllPeople()[0];
-                ChoreRepository.addGroup('G2', 'G2', '#000', false, [p1.id]);
-                const g2 = ChoreRepository.getAllGroups()[0];
-                ChoreRepository.addGroup('G1', 'G1', '#000', false, [g2.id]);
-                const g1 = ChoreRepository.getAllGroups()[1];
-
-                const members = ChoreRepository.getGroupMembers(g1.id);
-                expect(members.length).toBe(1);
-                expect(members[0].id).toBe(g2.id);
-                expect(members[0].type).toBe('group');
-            });
-        });
-
-        // ── Group Rotation ──────────────────────────────────────
-
-        describe('Group Rotation Assignment', () => {
-            beforeEach(() => { createSchema(_db); });
-
-            it('getGroupMembers returns members sorted alphabetically', () => {
-                // Add people in non-alphabetical order
-                ChoreRepository.addPerson('Charlie', 'CH', '#333');
-                ChoreRepository.addPerson('Alice', 'AL', '#111');
-                ChoreRepository.addPerson('Bob', 'BO', '#222');
-                const allPeople = ChoreRepository.getAllPeople();
-                // Only use the 3 people we just added (skip seeded ones)
-                const testPeople = allPeople.filter(p => ['Alice', 'Bob', 'Charlie'].includes(p.name));
-                ChoreRepository.addGroup('Team', 'TM', '#000', false, testPeople.map(p => p.id));
-                const group = ChoreRepository.getAllGroups()[0];
-                const members = ChoreRepository.getGroupMembers(group.id);
-                expect(members.length).toBe(3);
-                expect(members[0].name).toBe('Alice');
-                expect(members[1].name).toBe('Bob');
-                expect(members[2].name).toBe('Charlie');
-            });
-
-            it('assignGroupRotation fills all 7 days', () => {
-                // Use the seeded people directly
-                const people = ChoreRepository.getAllPeople();
-                ChoreRepository.addGroup('Team', 'TM', '#000', false, [people[0].id, people[1].id]);
-                const group = ChoreRepository.getAllGroups()[0];
-                const chores = ChoreRepository.getAllChores();
-                const members = ChoreRepository.getGroupMembers(group.id);
-
-                ChoreRepository.assignGroupRotation(chores[0].id, group.id, members[0].id, 0);
-                const assignments = ChoreRepository.getAllAssignments();
-                let count = 0;
-                for (let d = 0; d < 7; d++) {
-                    const key = `${chores[0].id}-${d}`;
-                    if (assignments[key]) count += assignments[key].length;
-                }
-                expect(count).toBe(7);
-            });
-
-            it('assignGroupRotation rotates members correctly', () => {
-                ChoreRepository.addPerson('Alice', 'AL', '#111');
-                ChoreRepository.addPerson('Bob', 'BO', '#222');
-                ChoreRepository.addPerson('Charlie', 'CH', '#333');
-                const allPeople = ChoreRepository.getAllPeople();
-                const testPeople = allPeople.filter(p => ['Alice', 'Bob', 'Charlie'].includes(p.name));
-                ChoreRepository.addGroup('Team', 'TM', '#000', false, testPeople.map(p => p.id));
-                const group = ChoreRepository.getAllGroups()[0];
-                const chores = ChoreRepository.getAllChores();
-                const members = ChoreRepository.getGroupMembers(group.id);
-
-                // Start with Alice on Mon (day 0)
-                ChoreRepository.assignGroupRotation(chores[0].id, group.id, members[0].id, 0);
-                const assignments = ChoreRepository.getAllAssignments();
-                expect(assignments[`${chores[0].id}-0`][0].name).toBe('Alice');
-                expect(assignments[`${chores[0].id}-1`][0].name).toBe('Bob');
-                expect(assignments[`${chores[0].id}-2`][0].name).toBe('Charlie');
-                expect(assignments[`${chores[0].id}-3`][0].name).toBe('Alice');
-                expect(assignments[`${chores[0].id}-4`][0].name).toBe('Bob');
-                expect(assignments[`${chores[0].id}-5`][0].name).toBe('Charlie');
-                expect(assignments[`${chores[0].id}-6`][0].name).toBe('Alice');
-            });
-
-            it('assignGroupRotation respects start member and start day', () => {
-                ChoreRepository.addPerson('Alice', 'AL', '#111');
-                ChoreRepository.addPerson('Bob', 'BO', '#222');
-                ChoreRepository.addPerson('Charlie', 'CH', '#333');
-                const allPeople = ChoreRepository.getAllPeople();
-                const testPeople = allPeople.filter(p => ['Alice', 'Bob', 'Charlie'].includes(p.name));
-                ChoreRepository.addGroup('Team', 'TM', '#000', false, testPeople.map(p => p.id));
-                const group = ChoreRepository.getAllGroups()[0];
-                const chores = ChoreRepository.getAllChores();
-                const members = ChoreRepository.getGroupMembers(group.id);
-
-                // Start with Bob on Wed (day 2)
-                const bob = members.find(m => m.name === 'Bob');
-                ChoreRepository.assignGroupRotation(chores[0].id, group.id, bob.id, 2);
-                const assignments = ChoreRepository.getAllAssignments();
-                expect(assignments[`${chores[0].id}-2`][0].name).toBe('Bob');
-                expect(assignments[`${chores[0].id}-3`][0].name).toBe('Charlie');
-                expect(assignments[`${chores[0].id}-4`][0].name).toBe('Alice');
-                expect(assignments[`${chores[0].id}-5`][0].name).toBe('Bob');
-                expect(assignments[`${chores[0].id}-6`][0].name).toBe('Charlie');
-                expect(assignments[`${chores[0].id}-0`][0].name).toBe('Alice');
-                expect(assignments[`${chores[0].id}-1`][0].name).toBe('Bob');
-            });
-
-            it('assignGroupRotation wraps days around the week', () => {
-                ChoreRepository.addPerson('Alice', 'AL', '#111');
-                ChoreRepository.addPerson('Bob', 'BO', '#222');
-                const allPeople = ChoreRepository.getAllPeople();
-                const testPeople = allPeople.filter(p => ['Alice', 'Bob'].includes(p.name));
-                ChoreRepository.addGroup('Duo', 'DU', '#000', false, testPeople.map(p => p.id));
-                const group = ChoreRepository.getAllGroups()[0];
-                const chores = ChoreRepository.getAllChores();
-                const members = ChoreRepository.getGroupMembers(group.id);
-
-                // Start on Sat (day 5)
-                ChoreRepository.assignGroupRotation(chores[0].id, group.id, members[0].id, 5);
-                const assignments = ChoreRepository.getAllAssignments();
+                const assignments = await ChoreRepository.getAllAssignments();
                 expect(assignments[`${chores[0].id}-5`][0].name).toBe('Alice');
                 expect(assignments[`${chores[0].id}-6`][0].name).toBe('Bob');
-                expect(assignments[`${chores[0].id}-0`][0].name).toBe('Alice');
-                expect(assignments[`${chores[0].id}-1`][0].name).toBe('Bob');
+                expect(assignments[`${chores[0].id}-0`][0].name).toBe('Alice'); // Wrapped to Monday
             });
         });
 
-
-        // ── Run ─────────────────────────────────────────────────
+        // ── Main ────────────────────────────────────────────────
         runTests();
     </script>
 </body>

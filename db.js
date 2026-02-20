@@ -1,53 +1,103 @@
 /**
  * db.js - Database Initialization & Schema
  * 
- * Uses sql.js (SQLite compiled to WebAssembly) for local persistence.
- * The schema is designed to be portable to Postgres/MySQL with minimal changes.
+ * Uses sql.js (SQLite compiled to WebAssembly) for local persistence in browser,
+ * and @capacitor-community/sqlite for native Android.
  */
 
 const DB_NAME = 'chore_chart_db';
 
+// _db holds the platform-specific database object
+// For web: { isNative: false, client: SQL.Database }
+// For native: { isNative: true, plugin: CapacitorSQLite }
 let _db = null;
 
 /**
- * Initialize the database. Loads sql.js WASM, creates or restores the DB,
- * and ensures all tables exist.
- * @returns {Promise<Database>} The sql.js Database instance
+ * Initialize the database. Loads sql.js WASM or connects to Capacitor SQLite,
+ * creates or restores the DB, and ensures all tables exist.
  */
 async function initDatabase() {
     if (_db) return _db;
 
-    const SQL = await initSqlJs({
-        locateFile: file => `vendor/${file}`
-    });
-
-    // Try to restore from localStorage
-    const savedData = localStorage.getItem(DB_NAME);
-    if (savedData) {
-        const buf = Uint8Array.from(atob(savedData), c => c.charCodeAt(0));
-        _db = new SQL.Database(buf);
+    if (StorageStrategy.isNative()) {
+        const sqlite = window.Capacitor.Plugins.CapacitorSQLite;
+        await sqlite.createConnection({
+            database: DB_NAME,
+            encrypted: false,
+            mode: 'no-encryption',
+            version: 1,
+            readonly: false
+        });
+        await sqlite.open({ database: DB_NAME, readonly: false });
+        _db = { isNative: true, plugin: sqlite };
     } else {
-        _db = new SQL.Database();
+        const SQL = await initSqlJs({
+            locateFile: file => `vendor/${file}`
+        });
+
+        // Try to restore from localStorage
+        const savedData = localStorage.getItem(DB_NAME);
+        if (savedData) {
+            const buf = Uint8Array.from(atob(savedData), c => c.charCodeAt(0));
+            _db = { isNative: false, client: new SQL.Database(buf) };
+        } else {
+            _db = { isNative: false, client: new SQL.Database() };
+        }
     }
 
     // Run migrations / ensure schema
-    createSchema(_db);
-    migrateToActors(_db);
-    migrateToActors(_db);
-    migrateMultiAssign(_db);
-    seedVisualSettings(_db);
+    await createSchema();
+    await migrateToActors();
+    // duplicate call intentional? previous code had it twice, let's just keep one
+    await migrateMultiAssign();
+    await seedVisualSettings();
 
     return _db;
 }
 
 /**
- * Create the database schema.
- * Standard SQL — transfers to Postgres/MySQL with minimal type changes.
+ * Execute a SQL query that does not return row data (INSERT, UPDATE, DELETE).
+ * @param {string} sql 
+ * @param {Array} params 
  */
-function createSchema(db) {
-    // Polymorphic actors table (replaces old 'people' table)
-    // Supports: person, group, ai_agent, webhook, chore_chart
-    db.run(`
+async function dbExecute(sql, params = []) {
+    if (!_db) return;
+    if (_db.isNative) {
+        await _db.plugin.run({ database: DB_NAME, statement: sql, values: params });
+    } else {
+        _db.client.run(sql, params);
+        saveDatabase();
+    }
+}
+
+/**
+ * Execute a SQL query and return the rows as an array of objects.
+ * @param {string} sql 
+ * @param {Array} params 
+ * @returns {Promise<Array<Object>>}
+ */
+async function dbQuery(sql, params = []) {
+    if (!_db) return [];
+    if (_db.isNative) {
+        const res = await _db.plugin.query({ database: DB_NAME, statement: sql, values: params });
+        return res.values || [];
+    } else {
+        const res = _db.client.exec(sql, params);
+        if (!res.length) return [];
+        const columns = res[0].columns;
+        return res[0].values.map(row => {
+            const obj = {};
+            columns.forEach((col, i) => obj[col] = row[i]);
+            return obj;
+        });
+    }
+}
+
+/**
+ * Create the database schema.
+ */
+async function createSchema() {
+    await dbExecute(`
         CREATE TABLE IF NOT EXISTS actors (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             type TEXT NOT NULL DEFAULT 'person',
@@ -58,7 +108,7 @@ function createSchema(db) {
         );
     `);
 
-    db.run(`
+    await dbExecute(`
         CREATE TABLE IF NOT EXISTS chores (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
@@ -66,7 +116,7 @@ function createSchema(db) {
         );
     `);
 
-    db.run(`
+    await dbExecute(`
         CREATE TABLE IF NOT EXISTS assignments (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             chore_id INTEGER NOT NULL,
@@ -78,7 +128,7 @@ function createSchema(db) {
         );
     `);
 
-    db.run(`
+    await dbExecute(`
         CREATE TABLE IF NOT EXISTS settings (
             key TEXT PRIMARY KEY,
             value TEXT NOT NULL
@@ -86,100 +136,82 @@ function createSchema(db) {
     `);
 
     // Seed default actors if table is empty
-    const actorCount = db.exec("SELECT COUNT(*) FROM actors")[0].values[0][0];
-    if (actorCount === 0) {
-        db.run("INSERT INTO actors (type, name, initials, color) VALUES ('person', 'User 1', 'U1', '#0084ff')");
-        db.run("INSERT INTO actors (type, name, initials, color) VALUES ('person', 'User 2', 'U2', '#ff4d4d')");
-        db.run("INSERT INTO actors (type, name, initials, color) VALUES ('person', 'User 3', 'U3', '#2ecc71')");
+    const actors = await dbQuery("SELECT COUNT(*) as count FROM actors");
+    if (actors[0].count === 0) {
+        await dbExecute("INSERT INTO actors (type, name, initials, color) VALUES ('person', 'User 1', 'U1', '#0084ff')");
+        await dbExecute("INSERT INTO actors (type, name, initials, color) VALUES ('person', 'User 2', 'U2', '#ff4d4d')");
+        await dbExecute("INSERT INTO actors (type, name, initials, color) VALUES ('person', 'User 3', 'U3', '#2ecc71')");
     }
 
-    const choreCount = db.exec("SELECT COUNT(*) FROM chores")[0].values[0][0];
-    if (choreCount === 0) {
-        db.run("INSERT INTO chores (name, sort_order) VALUES ('Dishes', 1)");
-        db.run("INSERT INTO chores (name, sort_order) VALUES ('Laundry', 2)");
-        db.run("INSERT INTO chores (name, sort_order) VALUES ('Vacuuming', 3)");
-        db.run("INSERT INTO chores (name, sort_order) VALUES ('Trash', 4)");
+    const chores = await dbQuery("SELECT COUNT(*) as count FROM chores");
+    if (chores[0].count === 0) {
+        await dbExecute("INSERT INTO chores (name, sort_order) VALUES ('Dishes', 1)");
+        await dbExecute("INSERT INTO chores (name, sort_order) VALUES ('Laundry', 2)");
+        await dbExecute("INSERT INTO chores (name, sort_order) VALUES ('Vacuuming', 3)");
+        await dbExecute("INSERT INTO chores (name, sort_order) VALUES ('Trash', 4)");
     }
 
     // Seed default settings
-    const settingsCount = db.exec("SELECT COUNT(*) FROM settings")[0].values[0][0];
-    if (settingsCount === 0) {
-        db.run("INSERT INTO settings (key, value) VALUES ('week_start_day', 'Mon')");
-        db.run("INSERT INTO settings (key, value) VALUES ('chart_title', 'Chore Chart')");
-        db.run("INSERT INTO settings (key, value) VALUES ('chart_subtitle', 'Digital Magnetic Board')");
-        db.run("INSERT INTO settings (key, value) VALUES ('max_markers_per_cell', '2')");
+    const settings = await dbQuery("SELECT COUNT(*) as count FROM settings");
+    if (settings[0].count === 0) {
+        await dbExecute("INSERT INTO settings (key, value) VALUES ('week_start_day', 'Mon')");
+        await dbExecute("INSERT INTO settings (key, value) VALUES ('chart_title', 'Chore Chart')");
+        await dbExecute("INSERT INTO settings (key, value) VALUES ('chart_subtitle', 'Digital Magnetic Board')");
+        await dbExecute("INSERT INTO settings (key, value) VALUES ('max_markers_per_cell', '2')");
     }
 }
 
 /**
  * Migrate legacy 'people' table data into 'actors' table.
- * Safe to run multiple times — only acts if 'people' table still exists.
  */
-function migrateToActors(db) {
+async function migrateToActors() {
     // Check if legacy 'people' table exists
-    const tables = db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='people'");
-    if (!tables.length || !tables[0].values.length) return;
+    const tables = await dbQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='people'");
+    if (tables.length === 0) return;
 
-    // Copy people → actors (only if actors is empty, meaning fresh migration)
-    const actorCount = db.exec("SELECT COUNT(*) FROM actors")[0].values[0][0];
-    if (actorCount === 0) {
-        db.run(`
+    // Copy people → actors
+    const actors = await dbQuery("SELECT COUNT(*) as count FROM actors");
+    if (actors[0].count === 0) {
+        await dbExecute(`
             INSERT INTO actors (id, type, name, initials, color)
             SELECT id, 'person', name, initials, color FROM people
         `);
     }
 
-    // Migrate assignments: person_id → actor_id
-    // Check if old 'assignments' table has 'person_id' column
-    const cols = db.exec("PRAGMA table_info(assignments)");
-    if (cols.length) {
-        const hasPersonId = cols[0].values.some(row => row[1] === 'person_id');
-        if (hasPersonId) {
-            // Recreate assignments with actor_id
-            db.run(`CREATE TABLE IF NOT EXISTS assignments_new (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                chore_id INTEGER NOT NULL,
-                day_index INTEGER NOT NULL,
-                actor_id INTEGER NOT NULL,
-                FOREIGN KEY (chore_id) REFERENCES chores(id) ON DELETE CASCADE,
-                FOREIGN KEY (actor_id) REFERENCES actors(id) ON DELETE CASCADE,
-                UNIQUE(chore_id, day_index, actor_id)
-            )`);
-            db.run(`INSERT INTO assignments_new (id, chore_id, day_index, actor_id)
-                     SELECT id, chore_id, day_index, person_id FROM assignments`);
-            db.run("DROP TABLE assignments");
-            db.run("ALTER TABLE assignments_new RENAME TO assignments");
-        }
+    // Check assignments person_id
+    const cols = await dbQuery("PRAGMA table_info(assignments)");
+    const hasPersonId = cols.some(row => row.name === 'person_id');
+    if (hasPersonId) {
+        await dbExecute(`CREATE TABLE IF NOT EXISTS assignments_new (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            chore_id INTEGER NOT NULL,
+            day_index INTEGER NOT NULL,
+            actor_id INTEGER NOT NULL,
+            FOREIGN KEY (chore_id) REFERENCES chores(id) ON DELETE CASCADE,
+            FOREIGN KEY (actor_id) REFERENCES actors(id) ON DELETE CASCADE,
+            UNIQUE(chore_id, day_index, actor_id)
+        )`);
+        await dbExecute(`INSERT INTO assignments_new (id, chore_id, day_index, actor_id)
+                 SELECT id, chore_id, day_index, person_id FROM assignments`);
+        await dbExecute("DROP TABLE assignments");
+        await dbExecute("ALTER TABLE assignments_new RENAME TO assignments");
     }
 
-    // Drop legacy table
-    db.run("DROP TABLE IF EXISTS people");
-    saveDatabase();
+    await dbExecute("DROP TABLE IF EXISTS people");
 }
 
 /**
  * Migrate single-assignment constraint to multi-assignment.
- * Changes UNIQUE(chore_id, day_index) → UNIQUE(chore_id, day_index, actor_id)
- * Safe to run multiple times.
  */
-function migrateMultiAssign(db) {
-    // Check current unique constraint via index info
-    const indexes = db.exec(
-        "SELECT sql FROM sqlite_master WHERE type='index' AND tbl_name='assignments'"
-    );
-    // Also check the CREATE TABLE sql for inline UNIQUE
-    const tableSql = db.exec(
-        "SELECT sql FROM sqlite_master WHERE type='table' AND name='assignments'"
-    );
-    if (!tableSql.length || !tableSql[0].values.length) return;
-    const createSql = tableSql[0].values[0][0];
+async function migrateMultiAssign() {
+    const tableSql = await dbQuery("SELECT sql FROM sqlite_master WHERE type='table' AND name='assignments'");
+    if (!tableSql.length) return;
+    const createSql = tableSql[0].sql;
 
-    // If already has the 3-column unique, skip
     if (createSql.includes('UNIQUE(chore_id, day_index, actor_id)') ||
         createSql.includes('UNIQUE (chore_id, day_index, actor_id)')) return;
 
-    // Need migration: recreate with new constraint
-    db.run(`CREATE TABLE assignments_multi (
+    await dbExecute(`CREATE TABLE assignments_multi (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         chore_id INTEGER NOT NULL,
         day_index INTEGER NOT NULL,
@@ -188,62 +220,48 @@ function migrateMultiAssign(db) {
         FOREIGN KEY (actor_id) REFERENCES actors(id) ON DELETE CASCADE,
         UNIQUE(chore_id, day_index, actor_id)
     )`);
-    db.run(`INSERT INTO assignments_multi (id, chore_id, day_index, actor_id)
+    await dbExecute(`INSERT INTO assignments_multi (id, chore_id, day_index, actor_id)
              SELECT id, chore_id, day_index, actor_id FROM assignments`);
-    db.run("DROP TABLE assignments");
-    db.run("ALTER TABLE assignments_multi RENAME TO assignments");
+    await dbExecute("DROP TABLE assignments");
+    await dbExecute("ALTER TABLE assignments_multi RENAME TO assignments");
 
-    // Seed max_markers_per_cell if not present
-    const existing = db.exec("SELECT value FROM settings WHERE key = 'max_markers_per_cell'");
-    if (!existing.length || !existing[0].values.length) {
-        db.run("INSERT INTO settings (key, value) VALUES ('max_markers_per_cell', '2')");
+    const existing = await dbQuery("SELECT value FROM settings WHERE key = 'max_markers_per_cell'");
+    if (existing.length === 0) {
+        await dbExecute("INSERT INTO settings (key, value) VALUES ('max_markers_per_cell', '2')");
     }
-
-    saveDatabase();
 }
 
 /**
  * Ensure visual settings exist.
  */
-function seedVisualSettings(db) {
+async function seedVisualSettings() {
     const defaultColor = '#f8f9fa';
 
-    // Check row_shading_enabled
-    const enabled = db.exec("SELECT value FROM settings WHERE key = 'row_shading_enabled'");
-    if (!enabled.length || !enabled[0].values.length) {
-        db.run("INSERT INTO settings (key, value) VALUES ('row_shading_enabled', 'false')");
+    const enabled = await dbQuery("SELECT value FROM settings WHERE key = 'row_shading_enabled'");
+    if (enabled.length === 0) {
+        await dbExecute("INSERT INTO settings (key, value) VALUES ('row_shading_enabled', 'false')");
     }
 
-    // Check row_shading_color
-    const color = db.exec("SELECT value FROM settings WHERE key = 'row_shading_color'");
-    if (!color.length || !color[0].values.length) {
-        db.run("INSERT INTO settings (key, value) VALUES ('row_shading_color', ?)", [defaultColor]);
+    const color = await dbQuery("SELECT value FROM settings WHERE key = 'row_shading_color'");
+    if (color.length === 0) {
+        await dbExecute("INSERT INTO settings (key, value) VALUES ('row_shading_color', ?)", [defaultColor]);
     }
 
-    // Check chore_col_width
-    const choreColWidth = db.exec("SELECT value FROM settings WHERE key = 'chore_col_width'");
-    if (!choreColWidth.length || !choreColWidth[0].values.length) {
-        db.run("INSERT INTO settings (key, value) VALUES ('chore_col_width', '200')");
+    const choreColWidth = await dbQuery("SELECT value FROM settings WHERE key = 'chore_col_width'");
+    if (choreColWidth.length === 0) {
+        await dbExecute("INSERT INTO settings (key, value) VALUES ('chore_col_width', '200')");
     }
-
-    saveDatabase();
 }
 
 /**
  * Persist the current database state to localStorage.
- * Call this after every write operation.
+ * Automatically called by dbExecute when needed.
  */
 function saveDatabase() {
-    if (!_db) return;
-    const data = _db.export();
+    if (!_db || _db.isNative) return;
+    const data = _db.client.export();
     const base64 = btoa(String.fromCharCode(...data));
     localStorage.setItem(DB_NAME, base64);
 }
 
-/**
- * Get the active database instance.
- * @returns {Database}
- */
-function getDb() {
-    return _db;
-}
+// Removing getDb() since we now export dbQuery and dbExecute natively
