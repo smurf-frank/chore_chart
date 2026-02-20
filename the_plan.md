@@ -28,8 +28,8 @@ Convert the Chore Chart from a pure PWA into an app that runs identically in the
 - Define `appId` (`com.smurffrank.chorechart`), `appName`, and `webDir`.
 
 #### Verification (Phase 1)
-- [ ] Run `npm install` and verify no dependency conflicts.
-- [ ] Verify `npx cap init` command executes successfully with the new config.
+- [x] Run `npm install` and verify no dependency conflicts.
+- [x] Verify `npx cap init` command executes successfully with the new config.
 
 > [!IMPORTANT]
 > **Checkpoint**: I will provide a summary of the setup and verification results, then pause and use `notify_user` to get approval before proceeding to Phase 3.
@@ -62,9 +62,9 @@ Convert the Chore Chart from a pure PWA into an app that runs identically in the
 - Update all calls to `ChoreRepository` and [db.js](file:///home/frank/cosmos/projects/active/chore_chart/db.js) to use `await`.
 
 #### Verification (Phase 3)
-- [ ] **Browser Verification**: Open the app in a browser. Verify all features (add/remove chores, assignments, rotations) work as before.
-- [ ] **Data Persistence**: Refresh page and verify data persists in `localStorage` via the async [saveDatabase](file:///home/frank/cosmos/projects/active/chore_chart/db.js#232-242).
-- [ ] **Automated Tests**: Run `npm test` (Playwright) and ensure all existing tests pass with the new async architecture.
+- [x] **Browser Verification**: Open the app in a browser. Verify all features (add/remove chores, assignments, rotations) work as before.
+- [x] **Data Persistence**: Refresh page and verify data persists in `localStorage` via the async [saveDatabase](file:///home/frank/cosmos/projects/active/chore_chart/db.js#232-242).
+- [x] **Automated Tests**: Run `npm test` (Playwright) and ensure all existing tests pass with the new async architecture.
 
 > [!IMPORTANT]
 > **Checkpoint**: I will provide a summary of the code migration and verification results, then pause and use `notify_user` to get approval before proceeding to Phase 4.
