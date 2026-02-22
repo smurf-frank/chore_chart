@@ -66,10 +66,10 @@ Convert the Chore Chart from a pure PWA into an app that runs identically in the
 - [x] Installed Android Studio and SDK and opened IDE via `npx cap open android`.
 
 #### Verification (Phase 4)
-- [ ] **Android Build**: Run `npx cap open android`. Verify Android Studio opens and the project builds successfully.
-- [ ] **Capacitor Sync**: Ensure `npx cap sync` correctly copies web assets into the `android/` directory.
-- [ ] **Emulator Launch**: Run the app on an Android emulator. Verify the board loads and fonts render correctly.
-- [ ] **Native Storage**: Add an assignment on the emulator, kill the app, and reopen. Verify the assignment persists (confirming `CapacitorSQLite` is working).
+- [x] **Android Build**: Run `npx cap open android`. Verify Android Studio opens and the project builds successfully.
+- [x] **Capacitor Sync**: Ensure `npx cap sync` correctly copies web assets into the `android/` directory.
+- [x] **Emulator Launch**: Run the app on an Android emulator. Verify the board loads and fonts render correctly.
+- [x] **Native Storage**: Add an assignment on the emulator, kill the app, and reopen. Verify the assignment persists (confirming `CapacitorSQLite` is working).
 
 > [!IMPORTANT]
 > **Checkpoint Phase 4**: I will bridge the work with a summary and verification results, then pause for your final review.

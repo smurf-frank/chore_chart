@@ -28,11 +28,11 @@
 - ✅ **Release v0.0.2** (Completed: 2026-02-16)
 
 ### In Progress
-- 🔄 **Capacitor Integration**:
+- ✅ **Capacitor Integration**:
     - Project restructured (`src/`, `tests/`, `docs/`).
     - Android Studio & SDK installed locally.
     - Android platform added and synced.
-    - **Pending**: Manual verification of Android build, emulator, and native storage persistence.
+    - Manual verification of Android build, emulator, and native storage persistence complete.
 
 ### Done
 - ✅ **Project Restructuring**:
@@ -63,21 +63,22 @@
     - Resizable chore column with Settings control.
     - Full-name tooltips on hover.
     - PWA Richer Install UI with device screenshots.
+- ✅ **Recover Test Coverage**: Ported all legacy tests to fully parallel async Playwright unit tests.
+- [x] **Test Modularization**: Separated the test suite into specific domains (`chores`, `assignments`, `actors`, `settings`, `groups`, `rotations`, `database`).
+- [x] **Framework Validation**: Created a meta-test (`tests/framework/framework.spec.js`) to permanently validate the DOM-based runner logic.
 
 ---
 
 ## 📋 Context for Next Session
 
 ### Where You Left Off
-**Last Worked On**: 2026-02-19
+**Last Worked On**: 2026-02-20
 
-**Status**: We successfully generated the Capacitor Android project (`npx cap add android` -> `npx cap sync`). Android Studio was installed globally, configured, and is currently open with the newly generated project.
+**Status**: Capacitor integration is now complete. We have successfully verified the Android build, emulator launch, and native storage persistence using a `Pixel_6_API_34` AVD.
 
 ### Next Steps (For Resuming)
-1. **Resume in Android Studio**: Proceed with the manual Phase 4 Verification steps.
-2. **Android Build**: Wait for Gradle to finish syncing, then verify the project builds successfully.
-3. **Emulator Launch**: Create/launch an Android Virtual Device (AVD) and run the app. Verify that the UI loads and the bundled fonts render correctly.
-4. **Native Storage**: Add an assignment on the emulator, entirely close the app (swipe it away), and reopen it. If the assignment persists, `CapacitorSQLite` integration is fully successful!
+1. **Marker System Refinement**: Improve the "Tactile UX" for magnet-like interactions on mobile.
+2. **CI Pipeline Updates**: Now that tests are split into multiple `.spec.js` files running in parallel, update `.github/workflows/ci.yml` if necessary to take full advantage.
 
 ---
 
@@ -93,3 +94,6 @@
 | 2026-02-16 | Antigravity | Released v0.0.2. |
 | 2026-02-19 | Antigravity | Capacitor setup and Phase 3 Async Data Layer Migration complete. |
 | 2026-02-19 | Antigravity | Restructured to src/tests/docs. Installed Android SDK. Generated Android proj. |
+| 2026-02-20 | Antigravity | Verified Android environment, downloaded system image, created AVD. |
+| 2026-02-20 | Antigravity | Completed Phase 4 Verification: Android build, sync, and storage success. |
+| 2026-02-21 | Antigravity | Restructured and recovered legacy test suite using modular Playwright runner. |

@@ -1,0 +1,4 @@
+const { runSuiteInBrowser } = require('../framework/test-bridge');
+const path = require('path');
+
+runSuiteInBrowser('actors/crud', path.resolve(__dirname, 'crud.js'));
