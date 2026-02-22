@@ -130,4 +130,4 @@ graph LR
 ### Versioning
 
 - **Semantic Versioning**: The project follows [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
-- **Current Version**: `v0.0.1` (Initial Release).
+- **Current Version**: `v0.0.3` (Capacitor & Async Storage).
