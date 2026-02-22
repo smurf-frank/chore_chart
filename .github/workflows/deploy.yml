@@ -52,12 +52,7 @@ jobs:
           fi
 
       # ── Define app files to copy ─────────────────────────────
-      - name: Set app files list
-        run: |
-          # Only copy app files, not CI/workflow/test files
-          echo "APP_FILES=index.html app.js repository.js db.js style.css sw.js manifest.json" >> $GITHUB_ENV
-
-      # ── Handle branch push ───────────────────────────────────
+      # Copy all files from src directly to the deployment folder
       - name: Deploy branch
         if: github.event_name == 'push'
         run: |
@@ -68,18 +63,7 @@ jobs:
           mkdir -p "../gh-pages/$BRANCH_NAME"
 
           # Copy app files
-          for f in $APP_FILES; do
-            if [ -f "$f" ]; then
-              cp "$f" "../gh-pages/$BRANCH_NAME/"
-            fi
-          done
-
-          # Copy asset directories if they exist
-          for dir in icons screenshots; do
-            if [ -d "$dir" ]; then
-              cp -r "$dir" "../gh-pages/$BRANCH_NAME/"
-            fi
-          done
+          cp -r src/* "../gh-pages/$BRANCH_NAME/"
 
           # Update branches.json manifest
           cd ../gh-pages
@@ -108,18 +92,7 @@ jobs:
           git checkout "$TAG"
 
           # Copy app files to gh-pages root
-          for f in $APP_FILES; do
-            if [ -f "$f" ]; then
-              cp "$f" "../gh-pages/"
-            fi
-          done
-
-          # Copy asset directories
-          for dir in icons screenshots; do
-            if [ -d "$dir" ]; then
-              cp -r "$dir" "../gh-pages/"
-            fi
-          done
+          cp -r src/* "../gh-pages/"
 
           cd ../gh-pages
           git add .

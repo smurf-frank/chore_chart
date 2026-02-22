@@ -34,6 +34,7 @@
 ### Tech Stack
 -   **Frontend**: Vanilla HTML5, CSS3 (Modern features like Grid and Flexbox)
 -   **Logic**: ES6+ Javascript (Reactive State Management)
+-   **Node Environment**: Node.js managed via `nvm` (Node Version Manager) in the home directory.
 -   **Local Database**: sql.js (SQLite compiled to WebAssembly)
 -   **Future Remote Database**: PostgreSQL or MySQL (via REST API)
 
@@ -75,11 +76,28 @@ graph LR
 -   **Mobile-First**: The primary interface must be optimized for Android screens.
 -   **No Backend (v1)**: All data stored locally via sql.js for privacy and simplicity.
 -   **SQL-First**: All data access uses standard SQL to ensure portability to remote backends.
+-   **Protocol Security**: To ensure security and strict cross-platform portability, avoid relying on the `file://` protocol for loading assets, modules, or executing code. Local structures should be tested in an environment that behaves like standard network protocols (e.g. `http://` via a local static server) whenever possible.
 -   **License Constraint**: Only open-source licenses permitting redistribution and hosting (e.g., MIT, OFL, Apache 2.0, AGPL) are permitted for any project assets or libraries.
+-   **Documentation Portability**: For privacy and seamless portability across environments, never reference explicit local machine paths (e.g., `/home/username/`, `C:\Users\`) in commit messages, status documents, implementation plans, or codebase documentation. Always use relative paths or generic variables.
+-   **Secrets Management**: Secrets (passwords, API keys, private keys, etc.) must NEVER be checked into the repository or included in commit messages. All secrets must be handled via secure environment variables or a dedicated key management system.
 
 ---
 
 ## 🔄 Process & Workflow
+
+### Environment & Tool Verification
+-   **Tool Prerequisites**: Before starting *any* new task, the environment and access to required tools must be explicitly verified.
+-   **Task Documentation**: Any Task List, Walkthrough, or Implementation Plan *must* include a dedicated section listing the specific tools and software required to complete the work.
+-   **NVM Usage**: Always ensure the correct Node.js environment is active by sourcing `nvm` (`source ~/.nvm/nvm.sh`) before executing Node/NPM commands.
+
+### Task Management & Checkpoints
+-   **Mandatory Checkpoints**: All significant task lists or implementation plans must include explicit checkpoints after each primary phase of work.
+-   **User Review Required**: Every Implementation Plan must contain a dedicated `## User Review Required` section that explicitly asks the user for their preference or approval on proposed architectural/design choices before execution begins.
+-   **Clarification Questions**: When presented with a major new work request, the AI must ask at least two (and up to five) clarifying questions to ensure the scope and intent are fully understood before generating an implementation plan.
+-   **Checkpoint Protocol**: At each checkpoint, work and results must be summarized, and the user must be explicitly notified and given a chance to interact, review, or course-correct before moving on to the next primary task.
+
+### Documentation Updates
+-   **Explicit Approval Required**: User input and explicit acceptance are strictly required before committing any changes to `MASTER_STATUS.md` or `PROJECT_BIBLE.md`. Always present the proposed changes to the user and await confirmation before executing the `git commit` command for these files.
 
 ### Pull Request Protocol
 1.  **Update Master Status**: Before submitting a PR, `MASTER_STATUS.md` must be updated to reflect all work done in that branch. This ensures the living document is always in sync with the codebase.

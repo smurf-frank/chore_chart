@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chore Chart - Unit Tests Wrapper</title>
+    <!-- Use relative paths so it resolves properly when Playwright serves it -->
+    <link rel="stylesheet" href="../../src/style.css">
+    <link rel="stylesheet" href="../../src/fonts.css">
+</head>
+
+<body>
+    <h1>🧪 Chore Chart Unit Tests</h1>
+    <div class="summary" id="summary">Running...</div>
+    <div id="results"></div>
+
+    <!-- Application Dependencies -->
+    <script src="../../src/vendor/sql-wasm.js"></script>
+    <script src="../../src/storage-strategy.js"></script>
+    <script src="../../src/db.js"></script>
+    <script src="../../src/repository.js"></script>
+
+    <!-- We stub out the init call in app.js so it doesn't mess with our tests -->
+    <script>
+        window.SQL_WASM_PATH = '../../src/vendor/sql-wasm.wasm';
+
+        const origAddEventListener = document.addEventListener;
+        document.addEventListener = function (type, fn) {
+            if (type === 'DOMContentLoaded') return;
+            origAddEventListener.call(this, type, fn);
+        };
+    </script>
+    <script src="../../src/app.js"></script>
+    <script>
+        document.addEventListener = origAddEventListener;
+    </script>
+
+    <!-- Test Framework -->
+    <script src="./runner.js"></script>
+
+    <!-- 
+      Notice we do not run anything automatically here. 
+      test-bridge.js (via Playwright) will inject the specific suite 
+      and then call window.runTests()
+    -->
+</body>
+
+</html>

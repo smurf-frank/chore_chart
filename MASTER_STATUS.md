@@ -7,12 +7,12 @@
 ## 🎯 Current Focus
 
 ### Active Sprint / Phase
-**Phase Name**: Feature Expansion & Security Hardening
-**Version**: v0.0.2
-**Dates**: 2026-02-15 → 2026-02-16
+**Phase Name**: Capacitor Cross-Platform Integration
+**Version**: v0.0.3-dev
+**Dates**: 2026-02-15 → 2026-02-19
 
 ### This Week's Priority
-**Priority**: Implement rotating assignments, multi-channel deployment, and security best practices.
+**Priority**: Integrate Capacitor for cross-platform deployment (Web + Android).
 
 ### Status: 🟢 On Track
 
@@ -28,8 +28,23 @@
 - ✅ **Release v0.0.2** (Completed: 2026-02-16)
 
 ### In Progress
+- ✅ **Capacitor Integration**:
+    - Project restructured (`src/`, `tests/`, `docs/`).
+    - Android Studio & SDK installed locally.
+    - Android platform added and synced.
+    - Manual verification of Android build, emulator, and native storage persistence complete.
 
 ### Done
+- ✅ **Project Restructuring**:
+    - Separated concerns by migrating application code to `src/`, testing suite to `tests/`, and planning documents to `docs/`.
+    - Updated all CI/CD pipelines, test configuration, and internal script references to reflect the new structure.
+- ✅ **Android Development Environment Setup**:
+    - Installed Android Studio (Panda 1) and minimal SDK tools (API 34).
+    - Configured system environment variables (`ANDROID_HOME`, `JAVA_HOME`, `CAPACITOR_ANDROID_STUDIO_PATH`) globally.
+- ✅ **Async Data Layer Migration**:
+    - Converted all `ChoreRepository` database transactions to `async/await`.
+    - Implemented `StorageStrategy` to swap between Web `sql.js` and Native Capacitor SQLite.
+    - Added automated verification via completely rewritten unit testing suite.
 - ✅ **Group Rotation Assignment**:
     - Automated 7-day chore rotation through group members.
     - Alphabetical member sorting for deterministic assignment.
@@ -48,20 +63,26 @@
     - Resizable chore column with Settings control.
     - Full-name tooltips on hover.
     - PWA Richer Install UI with device screenshots.
+- ✅ **Recover Test Coverage**: Ported all legacy tests to fully parallel async Playwright unit tests.
+- [x] **Test Modularization**: Separated the test suite into specific domains (`chores`, `assignments`, `actors`, `settings`, `groups`, `rotations`, `database`).
+- [x] **Framework Validation**: Created a meta-test (`tests/framework/framework.spec.js`) to permanently validate the DOM-based runner logic.
+- ✅ **Tactile UX for Mobile**:
+    - Implemented `mobile-drag-drop` polyfill for seamless touch interactions.
+    - Added CSS visual feedback (lifting scale effect and shadow) during dragging.
+    - Built-in `navigator.vibrate` haptic feedback for grabbing and dropping markers.
 
 ---
 
 ## 📋 Context for Next Session
 
 ### Where You Left Off
-**Last Worked On**: 2026-02-16
+**Last Worked On**: 2026-02-21
 
-**Status**: Version 0.0.2 released. Per-branch deployment infrastructure is fully operational on `gh-pages`. Security protocols established in `PROJECT_BIBLE.md`.
+**Status**: The native Android application is deployed and the test suite is fully asynchronous and modular. The Tactile UX interface has been added for mobile screens. The documentation has been simplified.
 
 ### Next Steps (For Resuming)
-1. Add more sophisticated assignment strategies (e.g. weight-based/fairness logic).
-2. UI/UX polish for the Rotation Modal (previewing the rotation before applying).
-3. Expand PWA offline capabilities (syncing stashed edits).
+1. **CI Pipeline Updates**: Now that tests are split into multiple `.spec.js` files running in parallel, follow the `docs/playwright_sharding_strategy.md` to optimize `.github/workflows/ci.yml`.
+2. **Postgres/MySQL Migration (v2)**: Switch out the v1 local `sql.js` storage with the remote database backend.
 
 ---
 
@@ -75,3 +96,9 @@
 | 2026-02-16 | Antigravity | Fixed security vulnerabilities (Actions injection, XSS sink). |
 | 2026-02-16 | Antigravity | Updated PROJECT_BIBLE with security protocols. |
 | 2026-02-16 | Antigravity | Released v0.0.2. |
+| 2026-02-19 | Antigravity | Capacitor setup and Phase 3 Async Data Layer Migration complete. |
+| 2026-02-19 | Antigravity | Restructured to src/tests/docs. Installed Android SDK. Generated Android proj. |
+| 2026-02-20 | Antigravity | Verified Android environment, downloaded system image, created AVD. |
+| 2026-02-20 | Antigravity | Completed Phase 4 Verification: Android build, sync, and storage success. |
+| 2026-02-21 | Antigravity | Restructured and recovered legacy test suite using modular Playwright runner. |
+| 2026-02-21 | Antigravity | Cleaned up obsolete documentation and finalized Mobile Tactile UX markers. |

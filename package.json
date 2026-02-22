@@ -4,10 +4,18 @@
     "description": "Digital magnetic bulletin board chore chart",
     "main": "app.js",
     "scripts": {
-        "test": "playwright test"
+        "test": "playwright test",
+        "build": "echo 'No build step — static assets'",
+        "sync": "cap sync"
+    },
+    "dependencies": {
+        "@capacitor/core": "^6.0.0"
     },
     "devDependencies": {
-        "@playwright/test": "^1.49.0"
+        "@playwright/test": "^1.49.0",
+        "@capacitor/cli": "^6.0.0",
+        "@capacitor/android": "^6.0.0",
+        "@capacitor-community/sqlite": "^6.0.0"
     },
     "author": "smurf-frank",
     "license": "AGPL-3.0"
