@@ -66,19 +66,23 @@
 - ✅ **Recover Test Coverage**: Ported all legacy tests to fully parallel async Playwright unit tests.
 - [x] **Test Modularization**: Separated the test suite into specific domains (`chores`, `assignments`, `actors`, `settings`, `groups`, `rotations`, `database`).
 - [x] **Framework Validation**: Created a meta-test (`tests/framework/framework.spec.js`) to permanently validate the DOM-based runner logic.
+- ✅ **Tactile UX for Mobile**:
+    - Implemented `mobile-drag-drop` polyfill for seamless touch interactions.
+    - Added CSS visual feedback (lifting scale effect and shadow) during dragging.
+    - Built-in `navigator.vibrate` haptic feedback for grabbing and dropping markers.
 
 ---
 
 ## 📋 Context for Next Session
 
 ### Where You Left Off
-**Last Worked On**: 2026-02-20
+**Last Worked On**: 2026-02-21
 
-**Status**: Capacitor integration is now complete. We have successfully verified the Android build, emulator launch, and native storage persistence using a `Pixel_6_API_34` AVD.
+**Status**: The native Android application is deployed and the test suite is fully asynchronous and modular. The Tactile UX interface has been added for mobile screens. The documentation has been simplified.
 
 ### Next Steps (For Resuming)
-1. **Marker System Refinement**: Improve the "Tactile UX" for magnet-like interactions on mobile.
-2. **CI Pipeline Updates**: Now that tests are split into multiple `.spec.js` files running in parallel, update `.github/workflows/ci.yml` if necessary to take full advantage.
+1. **CI Pipeline Updates**: Now that tests are split into multiple `.spec.js` files running in parallel, follow the `docs/playwright_sharding_strategy.md` to optimize `.github/workflows/ci.yml`.
+2. **Postgres/MySQL Migration (v2)**: Switch out the v1 local `sql.js` storage with the remote database backend.
 
 ---
 
@@ -97,3 +101,4 @@
 | 2026-02-20 | Antigravity | Verified Android environment, downloaded system image, created AVD. |
 | 2026-02-20 | Antigravity | Completed Phase 4 Verification: Android build, sync, and storage success. |
 | 2026-02-21 | Antigravity | Restructured and recovered legacy test suite using modular Playwright runner. |
+| 2026-02-21 | Antigravity | Cleaned up obsolete documentation and finalized Mobile Tactile UX markers. |
