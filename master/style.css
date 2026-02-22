@@ -306,9 +306,20 @@ body {
     box-shadow: var(--marker-active-shadow);
 }
 
-.marker-palette.dragging {
-    opacity: 0.4;
-    transform: scale(0.9);
+/* Tactile UX visual cue during the mobile hold delay */
+.marker.dnd-poly-active {
+    transform: scale(1.05);
+    box-shadow: var(--marker-active-shadow);
+    filter: brightness(1.1);
+}
+
+/* Tactile UX visual lift during active dragging */
+.marker.dragging {
+    opacity: 0.8 !important;
+    transform: scale(1.15) rotate(-2deg) !important;
+    box-shadow: 0 15px 25px rgba(0, 0, 0, 0.2), 0 5px 10px rgba(0, 0, 0, 0.1) !important;
+    z-index: 1000;
+    cursor: grabbing;
 }
 
 /* Cell markers — smaller to fit multiple */
