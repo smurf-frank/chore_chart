@@ -85,12 +85,13 @@
 
 **Last Worked On**: 2026-02-21
 
-**Status**: The native Android application is deployed and the test suite is fully asynchronous and modular. The Tactile UX interface has been added for mobile screens. The documentation has been simplified.
+**Status**: **Release v0.0.3** is live! The project now features Capacitor integration, an async data layer, a modularized Playwright test suite, and a modern linting/formatting strategy with Husky. PR #29 (Capacitor 8.1.0 upgrade) is open but deferred for verification.
 
 ### Next Steps (For Resuming)
 
-1. **CI Pipeline Updates**: Now that tests are split into multiple `.spec.js` files running in parallel, follow the `docs/playwright_sharding_strategy.md` to optimize `.github/workflows/ci.yml`.
-2. **Postgres/MySQL Migration (v2)**: Switch out the v1 local `sql.js` storage with the remote database backend.
+1. **PR #29 Verification**: Manually verify and merge the Capacitor 8.1.0 upgrade. Check for any breaking changes in CLI patterns or Android SDK requirements.
+2. **CI Pipeline Optimization**: Follow the `docs/playwright_sharding_strategy.md` to optimize the GitHub Actions runner.
+3. **Postgres/MySQL Migration (v2)**: Begin transitioning the `ChoreRepository` and `StorageStrategy` to support remote SQL backends.
 
 ---
 
