@@ -123,7 +123,9 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.15s, background 0.15s;
+    transition:
+        transform 0.15s,
+        background 0.15s;
     flex-shrink: 0;
     line-height: 1;
 }
@@ -153,7 +155,9 @@ body {
     padding-left: 10px;
     padding-right: 5px;
     cursor: grab;
-    transition: background 0.2s, box-shadow 0.2s;
+    transition:
+        background 0.2s,
+        box-shadow 0.2s;
     border-right: 2px solid var(--board-grid);
     /* Stronger border for resize handle area */
 }
@@ -206,7 +210,9 @@ body {
     color: inherit;
     width: 100%;
     cursor: text;
-    transition: background 0.2s, border-color 0.2s;
+    transition:
+        background 0.2s,
+        border-color 0.2s;
 }
 
 .chore-name-input:hover {
@@ -230,7 +236,9 @@ body {
     padding: 2px 6px;
     border-radius: 4px;
     line-height: 1;
-    transition: color 0.15s, background 0.15s;
+    transition:
+        color 0.15s,
+        background 0.15s;
 }
 
 .chore-delete-btn:hover {
@@ -290,7 +298,10 @@ body {
     color: white;
     font-weight: 700;
     user-select: none;
-    transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+    transition:
+        transform 0.2s,
+        box-shadow 0.2s,
+        opacity 0.2s;
 }
 
 /* Palette markers — full size, draggable */
@@ -306,9 +317,22 @@ body {
     box-shadow: var(--marker-active-shadow);
 }
 
-.marker-palette.dragging {
-    opacity: 0.4;
-    transform: scale(0.9);
+/* Tactile UX visual cue during the mobile hold delay */
+.marker.dnd-poly-active {
+    transform: scale(1.05);
+    box-shadow: var(--marker-active-shadow);
+    filter: brightness(1.1);
+}
+
+/* Tactile UX visual lift during active dragging */
+.marker.dragging {
+    opacity: 0.8 !important;
+    transform: scale(1.15) rotate(-2deg) !important;
+    box-shadow:
+        0 15px 25px rgba(0, 0, 0, 0.2),
+        0 5px 10px rgba(0, 0, 0, 0.1) !important;
+    z-index: 1000;
+    cursor: grabbing;
 }
 
 /* Cell markers — smaller to fit multiple */
@@ -325,7 +349,9 @@ body {
 
 .marker-cell:hover {
     transform: scale(1.1);
-    box-shadow: 0 0 0 2px #ef4444, var(--marker-shadow);
+    box-shadow:
+        0 0 0 2px #ef4444,
+        var(--marker-shadow);
 }
 
 /* Assignment cells — multi-marker layout */
@@ -334,7 +360,9 @@ body {
     gap: 4px;
     min-height: 50px;
     padding: 6px;
-    transition: background 0.15s, box-shadow 0.15s;
+    transition:
+        background 0.15s,
+        box-shadow 0.15s;
 }
 
 /* Drag feedback: valid target glow */
@@ -640,7 +668,7 @@ body {
 /* Hide content when collapsed */
 /* We target specific children by class or generic approach if structure is consistent. */
 /* Based on HTML structure: label is first child. Other children are content. */
-.setting-section.collapsed>*:not(.section-label) {
+.setting-section.collapsed > *:not(.section-label) {
     display: none;
 }
 
