@@ -5,6 +5,21 @@
  * It relies exclusively on ChoreRepository (repository.js) for data access.
  */
 
+function tryVibrate(pattern) {
+    if (navigator.vibrate) {
+        try { navigator.vibrate(pattern); } catch (e) { }
+    }
+}
+
+// Initialize mobile drag and drop polyfill
+window.addEventListener('touchmove', function () { }, { passive: false });
+if (window.MobileDragDrop) {
+    window.MobileDragDrop.polyfill({
+        holdToDrag: 150,
+        dragImageTranslateOverride: window.MobileDragDrop.scrollBehaviourDragImageTranslateOverride
+    });
+}
+
 const ALL_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 let sortDirection = 'asc'; // 'asc' or 'desc'
 
@@ -186,6 +201,7 @@ async function renderBoard() {
 
         // Drag events for reordering chores
         nameCell.addEventListener('dragstart', async (e) => {
+            tryVibrate(50);
             e.dataTransfer.setData('text/chore-id', String(chore.id));
             e.dataTransfer.effectAllowed = 'move';
             nameCell.classList.add('dragging-chore');
@@ -212,6 +228,7 @@ async function renderBoard() {
             if (!draggedId || draggedId === chore.id) return;
 
             e.preventDefault();
+            tryVibrate([30, 50, 30]);
             const currentIds = chores.map(c => c.id);
             const fromIndex = currentIds.indexOf(draggedId);
             const toIndex = currentIds.indexOf(chore.id);
@@ -280,6 +297,7 @@ async function renderBoard() {
                         // Try adding to new cell
                         const added = await ChoreRepository.addAssignment(chore.id, dayIndex, actorId);
                         if (added) {
+                            tryVibrate([30, 50, 30]);
                             // If successful, remove from old cell
                             await ChoreRepository.removeAssignment(source.sourceChoreId, source.sourceDayIndex, actorId);
                             await renderBoard();
@@ -290,7 +308,10 @@ async function renderBoard() {
                 } else {
                     // New assignment from palette
                     const added = await ChoreRepository.addAssignment(chore.id, dayIndex, actorId);
-                    if (added) await renderBoard();
+                    if (added) {
+                        tryVibrate([30, 50, 30]);
+                        await renderBoard();
+                    }
                 }
             });
 
@@ -311,6 +332,7 @@ function createCellMarker(actor, choreId, dayIndex) {
     marker.draggable = true;
 
     marker.addEventListener('dragstart', async (e) => {
+        tryVibrate(50);
         e.dataTransfer.setData('text/plain', String(actor.actorId));
         e.dataTransfer.setData('application/json', JSON.stringify({
             sourceChoreId: choreId,
@@ -359,6 +381,7 @@ async function renderPalette() {
         marker.draggable = true;
 
         marker.addEventListener('dragstart', async (e) => {
+            tryVibrate(50);
             e.dataTransfer.setData('text/plain', String(person.id));
             e.dataTransfer.effectAllowed = 'copy';
             marker.classList.add('dragging');
@@ -395,6 +418,7 @@ async function renderPalette() {
         marker.draggable = true;
 
         marker.addEventListener('dragstart', async (e) => {
+            tryVibrate(50);
             e.dataTransfer.setData('text/plain', String(group.id));
             e.dataTransfer.effectAllowed = 'copy';
             marker.classList.add('dragging');
