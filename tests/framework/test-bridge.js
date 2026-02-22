@@ -12,7 +12,7 @@ function runSuiteInBrowser(testSuitePath, jsLogicPath) {
         const baseUrl = `file://${path.resolve(__dirname, 'base.html')}`;
 
         // Log browser console stuff to terminal for debugging
-        page.on('console', msg => {
+        page.on('console', (msg) => {
             if (msg.type() === 'error') console.error(`BROWSER ERROR: ${msg.text()}`);
         });
 

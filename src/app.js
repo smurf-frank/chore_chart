@@ -1,18 +1,20 @@
 /**
  * Chore Chart - App Logic
- * 
+ *
  * This module handles all UI rendering and user interaction.
  * It relies exclusively on ChoreRepository (repository.js) for data access.
  */
 
 function tryVibrate(pattern) {
     if (navigator.vibrate) {
-        try { navigator.vibrate(pattern); } catch (e) { }
+        try {
+            navigator.vibrate(pattern);
+        } catch (e) {}
     }
 }
 
 // Initialize mobile drag and drop polyfill
-window.addEventListener('touchmove', function () { }, { passive: false });
+window.addEventListener('touchmove', function () {}, { passive: false });
 if (window.MobileDragDrop) {
     window.MobileDragDrop.polyfill({
         holdToDrag: 150,
@@ -45,8 +47,9 @@ async function init() {
  * Renders the chart title and subtitle from settings.
  */
 async function renderHeader() {
-    const title = await ChoreRepository.getSetting('chart_title') || 'Chore Chart';
-    const subtitle = await ChoreRepository.getSetting('chart_subtitle') || 'Digital Magnetic Board';
+    const title = (await ChoreRepository.getSetting('chart_title')) || 'Chore Chart';
+    const subtitle =
+        (await ChoreRepository.getSetting('chart_subtitle')) || 'Digital Magnetic Board';
     document.getElementById('chart-title').textContent = title;
     document.getElementById('chart-subtitle').textContent = subtitle;
     document.title = `${title} - ${subtitle}`;
@@ -103,7 +106,7 @@ async function renderBoard() {
             }
         });
 
-        const orderedIds = currentChores.map(c => c.id);
+        const orderedIds = currentChores.map((c) => c.id);
         await ChoreRepository.updateChoreOrders(orderedIds);
 
         // Toggle direction for next click
@@ -149,7 +152,7 @@ async function renderBoard() {
     // ── Chore Rows ──
     for (let index = 0; index < chores.length; index++) {
         const chore = chores[index];
-        const isShaded = shadingEnabled && (index % 2 !== 0);
+        const isShaded = shadingEnabled && index % 2 !== 0;
 
         const nameCell = document.createElement('div');
         nameCell.className = 'board-cell chore-name';
@@ -209,7 +212,9 @@ async function renderBoard() {
 
         nameCell.addEventListener('dragend', async () => {
             nameCell.classList.remove('dragging-chore');
-            document.querySelectorAll('.chore-name').forEach(c => c.classList.remove('drag-over-chore'));
+            document
+                .querySelectorAll('.chore-name')
+                .forEach((c) => c.classList.remove('drag-over-chore'));
         });
 
         nameCell.addEventListener('dragover', async (e) => {
@@ -229,7 +234,7 @@ async function renderBoard() {
 
             e.preventDefault();
             tryVibrate([30, 50, 30]);
-            const currentIds = chores.map(c => c.id);
+            const currentIds = chores.map((c) => c.id);
             const fromIndex = currentIds.indexOf(draggedId);
             const toIndex = currentIds.indexOf(chore.id);
 
@@ -255,7 +260,7 @@ async function renderBoard() {
             const cellAssignments = assignments[key] || [];
 
             // Render markers in cell
-            cellAssignments.forEach(a => {
+            cellAssignments.forEach((a) => {
                 const marker = createCellMarker(a, chore.id, dayIndex);
                 cell.appendChild(marker);
             });
@@ -292,14 +297,23 @@ async function renderBoard() {
                     try {
                         const source = JSON.parse(sourceData);
                         // If same cell, do nothing
-                        if (source.sourceChoreId === chore.id && source.sourceDayIndex === dayIndex) return;
+                        if (source.sourceChoreId === chore.id && source.sourceDayIndex === dayIndex)
+                            return;
 
                         // Try adding to new cell
-                        const added = await ChoreRepository.addAssignment(chore.id, dayIndex, actorId);
+                        const added = await ChoreRepository.addAssignment(
+                            chore.id,
+                            dayIndex,
+                            actorId
+                        );
                         if (added) {
                             tryVibrate([30, 50, 30]);
                             // If successful, remove from old cell
-                            await ChoreRepository.removeAssignment(source.sourceChoreId, source.sourceDayIndex, actorId);
+                            await ChoreRepository.removeAssignment(
+                                source.sourceChoreId,
+                                source.sourceDayIndex,
+                                actorId
+                            );
                             await renderBoard();
                         }
                     } catch (err) {
@@ -334,25 +348,28 @@ function createCellMarker(actor, choreId, dayIndex) {
     marker.addEventListener('dragstart', async (e) => {
         tryVibrate(50);
         e.dataTransfer.setData('text/plain', String(actor.actorId));
-        e.dataTransfer.setData('application/json', JSON.stringify({
-            sourceChoreId: choreId,
-            sourceDayIndex: dayIndex
-        }));
+        e.dataTransfer.setData(
+            'application/json',
+            JSON.stringify({
+                sourceChoreId: choreId,
+                sourceDayIndex: dayIndex
+            })
+        );
         e.dataTransfer.effectAllowed = 'move';
         marker.classList.add('dragging');
 
         // Highlight valid targets
-        document.querySelectorAll('.assignment-cell:not(.cell-full)').forEach(c => {
+        document.querySelectorAll('.assignment-cell:not(.cell-full)').forEach((c) => {
             c.classList.add('drop-target');
         });
     });
 
     marker.addEventListener('dragend', async () => {
         marker.classList.remove('dragging');
-        document.querySelectorAll('.drop-target').forEach(c => {
+        document.querySelectorAll('.drop-target').forEach((c) => {
             c.classList.remove('drop-target');
         });
-        document.querySelectorAll('.drag-over').forEach(c => {
+        document.querySelectorAll('.drag-over').forEach((c) => {
             c.classList.remove('drag-over');
         });
     });
@@ -385,16 +402,16 @@ async function renderPalette() {
             e.dataTransfer.setData('text/plain', String(person.id));
             e.dataTransfer.effectAllowed = 'copy';
             marker.classList.add('dragging');
-            document.querySelectorAll('.assignment-cell:not(.cell-full)').forEach(c => {
+            document.querySelectorAll('.assignment-cell:not(.cell-full)').forEach((c) => {
                 c.classList.add('drop-target');
             });
         });
         marker.addEventListener('dragend', async () => {
             marker.classList.remove('dragging');
-            document.querySelectorAll('.drop-target').forEach(c => {
+            document.querySelectorAll('.drop-target').forEach((c) => {
                 c.classList.remove('drop-target');
             });
-            document.querySelectorAll('.drag-over').forEach(c => {
+            document.querySelectorAll('.drag-over').forEach((c) => {
                 c.classList.remove('drag-over');
             });
         });
@@ -422,16 +439,16 @@ async function renderPalette() {
             e.dataTransfer.setData('text/plain', String(group.id));
             e.dataTransfer.effectAllowed = 'copy';
             marker.classList.add('dragging');
-            document.querySelectorAll('.assignment-cell:not(.cell-full)').forEach(c => {
+            document.querySelectorAll('.assignment-cell:not(.cell-full)').forEach((c) => {
                 c.classList.add('drop-target');
             });
         });
         marker.addEventListener('dragend', async () => {
             marker.classList.remove('dragging');
-            document.querySelectorAll('.drop-target').forEach(c => {
+            document.querySelectorAll('.drop-target').forEach((c) => {
                 c.classList.remove('drop-target');
             });
-            document.querySelectorAll('.drag-over').forEach(c => {
+            document.querySelectorAll('.drag-over').forEach((c) => {
                 c.classList.remove('drag-over');
             });
         });
@@ -458,8 +475,9 @@ async function openSettings() {
     const choreWidthInput = document.getElementById('chore-width-input');
 
     select.value = await ChoreRepository.getWeekStartDay();
-    titleInput.value = await ChoreRepository.getSetting('chart_title') || 'Chore Chart';
-    subtitleInput.value = await ChoreRepository.getSetting('chart_subtitle') || 'Digital Magnetic Board';
+    titleInput.value = (await ChoreRepository.getSetting('chart_title')) || 'Chore Chart';
+    subtitleInput.value =
+        (await ChoreRepository.getSetting('chart_subtitle')) || 'Digital Magnetic Board';
     maxInput.value = await ChoreRepository.getMaxMarkersPerCell();
     choreWidthInput.value = await ChoreRepository.getChoreColumnWidth();
 
@@ -486,7 +504,10 @@ async function openSettings() {
     // Path is like /chore_chart/ (stable) or /chore_chart/master/ (branch)
     const pathParts = window.location.pathname.replace(/\/$/, '').split('/');
     const repoBase = '/chore_chart';
-    const afterBase = window.location.pathname.replace(repoBase, '').replace(/^\//, '').replace(/\/$/, '');
+    const afterBase = window.location.pathname
+        .replace(repoBase, '')
+        .replace(/^\//, '')
+        .replace(/\/$/, '');
     const currentChannel = afterBase || 'stable';
 
     // Add a default option while loading
@@ -500,11 +521,11 @@ async function openSettings() {
     let availableBranches = [currentChannel];
 
     fetch(baseUrl + '/branches.json?' + Date.now())
-        .then(r => r.json())
-        .then(branches => {
+        .then((r) => r.json())
+        .then((branches) => {
             availableBranches = Array.isArray(branches) ? branches.slice() : [];
             channelSelect.innerHTML = '';
-            availableBranches.forEach(branch => {
+            availableBranches.forEach((branch) => {
                 const opt = document.createElement('option');
                 opt.value = branch;
                 if (branch === 'stable') {
@@ -548,7 +569,10 @@ async function saveSettings() {
 
     await ChoreRepository.setWeekStartDay(select.value);
     await ChoreRepository.setSetting('chart_title', titleInput.value.trim() || 'Chore Chart');
-    await ChoreRepository.setSetting('chart_subtitle', subtitleInput.value.trim() || 'Digital Magnetic Board');
+    await ChoreRepository.setSetting(
+        'chart_subtitle',
+        subtitleInput.value.trim() || 'Digital Magnetic Board'
+    );
     await ChoreRepository.setMaxMarkersPerCell(parseInt(maxInput.value, 10));
 
     const shadingCheck = document.getElementById('row-shading-check');
@@ -799,7 +823,7 @@ async function renderGroupsList() {
             chip.addEventListener('click', async () => {
                 let newMembers = [...group.memberIds];
                 if (isMember) {
-                    newMembers = newMembers.filter(id => id !== person.id);
+                    newMembers = newMembers.filter((id) => id !== person.id);
                 } else {
                     newMembers.push(person.id);
                 }
@@ -813,11 +837,13 @@ async function renderGroupsList() {
         // Separator if we have groups to show
         const eligibleGroups = [];
         for (const g of groups) {
-            if (g.id !== group.id && await ChoreRepository.canAddMember(group.id, g.id)) {
+            if (g.id !== group.id && (await ChoreRepository.canAddMember(group.id, g.id))) {
                 eligibleGroups.push(g);
             }
         }
-        const memberGroups = groups.filter(g => g.id !== group.id && group.memberIds.includes(g.id));
+        const memberGroups = groups.filter(
+            (g) => g.id !== group.id && group.memberIds.includes(g.id)
+        );
 
         // Combine for display: show matches or currently added ones (even if invalid now, though that shouldn't happen)
         // Actually, just show all eligible candidates + current members
@@ -862,7 +888,7 @@ async function renderGroupsList() {
                 chip.addEventListener('click', async () => {
                     let newMembers = [...group.memberIds];
                     if (isMember) {
-                        newMembers = newMembers.filter(id => id !== g.id);
+                        newMembers = newMembers.filter((id) => id !== g.id);
                         await ChoreRepository.updateGroup(group.id, { memberIds: newMembers });
                         renderGroupsList();
                     } else {
@@ -871,7 +897,9 @@ async function renderGroupsList() {
                             await ChoreRepository.updateGroup(group.id, { memberIds: newMembers });
                             renderGroupsList();
                         } else {
-                            alert('Cannot add this group: Max nesting level (3) exceeded or circular dependency.');
+                            alert(
+                                'Cannot add this group: Max nesting level (3) exceeded or circular dependency.'
+                            );
                         }
                     }
                 });
@@ -886,7 +914,8 @@ async function renderGroupsList() {
     }
 
     if (!groups.length) {
-        container.innerHTML = '<div style="color: var(--text-secondary); font-size: 0.85rem; padding: 8px 0;">No groups added yet.</div>';
+        container.innerHTML =
+            '<div style="color: var(--text-secondary); font-size: 0.85rem; padding: 8px 0;">No groups added yet.</div>';
     }
 }
 
@@ -899,8 +928,14 @@ async function addGroup() {
     const initials = initialsInput.value.trim().toUpperCase();
     const color = colorInput.value;
 
-    if (!name) { nameInput.focus(); return; }
-    if (!initials) { initialsInput.focus(); return; }
+    if (!name) {
+        nameInput.focus();
+        return;
+    }
+    if (!initials) {
+        initialsInput.focus();
+        return;
+    }
 
     await ChoreRepository.addGroup(name, initials, color);
     nameInput.value = '';
@@ -925,8 +960,14 @@ async function addPerson() {
     const initials = initialsInput.value.trim().toUpperCase();
     const color = colorInput.value;
 
-    if (!name) { nameInput.focus(); return; }
-    if (!initials) { initialsInput.focus(); return; }
+    if (!name) {
+        nameInput.focus();
+        return;
+    }
+    if (!initials) {
+        initialsInput.focus();
+        return;
+    }
 
     await ChoreRepository.addPerson(name, initials, color);
     nameInput.value = '';
@@ -995,7 +1036,7 @@ async function populateRotationMembers() {
         memberSelect.appendChild(opt);
         return;
     }
-    members.forEach(m => {
+    members.forEach((m) => {
         const opt = document.createElement('option');
         opt.value = m.id;
         opt.textContent = m.name;

@@ -43,7 +43,7 @@ describe('Chore CRUD & Reordering', () => {
         await ChoreRepository.updateChore(id, { name: 'Clean Windows' });
 
         const result = await ChoreRepository.getAllChores();
-        const updated = result.find(c => c.id === id);
+        const updated = result.find((c) => c.id === id);
         expect(updated.name).toBe('Clean Windows');
     });
 
@@ -53,13 +53,13 @@ describe('Chore CRUD & Reordering', () => {
         await ChoreRepository.updateChore(id, { sortOrder: 99 });
 
         const result = await ChoreRepository.getAllChores();
-        const updated = result.find(c => c.id === id);
+        const updated = result.find((c) => c.id === id);
         expect(updated.sortOrder).toBe(99);
     });
 
     it('updateChoreOrders() should update sort_order in database', async () => {
         const chores = await ChoreRepository.getAllChores();
-        const originalIds = chores.map(c => c.id);
+        const originalIds = chores.map((c) => c.id);
         const reorderedIds = [originalIds[1], originalIds[0], ...originalIds.slice(2)];
 
         await ChoreRepository.updateChoreOrders(reorderedIds);
@@ -73,8 +73,8 @@ describe('Chore CRUD & Reordering', () => {
 
     it('should be able to sort chores alphabetically (A-Z and Z-A)', async () => {
         // Clear and add specific chores
-        await dbExecute("DELETE FROM chores");
-        await dbExecute("DELETE FROM assignments");
+        await dbExecute('DELETE FROM chores');
+        await dbExecute('DELETE FROM assignments');
         await ChoreRepository.addChore('Zebra');
         await ChoreRepository.addChore('Apple');
         await ChoreRepository.addChore('Banana');
@@ -83,14 +83,14 @@ describe('Chore CRUD & Reordering', () => {
 
         // Ascending sort
         chores.sort((a, b) => a.name.localeCompare(b.name));
-        await ChoreRepository.updateChoreOrders(chores.map(c => c.id));
+        await ChoreRepository.updateChoreOrders(chores.map((c) => c.id));
         let result = await ChoreRepository.getAllChores();
         expect(result[0].name).toBe('Apple');
         expect(result[2].name).toBe('Zebra');
 
         // Descending sort
         chores.sort((a, b) => b.name.localeCompare(a.name));
-        await ChoreRepository.updateChoreOrders(chores.map(c => c.id));
+        await ChoreRepository.updateChoreOrders(chores.map((c) => c.id));
         result = await ChoreRepository.getAllChores();
         expect(result[0].name).toBe('Zebra');
         expect(result[2].name).toBe('Apple');

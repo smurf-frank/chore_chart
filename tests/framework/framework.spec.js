@@ -7,7 +7,7 @@ test('Framework Validation (Meta-Test)', async ({ page }) => {
 
     // We expect the intentional failures in the console, so we don't console.error them here
     // But we still log page errors
-    page.on('pageerror', err => console.log(`PAGE ERROR: ${err.message}`));
+    page.on('pageerror', (err) => console.log(`PAGE ERROR: ${err.message}`));
 
     await page.goto(baseUrl);
 
@@ -64,5 +64,4 @@ test('Framework Validation (Meta-Test)', async ({ page }) => {
 
     const secondErrorObj = page.locator('.test-row.fail').nth(1).locator('.test-error');
     await expect(secondErrorObj).toContainText('Expected array to contain 3');
-
 });

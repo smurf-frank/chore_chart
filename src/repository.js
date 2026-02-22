@@ -1,9 +1,9 @@
 /**
  * repository.js - Data Access Layer (Repository Pattern)
- * 
+ *
  * This is the ONLY layer that touches the database.
  * The rest of the app calls these functions.
- * 
+ *
  * When migrating to Postgres/MySQL, replace these implementations
  * with fetch() calls to a REST API — the function signatures stay identical.
  */
@@ -35,17 +35,20 @@ const ChoreRepository = {
      * @returns {Promise<Array<{id, type, name, initials, color, metadata}>>}
      */
     async getAllActors(type) {
-        let sql = "SELECT id, type, name, initials, color, metadata FROM actors";
+        let sql = 'SELECT id, type, name, initials, color, metadata FROM actors';
         const params = [];
         if (type) {
-            sql += " WHERE type = ?";
+            sql += ' WHERE type = ?';
             params.push(type);
         }
-        sql += " ORDER BY id";
+        sql += ' ORDER BY id';
         const rows = await dbQuery(sql, params);
-        return rows.map(row => ({
-            id: row.id, type: row.type, name: row.name,
-            initials: row.initials, color: row.color,
+        return rows.map((row) => ({
+            id: row.id,
+            type: row.type,
+            name: row.name,
+            initials: row.initials,
+            color: row.color,
             metadata: JSON.parse(row.metadata || '{}')
         }));
     },
@@ -62,7 +65,7 @@ const ChoreRepository = {
      */
     async addActor(type, name, initials, color, metadata = {}) {
         await dbExecute(
-            "INSERT INTO actors (type, name, initials, color, metadata) VALUES (?, ?, ?, ?, ?)",
+            'INSERT INTO actors (type, name, initials, color, metadata) VALUES (?, ?, ?, ?, ?)',
             [type, name, initials, color, JSON.stringify(metadata)]
         );
     },
@@ -80,10 +83,22 @@ const ChoreRepository = {
     async updateActor(id, fields) {
         const sets = [];
         const params = [];
-        if (fields.name !== undefined) { sets.push("name = ?"); params.push(fields.name); }
-        if (fields.initials !== undefined) { sets.push("initials = ?"); params.push(fields.initials); }
-        if (fields.color !== undefined) { sets.push("color = ?"); params.push(fields.color); }
-        if (fields.metadata !== undefined) { sets.push("metadata = ?"); params.push(JSON.stringify(fields.metadata)); }
+        if (fields.name !== undefined) {
+            sets.push('name = ?');
+            params.push(fields.name);
+        }
+        if (fields.initials !== undefined) {
+            sets.push('initials = ?');
+            params.push(fields.initials);
+        }
+        if (fields.color !== undefined) {
+            sets.push('color = ?');
+            params.push(fields.color);
+        }
+        if (fields.metadata !== undefined) {
+            sets.push('metadata = ?');
+            params.push(JSON.stringify(fields.metadata));
+        }
         if (!sets.length) return;
         params.push(id);
         await dbExecute(`UPDATE actors SET ${sets.join(', ')} WHERE id = ?`, params);
@@ -94,17 +109,19 @@ const ChoreRepository = {
      * If removing a person, also remove them from any groups they are in.
      */
     async removeActor(id) {
-        await dbExecute("DELETE FROM assignments WHERE actor_id = ?", [id]);
+        await dbExecute('DELETE FROM assignments WHERE actor_id = ?', [id]);
 
         const groups = await this.getAllGroups();
         for (const group of groups) {
             if (group.memberIds && group.memberIds.includes(id)) {
-                const newMembers = group.memberIds.filter(m => m !== id);
-                await this.updateActor(group.id, { metadata: { ...group.metadata, memberIds: newMembers } });
+                const newMembers = group.memberIds.filter((m) => m !== id);
+                await this.updateActor(group.id, {
+                    metadata: { ...group.metadata, memberIds: newMembers }
+                });
             }
         }
 
-        await dbExecute("DELETE FROM actors WHERE id = ?", [id]);
+        await dbExecute('DELETE FROM actors WHERE id = ?', [id]);
     },
 
     // Legacy alias
@@ -116,7 +133,7 @@ const ChoreRepository = {
 
     async getAllGroups() {
         const groups = await this.getAllActors('group');
-        return groups.map(g => ({
+        return groups.map((g) => ({
             ...g,
             showAsMarker: !!g.metadata.showAsMarker,
             memberIds: g.metadata.memberIds || []
@@ -146,7 +163,7 @@ const ChoreRepository = {
 
         if (Object.keys(metaUpdates).length > 0) {
             const allActors = await this.getAllActors();
-            const current = allActors.find(a => a.id === id);
+            const current = allActors.find((a) => a.id === id);
             if (current) {
                 actorUpdates.metadata = { ...current.metadata, ...metaUpdates };
             }
@@ -157,12 +174,12 @@ const ChoreRepository = {
 
     async getGroupMembers(groupId) {
         const groups = await this.getAllGroups();
-        const group = groups.find(g => g.id === groupId);
+        const group = groups.find((g) => g.id === groupId);
         if (!group || !group.memberIds || !group.memberIds.length) return [];
 
         const allActors = await this.getAllActors();
         return allActors
-            .filter(a => group.memberIds.includes(a.id))
+            .filter((a) => group.memberIds.includes(a.id))
             .sort((a, b) => a.name.localeCompare(b.name));
     },
 
@@ -170,7 +187,7 @@ const ChoreRepository = {
         const members = await this.getGroupMembers(groupId);
         if (!members.length) return;
 
-        const startIdx = members.findIndex(m => m.id === startMemberId);
+        const startIdx = members.findIndex((m) => m.id === startMemberId);
         if (startIdx === -1) return;
 
         for (let i = 0; i < 7; i++) {
@@ -207,56 +224,68 @@ const ChoreRepository = {
     async isValidDepth(parentId, newMemberId, maxLevel = 3) {
         const childDepth = await this.getGroupDepth(newMemberId);
         const parentHeight = await this.getGroupHeight(parentId);
-        return (parentHeight + childDepth) < maxLevel;
+        return parentHeight + childDepth < maxLevel;
     },
 
     async getGroupDepth(id) {
         const allActors = await this.getAllActors();
-        const actor = allActors.find(a => a.id === id);
+        const actor = allActors.find((a) => a.id === id);
         if (!actor || actor.type !== 'group') return 0;
 
         const members = await this.getGroupMembers(id);
-        const groupMembers = members.filter(m => m.type === 'group');
+        const groupMembers = members.filter((m) => m.type === 'group');
         if (groupMembers.length === 0) return 1;
 
-        const depths = await Promise.all(groupMembers.map(m => this.getGroupDepth(m.id)));
+        const depths = await Promise.all(groupMembers.map((m) => this.getGroupDepth(m.id)));
         return 1 + Math.max(...depths);
     },
 
     async getGroupHeight(id) {
         const groups = await this.getAllGroups();
-        const parents = groups.filter(g => g.memberIds.includes(id));
+        const parents = groups.filter((g) => g.memberIds.includes(id));
         if (parents.length === 0) return 1;
 
-        const heights = await Promise.all(parents.map(p => this.getGroupHeight(p.id)));
+        const heights = await Promise.all(parents.map((p) => this.getGroupHeight(p.id)));
         return 1 + Math.max(...heights);
     },
 
     // ── Chores ──────────────────────────────────────────────
 
     async getAllChores() {
-        const rows = await dbQuery("SELECT id, name, sort_order FROM chores ORDER BY sort_order, id");
-        return rows.map(row => ({
-            id: row.id, name: row.name, sortOrder: row.sort_order
+        const rows = await dbQuery(
+            'SELECT id, name, sort_order FROM chores ORDER BY sort_order, id'
+        );
+        return rows.map((row) => ({
+            id: row.id,
+            name: row.name,
+            sortOrder: row.sort_order
         }));
     },
 
     async addChore(name) {
-        const maxOrderRow = await dbQuery("SELECT COALESCE(MAX(sort_order), 0) as max_val FROM chores");
+        const maxOrderRow = await dbQuery(
+            'SELECT COALESCE(MAX(sort_order), 0) as max_val FROM chores'
+        );
         const nextOrder = maxOrderRow[0].max_val + 1;
-        await dbExecute("INSERT INTO chores (name, sort_order) VALUES (?, ?)", [name, nextOrder]);
+        await dbExecute('INSERT INTO chores (name, sort_order) VALUES (?, ?)', [name, nextOrder]);
     },
 
     async removeChore(id) {
-        await dbExecute("DELETE FROM assignments WHERE chore_id = ?", [id]);
-        await dbExecute("DELETE FROM chores WHERE id = ?", [id]);
+        await dbExecute('DELETE FROM assignments WHERE chore_id = ?', [id]);
+        await dbExecute('DELETE FROM chores WHERE id = ?', [id]);
     },
 
     async updateChore(id, fields) {
         const sets = [];
         const params = [];
-        if (fields.name !== undefined) { sets.push("name = ?"); params.push(fields.name); }
-        if (fields.sortOrder !== undefined) { sets.push("sort_order = ?"); params.push(fields.sortOrder); }
+        if (fields.name !== undefined) {
+            sets.push('name = ?');
+            params.push(fields.name);
+        }
+        if (fields.sortOrder !== undefined) {
+            sets.push('sort_order = ?');
+            params.push(fields.sortOrder);
+        }
         if (!sets.length) return;
         params.push(id);
         await dbExecute(`UPDATE chores SET ${sets.join(', ')} WHERE id = ?`, params);
@@ -264,7 +293,10 @@ const ChoreRepository = {
 
     async updateChoreOrders(orderedIds) {
         for (let i = 0; i < orderedIds.length; i++) {
-            await dbExecute("UPDATE chores SET sort_order = ? WHERE id = ?", [i + 1, orderedIds[i]]);
+            await dbExecute('UPDATE chores SET sort_order = ? WHERE id = ?', [
+                i + 1,
+                orderedIds[i]
+            ]);
         }
     },
 
@@ -298,20 +330,20 @@ const ChoreRepository = {
         const max = await this.getMaxMarkersPerCell();
 
         const countRow = await dbQuery(
-            "SELECT COUNT(*) as count FROM assignments WHERE chore_id = ? AND day_index = ?",
+            'SELECT COUNT(*) as count FROM assignments WHERE chore_id = ? AND day_index = ?',
             [choreId, dayIndex]
         );
         const count = countRow[0].count;
         if (count >= max) return false;
 
         const dupRow = await dbQuery(
-            "SELECT COUNT(*) as count FROM assignments WHERE chore_id = ? AND day_index = ? AND actor_id = ?",
+            'SELECT COUNT(*) as count FROM assignments WHERE chore_id = ? AND day_index = ? AND actor_id = ?',
             [choreId, dayIndex, actorId]
         );
         if (dupRow[0].count > 0) return false;
 
         await dbExecute(
-            "INSERT INTO assignments (chore_id, day_index, actor_id) VALUES (?, ?, ?)",
+            'INSERT INTO assignments (chore_id, day_index, actor_id) VALUES (?, ?, ?)',
             [choreId, dayIndex, actorId]
         );
         return true;
@@ -319,40 +351,49 @@ const ChoreRepository = {
 
     async removeAssignment(choreId, dayIndex, actorId) {
         await dbExecute(
-            "DELETE FROM assignments WHERE chore_id = ? AND day_index = ? AND actor_id = ?",
+            'DELETE FROM assignments WHERE chore_id = ? AND day_index = ? AND actor_id = ?',
             [choreId, dayIndex, actorId]
         );
     },
 
     async setAssignment(choreId, dayIndex, actorId) {
-        await dbExecute("DELETE FROM assignments WHERE chore_id = ? AND day_index = ?", [choreId, dayIndex]);
+        await dbExecute('DELETE FROM assignments WHERE chore_id = ? AND day_index = ?', [
+            choreId,
+            dayIndex
+        ]);
         await dbExecute(
-            "INSERT INTO assignments (chore_id, day_index, actor_id) VALUES (?, ?, ?)",
+            'INSERT INTO assignments (chore_id, day_index, actor_id) VALUES (?, ?, ?)',
             [choreId, dayIndex, actorId]
         );
     },
 
     async clearAssignment(choreId, dayIndex) {
-        await dbExecute("DELETE FROM assignments WHERE chore_id = ? AND day_index = ?", [choreId, dayIndex]);
+        await dbExecute('DELETE FROM assignments WHERE chore_id = ? AND day_index = ?', [
+            choreId,
+            dayIndex
+        ]);
     },
 
     async clearAllAssignments() {
-        await dbExecute("DELETE FROM assignments");
+        await dbExecute('DELETE FROM assignments');
     },
 
     // ── Settings ────────────────────────────────────────────
 
     async getSetting(key) {
-        const rows = await dbQuery("SELECT value FROM settings WHERE key = ?", [key]);
+        const rows = await dbQuery('SELECT value FROM settings WHERE key = ?', [key]);
         if (rows.length === 0) return null;
         return rows[0].value;
     },
 
     async setSetting(key, value) {
-        await dbExecute(`
+        await dbExecute(
+            `
             INSERT INTO settings (key, value) VALUES (?, ?)
             ON CONFLICT(key) DO UPDATE SET value = excluded.value
-        `, [key, value]);
+        `,
+            [key, value]
+        );
     },
 
     async getWeekStartDay() {

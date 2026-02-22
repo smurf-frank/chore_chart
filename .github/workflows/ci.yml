@@ -17,6 +17,8 @@ jobs:
           cache: 'npm'
       - name: Install dependencies
         run: npm ci
+      - name: Code Quality (Lint & Format)
+        run: npm run lint
       - name: Cache Playwright Browsers
         uses: actions/cache@v4
         id: playwright-cache
