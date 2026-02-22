@@ -17,7 +17,7 @@ describe('Group Management & Nesting', () => {
 
     it('should add members to a group', async () => {
         const people = await ChoreRepository.getAllPeople();
-        const bob = people.find(p => p.name === 'Bob');
+        const bob = people.find((p) => p.name === 'Bob');
 
         await ChoreRepository.addGroup('Drivers', 'DRV', '#00ff00', false, [bob.id]);
 
@@ -30,7 +30,7 @@ describe('Group Management & Nesting', () => {
 
     it('removeActor() should remove person from groups', async () => {
         const people = await ChoreRepository.getAllPeople();
-        const bob = people.find(p => p.name === 'Bob');
+        const bob = people.find((p) => p.name === 'Bob');
 
         await ChoreRepository.addGroup('Team', 'TM', '#0000ff', false, [bob.id]);
         let groups = await ChoreRepository.getAllGroups();

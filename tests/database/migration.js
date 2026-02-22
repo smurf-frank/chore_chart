@@ -1,7 +1,7 @@
 describe('Migration: people → actors', () => {
     beforeEach(async () => {
         localStorage.removeItem('chore_chart_db');
-        const SQL = await window.initSqlJs({ locateFile: file => `vendor/${file}` });
+        const SQL = await window.initSqlJs({ locateFile: (file) => `vendor/${file}` });
         _db = { isNative: false, client: new SQL.Database() };
     });
 
@@ -13,7 +13,9 @@ describe('Migration: people → actors', () => {
             initials TEXT NOT NULL,
             color TEXT NOT NULL
         )`);
-        await dbExecute("INSERT INTO people (name, initials, color) VALUES ('Alice', 'AL', '#aaa')");
+        await dbExecute(
+            "INSERT INTO people (name, initials, color) VALUES ('Alice', 'AL', '#aaa')"
+        );
         await dbExecute("INSERT INTO people (name, initials, color) VALUES ('Bob', 'BO', '#bbb')");
 
         await dbExecute(`CREATE TABLE chores (
@@ -30,7 +32,9 @@ describe('Migration: people → actors', () => {
             person_id INTEGER NOT NULL,
             UNIQUE(chore_id, day_index)
         )`);
-        await dbExecute("INSERT INTO assignments (chore_id, day_index, person_id) VALUES (1, 0, 1)");
+        await dbExecute(
+            'INSERT INTO assignments (chore_id, day_index, person_id) VALUES (1, 0, 1)'
+        );
 
         await dbExecute(`CREATE TABLE settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)`);
 
@@ -47,26 +51,28 @@ describe('Migration: people → actors', () => {
         await migrateToActors();
 
         // Verify actors created
-        const actors = _db.client.exec("SELECT * FROM actors ORDER BY id");
+        const actors = _db.client.exec('SELECT * FROM actors ORDER BY id');
         expect(actors[0].values.length).toBe(2);
         expect(actors[0].values[0][1]).toBe('person'); // type
         expect(actors[0].values[0][2]).toBe('Alice');
 
         // Verify assignments migrated to actor_id
-        const cols = _db.client.exec("PRAGMA table_info(assignments)");
-        const colNames = cols[0].values.map(r => r[1]);
+        const cols = _db.client.exec('PRAGMA table_info(assignments)');
+        const colNames = cols[0].values.map((r) => r[1]);
         expect(colNames.indexOf('actor_id') !== -1).toBe(true);
 
         // Verify people table dropped
-        const tables = _db.client.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='people'");
+        const tables = _db.client.exec(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='people'"
+        );
         expect(tables.length === 0 || tables[0].values.length === 0).toBe(true);
     });
 
     it('migrateToActors is idempotent (no people table = no-op)', async () => {
         await createSchema();
-        const countBefore = _db.client.exec("SELECT COUNT(*) FROM actors")[0].values[0][0];
+        const countBefore = _db.client.exec('SELECT COUNT(*) FROM actors')[0].values[0][0];
         await migrateToActors();
-        const countAfter = _db.client.exec("SELECT COUNT(*) FROM actors")[0].values[0][0];
+        const countAfter = _db.client.exec('SELECT COUNT(*) FROM actors')[0].values[0][0];
         expect(countAfter).toBe(countBefore);
     });
 });

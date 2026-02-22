@@ -10,8 +10,14 @@ describe('Group Rotation Assignment', () => {
         await ChoreRepository.addPerson('Bob', 'BO', '#222');
         const allPeople = await ChoreRepository.getAllPeople();
         // Only use the 3 people we just added
-        const testPeople = allPeople.filter(p => ['Alice', 'Bob', 'Charlie'].includes(p.name));
-        await ChoreRepository.addGroup('Team', 'TM', '#000', false, testPeople.map(p => p.id));
+        const testPeople = allPeople.filter((p) => ['Alice', 'Bob', 'Charlie'].includes(p.name));
+        await ChoreRepository.addGroup(
+            'Team',
+            'TM',
+            '#000',
+            false,
+            testPeople.map((p) => p.id)
+        );
         const group = (await ChoreRepository.getAllGroups())[0];
         const members = await ChoreRepository.getGroupMembers(group.id);
         expect(members.length).toBe(3);
@@ -43,8 +49,14 @@ describe('Group Rotation Assignment', () => {
         await ChoreRepository.addPerson('Bob', 'BO', '#222');
         await ChoreRepository.addPerson('Charlie', 'CH', '#333');
         const allPeople = await ChoreRepository.getAllPeople();
-        const testPeople = allPeople.filter(p => ['Alice', 'Bob', 'Charlie'].includes(p.name));
-        await ChoreRepository.addGroup('Team', 'TM', '#000', false, testPeople.map(p => p.id));
+        const testPeople = allPeople.filter((p) => ['Alice', 'Bob', 'Charlie'].includes(p.name));
+        await ChoreRepository.addGroup(
+            'Team',
+            'TM',
+            '#000',
+            false,
+            testPeople.map((p) => p.id)
+        );
         const groups = await ChoreRepository.getAllGroups();
         const group = groups[groups.length - 1]; // Use newly added group
         const chores = await ChoreRepository.getAllChores();
@@ -67,15 +79,21 @@ describe('Group Rotation Assignment', () => {
         await ChoreRepository.addPerson('Bob', 'BO', '#222');
         await ChoreRepository.addPerson('Charlie', 'CH', '#333');
         const allPeople = await ChoreRepository.getAllPeople();
-        const testPeople = allPeople.filter(p => ['Alice', 'Bob', 'Charlie'].includes(p.name));
-        await ChoreRepository.addGroup('Team', 'TM', '#000', false, testPeople.map(p => p.id));
+        const testPeople = allPeople.filter((p) => ['Alice', 'Bob', 'Charlie'].includes(p.name));
+        await ChoreRepository.addGroup(
+            'Team',
+            'TM',
+            '#000',
+            false,
+            testPeople.map((p) => p.id)
+        );
         const groups = await ChoreRepository.getAllGroups();
         const group = groups[groups.length - 1];
         const chores = await ChoreRepository.getAllChores();
         const members = await ChoreRepository.getGroupMembers(group.id);
 
         // Start with Bob on Wed (day 2)
-        const bob = members.find(m => m.name === 'Bob');
+        const bob = members.find((m) => m.name === 'Bob');
         await ChoreRepository.assignGroupRotation(chores[0].id, group.id, bob.id, 2);
         const assignments = await ChoreRepository.getAllAssignments();
         expect(assignments[`${chores[0].id}-2`][0].name).toBe('Bob');
@@ -91,8 +109,14 @@ describe('Group Rotation Assignment', () => {
         await ChoreRepository.addPerson('Alice', 'AL', '#111');
         await ChoreRepository.addPerson('Bob', 'BO', '#222');
         const allPeople = await ChoreRepository.getAllPeople();
-        const testPeople = allPeople.filter(p => ['Alice', 'Bob'].includes(p.name));
-        await ChoreRepository.addGroup('Duo', 'DU', '#000', false, testPeople.map(p => p.id));
+        const testPeople = allPeople.filter((p) => ['Alice', 'Bob'].includes(p.name));
+        await ChoreRepository.addGroup(
+            'Duo',
+            'DU',
+            '#000',
+            false,
+            testPeople.map((p) => p.id)
+        );
         const groups = await ChoreRepository.getAllGroups();
         const group = groups[groups.length - 1];
         const chores = await ChoreRepository.getAllChores();

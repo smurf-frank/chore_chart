@@ -10,13 +10,17 @@ describe('Actor CRUD', () => {
     });
 
     it('getAllActors() returns all actors regardless of type', async () => {
-        await dbExecute("INSERT INTO actors (type, name, initials, color) VALUES ('ai_agent', 'Bot', 'BT', '#000')");
+        await dbExecute(
+            "INSERT INTO actors (type, name, initials, color) VALUES ('ai_agent', 'Bot', 'BT', '#000')"
+        );
         const all = await ChoreRepository.getAllActors();
         expect(all.length).toBe(4);
     });
 
     it('getAllActors(type) filters by type', async () => {
-        await dbExecute("INSERT INTO actors (type, name, initials, color) VALUES ('ai_agent', 'Bot', 'BT', '#000')");
+        await dbExecute(
+            "INSERT INTO actors (type, name, initials, color) VALUES ('ai_agent', 'Bot', 'BT', '#000')"
+        );
         const people = await ChoreRepository.getAllActors('person');
         expect(people.length).toBe(3);
         const agents = await ChoreRepository.getAllActors('ai_agent');
@@ -28,14 +32,16 @@ describe('Actor CRUD', () => {
         await ChoreRepository.addPerson('Mom', 'MO', '#ff00ff');
         const people = await ChoreRepository.getAllPeople();
         expect(people.length).toBe(4);
-        const mom = people.find(p => p.name === 'Mom');
+        const mom = people.find((p) => p.name === 'Mom');
         expect(mom.initials).toBe('MO');
         expect(mom.color).toBe('#ff00ff');
         expect(mom.type).toBe('person');
     });
 
     it('addActor() adds actor with type and metadata', async () => {
-        await ChoreRepository.addActor('webhook', 'Slack', 'SL', '#4a154b', { url: 'https://hooks.slack.com/test' });
+        await ChoreRepository.addActor('webhook', 'Slack', 'SL', '#4a154b', {
+            url: 'https://hooks.slack.com/test'
+        });
         const webhooks = await ChoreRepository.getAllActors('webhook');
         expect(webhooks.length).toBe(1);
         expect(webhooks[0].metadata.url).toBe('https://hooks.slack.com/test');
@@ -46,7 +52,7 @@ describe('Actor CRUD', () => {
         const id = people[0].id;
         await ChoreRepository.updateActor(id, { name: 'Dad', initials: 'DA' });
         const updated = await ChoreRepository.getAllPeople();
-        const dad = updated.find(p => p.id === id);
+        const dad = updated.find((p) => p.id === id);
         expect(dad.name).toBe('Dad');
         expect(dad.initials).toBe('DA');
         expect(dad.color).toBe(people[0].color); // unchanged
