@@ -1,6 +1,6 @@
 /**
  * db.js - Database Initialization & Schema
- * 
+ *
  * Uses sql.js (SQLite compiled to WebAssembly) for local persistence in browser,
  * and @capacitor-community/sqlite for native Android.
  */
@@ -32,13 +32,13 @@ async function initDatabase() {
         _db = { isNative: true, plugin: sqlite };
     } else {
         const SQL = await initSqlJs({
-            locateFile: file => `vendor/${file}`
+            locateFile: (file) => `vendor/${file}`
         });
 
         // Try to restore from localStorage
         const savedData = localStorage.getItem(DB_NAME);
         if (savedData) {
-            const buf = Uint8Array.from(atob(savedData), c => c.charCodeAt(0));
+            const buf = Uint8Array.from(atob(savedData), (c) => c.charCodeAt(0));
             _db = { isNative: false, client: new SQL.Database(buf) };
         } else {
             _db = { isNative: false, client: new SQL.Database() };
@@ -57,8 +57,8 @@ async function initDatabase() {
 
 /**
  * Execute a SQL query that does not return row data (INSERT, UPDATE, DELETE).
- * @param {string} sql 
- * @param {Array} params 
+ * @param {string} sql
+ * @param {Array} params
  */
 async function dbExecute(sql, params = []) {
     if (!_db) return;
@@ -72,8 +72,8 @@ async function dbExecute(sql, params = []) {
 
 /**
  * Execute a SQL query and return the rows as an array of objects.
- * @param {string} sql 
- * @param {Array} params 
+ * @param {string} sql
+ * @param {Array} params
  * @returns {Promise<Array<Object>>}
  */
 async function dbQuery(sql, params = []) {
@@ -85,9 +85,9 @@ async function dbQuery(sql, params = []) {
         const res = _db.client.exec(sql, params);
         if (!res.length) return [];
         const columns = res[0].columns;
-        return res[0].values.map(row => {
+        return res[0].values.map((row) => {
             const obj = {};
-            columns.forEach((col, i) => obj[col] = row[i]);
+            columns.forEach((col, i) => (obj[col] = row[i]));
             return obj;
         });
     }
@@ -136,14 +136,20 @@ async function createSchema() {
     `);
 
     // Seed default actors if table is empty
-    const actors = await dbQuery("SELECT COUNT(*) as count FROM actors");
+    const actors = await dbQuery('SELECT COUNT(*) as count FROM actors');
     if (actors[0].count === 0) {
-        await dbExecute("INSERT INTO actors (type, name, initials, color) VALUES ('person', 'User 1', 'U1', '#0084ff')");
-        await dbExecute("INSERT INTO actors (type, name, initials, color) VALUES ('person', 'User 2', 'U2', '#ff4d4d')");
-        await dbExecute("INSERT INTO actors (type, name, initials, color) VALUES ('person', 'User 3', 'U3', '#2ecc71')");
+        await dbExecute(
+            "INSERT INTO actors (type, name, initials, color) VALUES ('person', 'User 1', 'U1', '#0084ff')"
+        );
+        await dbExecute(
+            "INSERT INTO actors (type, name, initials, color) VALUES ('person', 'User 2', 'U2', '#ff4d4d')"
+        );
+        await dbExecute(
+            "INSERT INTO actors (type, name, initials, color) VALUES ('person', 'User 3', 'U3', '#2ecc71')"
+        );
     }
 
-    const chores = await dbQuery("SELECT COUNT(*) as count FROM chores");
+    const chores = await dbQuery('SELECT COUNT(*) as count FROM chores');
     if (chores[0].count === 0) {
         await dbExecute("INSERT INTO chores (name, sort_order) VALUES ('Dishes', 1)");
         await dbExecute("INSERT INTO chores (name, sort_order) VALUES ('Laundry', 2)");
@@ -152,11 +158,13 @@ async function createSchema() {
     }
 
     // Seed default settings
-    const settings = await dbQuery("SELECT COUNT(*) as count FROM settings");
+    const settings = await dbQuery('SELECT COUNT(*) as count FROM settings');
     if (settings[0].count === 0) {
         await dbExecute("INSERT INTO settings (key, value) VALUES ('week_start_day', 'Mon')");
         await dbExecute("INSERT INTO settings (key, value) VALUES ('chart_title', 'Chore Chart')");
-        await dbExecute("INSERT INTO settings (key, value) VALUES ('chart_subtitle', 'Digital Magnetic Board')");
+        await dbExecute(
+            "INSERT INTO settings (key, value) VALUES ('chart_subtitle', 'Digital Magnetic Board')"
+        );
         await dbExecute("INSERT INTO settings (key, value) VALUES ('max_markers_per_cell', '2')");
     }
 }
@@ -166,11 +174,13 @@ async function createSchema() {
  */
 async function migrateToActors() {
     // Check if legacy 'people' table exists
-    const tables = await dbQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='people'");
+    const tables = await dbQuery(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='people'"
+    );
     if (tables.length === 0) return;
 
     // Copy people → actors
-    const actors = await dbQuery("SELECT COUNT(*) as count FROM actors");
+    const actors = await dbQuery('SELECT COUNT(*) as count FROM actors');
     if (actors[0].count === 0) {
         await dbExecute(`
             INSERT INTO actors (id, type, name, initials, color)
@@ -179,8 +189,8 @@ async function migrateToActors() {
     }
 
     // Check assignments person_id
-    const cols = await dbQuery("PRAGMA table_info(assignments)");
-    const hasPersonId = cols.some(row => row.name === 'person_id');
+    const cols = await dbQuery('PRAGMA table_info(assignments)');
+    const hasPersonId = cols.some((row) => row.name === 'person_id');
     if (hasPersonId) {
         await dbExecute(`CREATE TABLE IF NOT EXISTS assignments_new (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -193,23 +203,28 @@ async function migrateToActors() {
         )`);
         await dbExecute(`INSERT INTO assignments_new (id, chore_id, day_index, actor_id)
                  SELECT id, chore_id, day_index, person_id FROM assignments`);
-        await dbExecute("DROP TABLE assignments");
-        await dbExecute("ALTER TABLE assignments_new RENAME TO assignments");
+        await dbExecute('DROP TABLE assignments');
+        await dbExecute('ALTER TABLE assignments_new RENAME TO assignments');
     }
 
-    await dbExecute("DROP TABLE IF EXISTS people");
+    await dbExecute('DROP TABLE IF EXISTS people');
 }
 
 /**
  * Migrate single-assignment constraint to multi-assignment.
  */
 async function migrateMultiAssign() {
-    const tableSql = await dbQuery("SELECT sql FROM sqlite_master WHERE type='table' AND name='assignments'");
+    const tableSql = await dbQuery(
+        "SELECT sql FROM sqlite_master WHERE type='table' AND name='assignments'"
+    );
     if (!tableSql.length) return;
     const createSql = tableSql[0].sql;
 
-    if (createSql.includes('UNIQUE(chore_id, day_index, actor_id)') ||
-        createSql.includes('UNIQUE (chore_id, day_index, actor_id)')) return;
+    if (
+        createSql.includes('UNIQUE(chore_id, day_index, actor_id)') ||
+        createSql.includes('UNIQUE (chore_id, day_index, actor_id)')
+    )
+        return;
 
     await dbExecute(`CREATE TABLE assignments_multi (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -222,8 +237,8 @@ async function migrateMultiAssign() {
     )`);
     await dbExecute(`INSERT INTO assignments_multi (id, chore_id, day_index, actor_id)
              SELECT id, chore_id, day_index, actor_id FROM assignments`);
-    await dbExecute("DROP TABLE assignments");
-    await dbExecute("ALTER TABLE assignments_multi RENAME TO assignments");
+    await dbExecute('DROP TABLE assignments');
+    await dbExecute('ALTER TABLE assignments_multi RENAME TO assignments');
 
     const existing = await dbQuery("SELECT value FROM settings WHERE key = 'max_markers_per_cell'");
     if (existing.length === 0) {
@@ -239,12 +254,16 @@ async function seedVisualSettings() {
 
     const enabled = await dbQuery("SELECT value FROM settings WHERE key = 'row_shading_enabled'");
     if (enabled.length === 0) {
-        await dbExecute("INSERT INTO settings (key, value) VALUES ('row_shading_enabled', 'false')");
+        await dbExecute(
+            "INSERT INTO settings (key, value) VALUES ('row_shading_enabled', 'false')"
+        );
     }
 
     const color = await dbQuery("SELECT value FROM settings WHERE key = 'row_shading_color'");
     if (color.length === 0) {
-        await dbExecute("INSERT INTO settings (key, value) VALUES ('row_shading_color', ?)", [defaultColor]);
+        await dbExecute("INSERT INTO settings (key, value) VALUES ('row_shading_color', ?)", [
+            defaultColor
+        ]);
     }
 
     const choreColWidth = await dbQuery("SELECT value FROM settings WHERE key = 'chore_col_width'");
