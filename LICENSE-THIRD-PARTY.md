@@ -34,9 +34,7 @@ This document tracks all third-party software and assets bundled with the Chore 
 
 ---
 
-## Automated Dependency Tracking
-
-To ensure continuous compliance with the [Project Bible](./PROJECT_BIBLE.md), all `npm` dependencies (including transitive dependencies) are automatically audited for license compatibility during the `pre-push` git hook and the main CI pipeline.
+To ensure continuous compliance with the [Project Bible](./PROJECT_BIBLE.md), all `npm` dependencies (including transitive dependencies) are automatically audited for license compatibility during the `pre-push` git hook and the main CI pipeline. Full license texts are generated into the `licenses-third-party/` directory.
 
 **Permitted Licenses**: Only open-source licenses permitting redistribution and hosting are allowed. As of the current audit, the following licenses are present and permitted in the `npm` dependency tree:
 

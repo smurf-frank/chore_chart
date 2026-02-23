@@ -1,25 +1,24 @@
 #!/bin/bash
 # scripts/generate-license-notices.sh
-# Generates a comprehensive plain-text legal notice file for all production dependencies.
+# Wrapper to run the Node.js modular license generator.
 
-OUTPUT_FILE="LICENSE-THIRD-PARTY-NOTICES.txt"
+echo "⚖️ Starting modular license notice generation..."
 
-echo "⚖️ Generating third-party license notices..."
+# Clean up legacy flat file if it exists
+if [ -f "LICENSE-THIRD-PARTY-NOTICES.txt" ]; then
+    rm "LICENSE-THIRD-PARTY-NOTICES.txt"
+fi
 
-# Generate the full text using license-checker-rseidelsohn
-# We use --production to focus on the software being distributed.
-# We use --plainVertical for the industry-standard "About" page format.
-npx license-checker-rseidelsohn --production --plainVertical --out "$OUTPUT_FILE"
+if [ -f "src/LICENSE-THIRD-PARTY-NOTICES.txt" ]; then
+    rm "src/LICENSE-THIRD-PARTY-NOTICES.txt"
+fi
+
+# Run the node script
+node scripts/generate-license-notices.js
 
 if [ $? -eq 0 ]; then
-    echo "✅ Successfully generated $OUTPUT_FILE"
-    
-    # Also copy to src if it exists, so the app can load it
-    if [ -d "src" ]; then
-        cp "$OUTPUT_FILE" "src/LICENSE-THIRD-PARTY-NOTICES.txt"
-        echo "📂 Copied to src/ for app consumption."
-    fi
+    echo "✨ License notices are synchronized."
 else
-    echo "❌ Failed to generate license notices."
+    echo "❌ Modular license generation failed."
     exit 1
 fi
