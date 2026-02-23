@@ -9,6 +9,7 @@
         "sync": "cap sync",
         "lint": "eslint src/ tests/",
         "format": "prettier --write src/ tests/",
+        "license-notice": "bash scripts/generate-license-notices.sh",
         "prepare": "husky"
     },
     "dependencies": {
