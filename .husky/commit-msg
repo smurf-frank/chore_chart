@@ -1,0 +1,16 @@
+#!/bin/bash
+# .husky/commit-msg
+# Enforce emoji prefix on commit messages.
+
+COMMIT_MSG_FILE=$1
+COMMIT_MSG=$(head -n 1 "$COMMIT_MSG_FILE")
+
+# Check if the commit message starts with a gitmoji code (e.g. :sparkles:) 
+# OR a non-alphanumeric character (e.g. ✨).
+# We exclude space and common punctuation that isn't an emoji.
+if ! echo "$COMMIT_MSG" | grep -qE "^(:[a-z0-9_]+:|[^a-zA-Z0-9[:space:]])"; then
+    echo "❌  Aborting commit. Your commit message is missing a gitmoji."
+    echo "    Please start your commit message with an emoji code like :sparkles: or a literal emoji like ✨."
+    echo "    Example: ':sparkles: Add new feature' or '✨ Add new feature'"
+    exit 1
+fi

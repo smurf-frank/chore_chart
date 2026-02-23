@@ -1,0 +1,73 @@
+name: Archive Source Directory
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v6
+
+      - name: Generate filename components
+        id: meta
+        run: |
+          echo "timestamp=$(TZ=UTC date +'%Y-%b-%d_%H%M_Z' | tr '[:lower:]' '[:upper:]')" >> $GITHUB_OUTPUT
+          echo "branch=$(echo ${GITHUB_REF#refs/heads/} | sed 's/\//--/g')" >> $GITHUB_OUTPUT
+
+      - name: Create Archive
+        run: zip -r "chore-chart-src--${{ steps.meta.outputs.branch }}--${{ steps.meta.outputs.timestamp }}.zip" src
+
+      - name: Import GPG key
+        id: import_gpg
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+
+      - name: Sign Archive
+        run: |
+          ZIP_PATH="chore-chart-src--${{ steps.meta.outputs.branch }}--${{ steps.meta.outputs.timestamp }}.zip"
+          gpg --batch --yes --armor --detach-sign "$ZIP_PATH"
+          sha256sum "$ZIP_PATH" > "${ZIP_PATH}.sha256"
+          gpg --batch --yes --armor --detach-sign "${ZIP_PATH}.sha256"
+
+      - name: Upload Archive & Verification Files
+        uses: actions/upload-artifact@v4
+        with:
+          name: chore-chart-src--${{ steps.meta.outputs.branch }}--${{ steps.meta.outputs.timestamp }}
+          path: |
+            chore-chart-src--${{ steps.meta.outputs.branch }}--${{ steps.meta.outputs.timestamp }}.zip
+            chore-chart-src--${{ steps.meta.outputs.branch }}--${{ steps.meta.outputs.timestamp }}.zip.asc
+            chore-chart-src--${{ steps.meta.outputs.branch }}--${{ steps.meta.outputs.timestamp }}.zip.sha256
+            chore-chart-src--${{ steps.meta.outputs.branch }}--${{ steps.meta.outputs.timestamp }}.zip.sha256.asc
+
+      - name: Upload to Release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            chore-chart-src--${{ steps.meta.outputs.branch }}--${{ steps.meta.outputs.timestamp }}.zip
+            chore-chart-src--${{ steps.meta.outputs.branch }}--${{ steps.meta.outputs.timestamp }}.zip.asc
+            chore-chart-src--${{ steps.meta.outputs.branch }}--${{ steps.meta.outputs.timestamp }}.zip.sha256
+            chore-chart-src--${{ steps.meta.outputs.branch }}--${{ steps.meta.outputs.timestamp }}.zip.sha256.asc
+
+      - name: Update Release Notes
+        if: github.event_name == 'release'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          BODY=$(gh release view "$TAG" --json body -q .body)
+          
+          if echo "$BODY" | grep -q "GPG-VERIFICATION"; then
+            echo "Notes already contain GPG verification info. Skipping."
+          else
+            echo -e "$BODY\n\n## Verification\n\n### GPG Signing\n<!-- GPG-VERIFICATION -->\n- **Key ID**: \`${{ steps.import_gpg.outputs.keyid }}\`\n- **Fingerprint**: \`${{ steps.import_gpg.outputs.fingerprint }}\`\n- **Verified By**: [keys.openpgp.org](https://keys.openpgp.org/search?q=${{ steps.import_gpg.outputs.fingerprint }})\n- **Command**: \`gpg --verify <file>.asc <file>\`\n\n### SHA256 Checksums\n- **Command**: \`sha256sum -c <file>.sha256\`" > new_body.txt
+            gh release edit "$TAG" --notes-file new_body.txt
+          fi

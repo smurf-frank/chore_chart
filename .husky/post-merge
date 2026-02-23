@@ -1,0 +1,14 @@
+#!/bin/bash
+# .husky/post-merge
+# Automatically install dependencies if package-lock.json changed after pull/merge.
+
+echo "🔍 Checking for dependency changes..."
+
+changed_files=$(git diff-tree -r --name-only --no-commit-id ORIG_HEAD HEAD)
+
+if echo "$changed_files" | grep -q "package-lock.json"; then
+    echo "📦 package-lock.json changed. Running npm install..."
+    npm install
+else
+    echo "✅ No dependency changes detected."
+fi

@@ -85,7 +85,7 @@ graph LR
 - **No Backend (v1)**: All data stored locally via sql.js for privacy and simplicity.
 - **SQL-First**: All data access uses standard SQL to ensure portability to remote backends.
 - **Protocol Security**: To ensure security and strict cross-platform portability, avoid relying on the `file://` protocol for loading assets, modules, or executing code. Local structures should be tested in an environment that behaves like standard network protocols (e.g. `http://` via a local static server) whenever possible.
-- **License Constraint**: Only open-source licenses permitting redistribution and hosting (e.g., MIT, OFL, Apache 2.0, AGPL) are permitted for any project assets or libraries.
+- **License Constraint**: Only open-source licenses permitting redistribution and hosting (e.g., MIT, ISC, Apache 2.0, AGPL, BSD, OFL, BlueOak) are permitted for any project assets or libraries.
 - **Documentation Portability**: For privacy and seamless portability across environments, never reference explicit local machine paths (e.g., `/home/username/`, `C:\Users\`) in commit messages, status documents, implementation plans, or codebase documentation. Always use relative paths or generic variables.
 - **Secrets Management**: Secrets (passwords, API keys, private keys, etc.) must NEVER be checked into the repository or included in commit messages. All secrets must be handled via secure environment variables or a dedicated key management system.
 
@@ -110,7 +110,12 @@ graph LR
 - **Mandatory Checkpoints**: All significant task lists or implementation plans must include explicit checkpoints after each primary phase of work.
 - **User Review Required**: Every Implementation Plan must contain a dedicated `## User Review Required` section that explicitly asks the user for their preference or approval on proposed architectural/design choices before execution begins.
 - **Clarification Questions**: When presented with a major new work request, the AI must ask at least two (and up to five) clarifying questions to ensure the scope and intent are fully understood before generating an implementation plan.
-- **Checkpoint Protocol**: At each checkpoint, work and results must be summarized, and the user must be explicitly notified and given a chance to interact, review, or course-correct before moving on to the next primary task.
+- **Checkpoint Protocol**: At each checkpoint, the AI must:
+    1.  **Review the Bible**: Explicitly state that it has re-read `PROJECT_BIBLE.md`.
+    2.  **Work Summary**: Provide a brief, bulleted summary of all work done in the current session.
+    3.  **Next Steps**: Clearly state the immediate next moves and how they align with Bible constraints.
+    4.  **Verification**: Confirm that non-negotiables (like GPG signing and Emojis) are being correctly applied.
+    5.  **Notify User**: Use the `notify_user` tool to pause and await confirmation before proceeding.
 
 ### Documentation Updates
 
@@ -131,3 +136,31 @@ graph LR
 
 - **Semantic Versioning**: The project follows [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 - **Current Version**: `v0.0.3` (Capacitor & Async Storage).
+
+### Artifact Naming Convention
+
+When generating on-demand artifacts (e.g., APKs, Source Archives) via GitHub Actions, the following naming convention is used to ensure compatibility across all operating systems while preserving branch hierarchy:
+
+`chore-chart-[type]--[branch]--[timestamp]`
+
+- **Slash Replacement**: Slashes (`/`) in branch names are replaced with **Double Hyphens** (`--`). This distinguishes branch hierarchy from existing single hyphens or underscores in branch names.
+- **Timestamp Format**: All timestamps use the format `YYYY-MMM-DD_HHMM_Z` in UTC, with the month and 'Z' in uppercase for maximum readability.
+- **Example**: `chore-chart-apk--feature--tactile-ux--2026-FEB-23_0313_Z.apk`
+
+### Release Signing & Automation
+
+To ensure the integrity of software downloads, all on-demand and release artifacts are GPG-signed.
+
+- **Verification Data**: Every release must include:
+    - **GPG Signatures** (`.asc`) for all primary artifacts.
+    - **SHA256 Checksums** (`.sha256`) for all primary artifacts.
+    - **Signed Checksums** (`.sha256.asc`) to ensure the integrity of the checksum file itself.
+- **Automation**: Workflows are triggered manually or automatically when a GitHub Release is published.
+- **Signing Key**: A dedicated project-level "Release Key" is used.
+- **Secrets & Variables Required**: The following repository configuration must be set for signing to function:
+    - `GPG_PRIVATE_KEY` (Secret): Base64 encoded private GPG key.
+    - `GPG_PASSPHRASE` (Secret): Passphrase for the private key.
+    - `GPG_FINGERPRINT` (Variable): The unique fingerprint of the release key for easy verification.
+- **Setup Script**: A non-interactive setup script is provided at `scripts/setup-release-gpg.sh`. It automates key generation, GitHub Secret setup, and public key publication to `keys.openpgp.org`.
+    - **Verification**: Always verify releases using the **Key Fingerprint** rather than just the email address. The fingerprint is unique and prevents spoofing on keyservers where multiple keys might claim the same email.
+    - **Customization**: Use `RELEASE_GPG_NAME` and `RELEASE_GPG_EMAIL` environment variables to override the default identity.
