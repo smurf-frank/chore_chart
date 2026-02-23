@@ -85,7 +85,7 @@ graph LR
 - **No Backend (v1)**: All data stored locally via sql.js for privacy and simplicity.
 - **SQL-First**: All data access uses standard SQL to ensure portability to remote backends.
 - **Protocol Security**: To ensure security and strict cross-platform portability, avoid relying on the `file://` protocol for loading assets, modules, or executing code. Local structures should be tested in an environment that behaves like standard network protocols (e.g. `http://` via a local static server) whenever possible.
-- **License Constraint**: Only open-source licenses permitting redistribution and hosting (e.g., MIT, OFL, Apache 2.0, AGPL) are permitted for any project assets or libraries.
+- **License Constraint**: Only open-source licenses permitting redistribution and hosting (e.g., MIT, ISC, Apache 2.0, AGPL, BSD, OFL, BlueOak) are permitted for any project assets or libraries.
 - **Documentation Portability**: For privacy and seamless portability across environments, never reference explicit local machine paths (e.g., `/home/username/`, `C:\Users\`) in commit messages, status documents, implementation plans, or codebase documentation. Always use relative paths or generic variables.
 - **Secrets Management**: Secrets (passwords, API keys, private keys, etc.) must NEVER be checked into the repository or included in commit messages. All secrets must be handled via secure environment variables or a dedicated key management system.
 
