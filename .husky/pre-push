@@ -6,8 +6,9 @@ echo "🚀 Running pre-push checks..."
 
 npm run lint
 npm test
+npm audit --audit-level=high
 
 if [ $? -ne 0 ]; then
-    echo "❌ Error: Pre-push checks failed. Push aborted."
+    echo "❌ Error: Pre-push checks failed (Lint, Test, or Security Audit). Push aborted."
     exit 1
 fi

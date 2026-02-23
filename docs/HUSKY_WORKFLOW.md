@@ -27,7 +27,7 @@ Enforces the **Emoji Prefix** rule defined in the [Project Bible](../PROJECT_BIB
 
 ### 3. Pre-push (`pre-push`)
 
-Runs `npm run lint` and `npm test` before any push to the remote. This acts as a final safety check to ensure that only stable, well-formatted code reaches the central repository.
+Runs `npm run lint`, `npm test`, and `npm audit --audit-level=high` before any push to the remote. This acts as a multi-layer safety check to ensure that only stable, secure, and well-formatted code reaches the central repository.
 
 ### 4. Post-merge (`post-merge`)
 
