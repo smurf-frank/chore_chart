@@ -1,0 +1,10 @@
+Package: @rollup/rollup-linux-x64-musl@4.34.9
+License: MIT
+Repository: https://github.com/rollup/rollup
+Publisher: Lukas Taegert-Atkinson
+
+--------------------------------------------------------------------------------
+
+# `@rollup/rollup-linux-x64-musl`
+
+This is the **x86_64-unknown-linux-musl** binary for `rollup`
