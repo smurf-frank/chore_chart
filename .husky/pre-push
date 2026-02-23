@@ -7,8 +7,9 @@ echo "🚀 Running pre-push checks..."
 npm run lint
 npm test
 npm audit --audit-level=high
+npx license-checker-rseidelsohn --onlyAllow "MIT;ISC;Apache-2.0;AGPL-3.0;BSD-3-Clause;BSD-2-Clause;OFL-1.1;Unlicense;CC0-1.0;MIT*" --summary
 
 if [ $? -ne 0 ]; then
-    echo "❌ Error: Pre-push checks failed (Lint, Test, or Security Audit). Push aborted."
+    echo "❌ Error: Pre-push checks failed (Lint, Test, Audit, or License). Push aborted."
     exit 1
 fi
