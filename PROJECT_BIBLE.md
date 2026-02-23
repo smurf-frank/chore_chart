@@ -131,3 +131,31 @@ graph LR
 
 - **Semantic Versioning**: The project follows [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
 - **Current Version**: `v0.0.3` (Capacitor & Async Storage).
+
+### Artifact Naming Convention
+
+When generating on-demand artifacts (e.g., APKs, Source Archives) via GitHub Actions, the following naming convention is used to ensure compatibility across all operating systems while preserving branch hierarchy:
+
+`chore-chart-[type]--[branch]--[timestamp]`
+
+- **Slash Replacement**: Slashes (`/`) in branch names are replaced with **Double Hyphens** (`--`). This distinguishes branch hierarchy from existing single hyphens or underscores in branch names.
+- **Timestamp Format**: All timestamps use the format `YYYY-MMM-DD_HHMM_Z` in UTC, with the month and 'Z' in uppercase for maximum readability.
+- **Example**: `chore-chart-apk--feature--tactile-ux--2026-FEB-23_0313_Z.apk`
+
+### Release Signing & Automation
+
+To ensure the integrity of software downloads, all on-demand and release artifacts are GPG-signed.
+
+- **Verification Data**: Every release must include:
+    - **GPG Signatures** (`.asc`) for all primary artifacts.
+    - **SHA256 Checksums** (`.sha256`) for all primary artifacts.
+    - **Signed Checksums** (`.sha256.asc`) to ensure the integrity of the checksum file itself.
+- **Automation**: Workflows are triggered manually or automatically when a GitHub Release is published.
+- **Signing Key**: A dedicated project-level "Release Key" is used.
+- **Secrets & Variables Required**: The following repository configuration must be set for signing to function:
+    - `GPG_PRIVATE_KEY` (Secret): Base64 encoded private GPG key.
+    - `GPG_PASSPHRASE` (Secret): Passphrase for the private key.
+    - `GPG_FINGERPRINT` (Variable): The unique fingerprint of the release key for easy verification.
+- **Setup Script**: A non-interactive setup script is provided at `scripts/setup-release-gpg.sh`. It automates key generation, GitHub Secret setup, and public key publication to `keys.openpgp.org`.
+    - **Verification**: Always verify releases using the **Key Fingerprint** rather than just the email address. The fingerprint is unique and prevents spoofing on keyservers where multiple keys might claim the same email.
+    - **Customization**: Use `RELEASE_GPG_NAME` and `RELEASE_GPG_EMAIL` environment variables to override the default identity.

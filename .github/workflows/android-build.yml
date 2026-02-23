@@ -1,0 +1,102 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v6
+
+      - name: Generate filename components
+        id: meta
+        run: |
+          echo "timestamp=$(TZ=UTC date +'%Y-%b-%d_%H%M_Z' | tr '[:lower:]' '[:upper:]')" >> $GITHUB_OUTPUT
+          echo "branch=$(echo ${GITHUB_REF#refs/heads/} | sed 's/\//--/g')" >> $GITHUB_OUTPUT
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'zulu'
+          cache: 'gradle'
+
+      - name: Cache Node modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - name: Build Android APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Import GPG key
+        id: import_gpg
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+
+      - name: Sign APK
+        run: |
+          APK_PATH="android/app/build/outputs/apk/debug/app-debug.apk"
+          gpg --batch --yes --armor --detach-sign "$APK_PATH"
+          sha256sum "$APK_PATH" | sed 's|android/app/build/outputs/apk/debug/||' > "${APK_PATH}.sha256"
+          gpg --batch --yes --armor --detach-sign "${APK_PATH}.sha256"
+
+      - name: Upload APK & Verification Files
+        uses: actions/upload-artifact@v4
+        with:
+          name: chore-chart-apk--${{ steps.meta.outputs.branch }}--${{ steps.meta.outputs.timestamp }}
+          path: |
+            android/app/build/outputs/apk/debug/app-debug.apk
+            android/app/build/outputs/apk/debug/app-debug.apk.asc
+            android/app/build/outputs/apk/debug/app-debug.apk.sha256
+            android/app/build/outputs/apk/debug/app-debug.apk.sha256.asc
+
+      - name: Upload to Release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            android/app/build/outputs/apk/debug/app-debug.apk
+            android/app/build/outputs/apk/debug/app-debug.apk.asc
+            android/app/build/outputs/apk/debug/app-debug.apk.sha256
+            android/app/build/outputs/apk/debug/app-debug.apk.sha256.asc
+
+      - name: Update Release Notes
+        if: github.event_name == 'release'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          BODY=$(gh release view "$TAG" --json body -q .body)
+          
+          if echo "$BODY" | grep -q "GPG-VERIFICATION"; then
+            echo "Notes already contain GPG verification info. Skipping."
+          else
+            echo -e "$BODY\n\n## Verification\n\n### GPG Signing\n<!-- GPG-VERIFICATION -->\n- **Key ID**: \`${{ steps.import_gpg.outputs.keyid }}\`\n- **Fingerprint**: \`${{ steps.import_gpg.outputs.fingerprint }}\`\n- **Verified By**: [keys.openpgp.org](https://keys.openpgp.org/search?q=${{ steps.import_gpg.outputs.fingerprint }})\n- **Command**: \`gpg --verify <file>.asc <file>\`\n\n### SHA256 Checksums\n- **Command**: \`sha256sum -c <file>.sha256\`" > new_body.txt
+            gh release edit "$TAG" --notes-file new_body.txt
+          fi
