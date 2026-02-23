@@ -110,7 +110,12 @@ graph LR
 - **Mandatory Checkpoints**: All significant task lists or implementation plans must include explicit checkpoints after each primary phase of work.
 - **User Review Required**: Every Implementation Plan must contain a dedicated `## User Review Required` section that explicitly asks the user for their preference or approval on proposed architectural/design choices before execution begins.
 - **Clarification Questions**: When presented with a major new work request, the AI must ask at least two (and up to five) clarifying questions to ensure the scope and intent are fully understood before generating an implementation plan.
-- **Checkpoint Protocol**: At each checkpoint, work and results must be summarized, and the user must be explicitly notified and given a chance to interact, review, or course-correct before moving on to the next primary task.
+- **Checkpoint Protocol**: At each checkpoint, the AI must:
+    1.  **Review the Bible**: Explicitly state that it has re-read `PROJECT_BIBLE.md`.
+    2.  **Work Summary**: Provide a brief, bulleted summary of all work done in the current session.
+    3.  **Next Steps**: Clearly state the immediate next moves and how they align with Bible constraints.
+    4.  **Verification**: Confirm that non-negotiables (like GPG signing and Emojis) are being correctly applied.
+    5.  **Notify User**: Use the `notify_user` tool to pause and await confirmation before proceeding.
 
 ### Documentation Updates
 
