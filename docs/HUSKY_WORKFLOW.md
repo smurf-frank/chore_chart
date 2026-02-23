@@ -25,6 +25,14 @@ Runs `lint-staged` before every commit. This ensures that:
 
 Enforces the **Emoji Prefix** rule defined in the [Project Bible](../PROJECT_BIBLE.md). All commit messages must start with a relevant emoji (e.g., ✨, 🐛, 📝) or a text code (e.g., `:sparkles:`).
 
+### 3. Pre-push (`pre-push`)
+
+Runs `npm run lint` and `npm test` before any push to the remote. This acts as a final safety check to ensure that only stable, well-formatted code reaches the central repository.
+
+### 4. Post-merge (`post-merge`)
+
+Automatically checks for changes in `package-lock.json` after a `pull` or `merge`. If changes are found, it triggers `npm install` to keep your local dependencies in sync with the team without manual intervention.
+
 ## Setup for Developers
 
 If you are setting up the project for the first time:

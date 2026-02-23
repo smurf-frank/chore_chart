@@ -1,0 +1,13 @@
+#!/bin/bash
+# .husky/pre-push
+# Ensure stability before pushing to remote.
+
+echo "🚀 Running pre-push checks..."
+
+npm run lint
+npm test
+
+if [ $? -ne 0 ]; then
+    echo "❌ Error: Pre-push checks failed. Push aborted."
+    exit 1
+fi
