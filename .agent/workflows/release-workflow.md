@@ -28,12 +28,8 @@ This workflow guides the AI engineer through the official release process for Ch
     - [ ] Create a signed git tag: `git tag -s v<VERSION> -m "Release v<VERSION>"`
     - [ ] Push the tag: `git push origin v<VERSION>`
 
-5.  **GitHub Release**
-    - [ ] Go to GitHub UI and "Draft a new release".
-    - [ ] Select the new tag.
-    - [ ] Title: `Release v<VERSION>`
-    - [ ] Description: Paste content from `CHANGELOG.md`.
-    - [ ] **Publish Release**.
+5.  **GitHub Release** - [ ] Create the release using the GitHub CLI:
+    // turbo - [ ] `gh release create v<VERSION> --title "Release v<VERSION>" --notes-file CHANGELOG.md`
 
 6.  **Verification of Automation**
     - [ ] Monitor GitHub Actions (`android-build.yml` and `archive-src.yml`).
