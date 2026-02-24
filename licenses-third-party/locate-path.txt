@@ -1,4 +1,4 @@
-Package: locate-path@6.0.0
+Package: locate-path@7.2.0
 License: MIT
 Repository: https://github.com/sindresorhus/locate-path
 Publisher: Sindre Sorhus

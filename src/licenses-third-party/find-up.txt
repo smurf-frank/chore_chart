@@ -1,4 +1,4 @@
-Package: find-up@5.0.0
+Package: find-up@6.3.0
 License: MIT
 Repository: https://github.com/sindresorhus/find-up
 Publisher: Sindre Sorhus
