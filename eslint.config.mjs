@@ -2,7 +2,7 @@ import js from '@eslint/js';
 import eslintConfigPrettier from 'eslint-config-prettier';
 
 export default [
-    { ignores: ['src/vendor/**'] },
+    { ignores: ['src/vendor/**', 'wdio.conf.js'] },
     js.configs.recommended,
     eslintConfigPrettier,
     {
@@ -88,6 +88,21 @@ export default [
             'no-unused-vars': 'warn',
             'no-empty': ['error', { allowEmptyCatch: true }],
             'no-undef': 'error'
+        }
+    },
+    // WebdriverIO E2E test overrides — these globals are injected by the WDIO runner
+    {
+        files: ['tests/e2e/**/*.js'],
+        languageOptions: {
+            globals: {
+                driver: 'readonly',
+                $: 'readonly',
+                $$: 'readonly',
+                before: 'readonly',
+                after: 'readonly',
+                beforeEach: 'readonly',
+                afterEach: 'readonly'
+            }
         }
     }
 ];

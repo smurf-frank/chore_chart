@@ -1,0 +1,48 @@
+name: Android E2E Tests
+
+on:
+    push:
+        branches: [master]
+    pull_request:
+        branches: [master]
+
+jobs:
+    e2e:
+        runs-on: macos-latest # macOS provides hardware acceleration for Android emulators
+
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '24'
+                  cache: 'npm'
+
+            - name: Set up JDK 21
+              uses: actions/setup-java@v4
+              with:
+                  java-version: '21'
+                  distribution: 'temurin'
+                  cache: gradle
+
+            - name: Install Node Dependencies
+              run: npm ci
+
+            - name: Build Web Assets & Sync Capacitor
+              run: npm run sync
+
+            - name: Build Debug APK
+              working-directory: ./android
+              run: ./gradlew assembleDebug
+
+            - name: Run E2E Tests on Emulator
+              uses: reactivecircus/android-emulator-runner@v2
+              with:
+                  api-level: 36
+                  target: google_apis
+                  arch: x86_64
+                  profile: pixel_5
+                  # The WDIO appium service handles starting/stopping the Appium server
+                  script: npm run test:e2e

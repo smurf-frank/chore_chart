@@ -10,7 +10,8 @@
         "lint": "eslint src/ tests/",
         "format": "prettier --write src/ tests/",
         "license-notice": "bash scripts/generate-license-notices.sh",
-        "prepare": "husky"
+        "prepare": "husky",
+        "test:e2e": "wdio run wdio.conf.js"
     },
     "dependencies": {
         "@capacitor/core": "^8.0.0",
@@ -22,6 +23,9 @@
         "@capacitor/cli": "^8.0.0",
         "@eslint/js": "^10.0.1",
         "@playwright/test": "^1.49.0",
+        "@wdio/cli": "^9.24.0",
+        "appium": "^3.2.0",
+        "appium-uiautomator2-driver": "^7.0.0",
         "eslint": "^10.0.1",
         "eslint-config-prettier": "^10.1.8",
         "husky": "^9.1.7",
