@@ -1,4 +1,4 @@
-Package: @stencil/core@4.43.0
+Package: @stencil/core@4.43.1
 License: MIT
 Repository: https://github.com/stenciljs/core
 Publisher: Ionic Team

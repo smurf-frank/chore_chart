@@ -5,20 +5,21 @@
     "main": "app.js",
     "scripts": {
         "test": "playwright test",
-        "build": "echo 'No build step — static assets'",
-        "sync": "cap sync",
+        "build": "node scripts/generate-build-info.js",
+        "sync": "npm run build && cap sync",
         "lint": "eslint src/ tests/",
         "format": "prettier --write src/ tests/",
         "license-notice": "bash scripts/generate-license-notices.sh",
         "prepare": "husky"
     },
     "dependencies": {
-        "@capacitor/core": "^6.0.0"
+        "@capacitor/core": "^8.0.0",
+        "drag-drop-touch": "^1.3.1"
     },
     "devDependencies": {
-        "@capacitor-community/sqlite": "^6.0.0",
-        "@capacitor/android": "^6.0.0",
-        "@capacitor/cli": "^8.1.0",
+        "@capacitor-community/sqlite": "8.0.0",
+        "@capacitor/android": "^8.0.0",
+        "@capacitor/cli": "^8.0.0",
         "@eslint/js": "^10.0.1",
         "@playwright/test": "^1.49.0",
         "eslint": "^10.0.1",
@@ -27,6 +28,9 @@
         "license-checker-rseidelsohn": "^4.4.2",
         "lint-staged": "^16.2.7",
         "prettier": "^3.8.1"
+    },
+    "overrides": {
+        "minimatch": "^10.2.1"
     },
     "author": "smurf-frank",
     "license": "AGPL-3.0",
