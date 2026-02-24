@@ -9,7 +9,7 @@ npm test
 npm audit --omit=dev --audit-level=high
 npm run license-notice
 git diff --exit-code licenses-third-party src/licenses-third-party > /dev/null
-npx license-checker-rseidelsohn --onlyAllow "MIT;ISC;Apache-2.0;AGPL-3.0;BSD-3-Clause;BSD-2-Clause;OFL-1.1;Unlicense;CC0-1.0;0BSD;BlueOak-1.0.0;CC-BY-3.0;MIT*;(MIT OR GPL-3.0-or-later);(MIT AND Zlib);(MIT AND CC-BY-3.0)" --summary
+npx license-checker-rseidelsohn --onlyAllow "MIT;ISC;Apache-2.0;AGPL-3.0;BSD-3-Clause;BSD-2-Clause;OFL-1.1;Unlicense;CC0-1.0;0BSD;BlueOak-1.0.0;CC-BY-3.0;MIT*;(MIT OR GPL-3.0-or-later);(MIT AND Zlib);(MIT AND CC-BY-3.0);LGPL-3.0-or-later" --summary
 
 if [ $? -ne 0 ]; then
     echo "❌ Error: Pre-push checks failed (Lint, Test, Audit, License, or Notices Outdated)."
