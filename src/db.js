@@ -63,10 +63,11 @@ async function initDatabase() {
 async function dbExecute(sql, params = []) {
     if (!_db) return;
     if (_db.isNative) {
-        await _db.plugin.run({ database: DB_NAME, statement: sql, values: params });
+        return await _db.plugin.run({ database: DB_NAME, statement: sql, values: params });
     } else {
-        _db.client.run(sql, params);
+        const res = _db.client.run(sql, params);
         saveDatabase();
+        return res;
     }
 }
 

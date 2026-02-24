@@ -1,13 +1,13 @@
-Package: glob@8.1.0
+Package: inflight@1.0.6
 License: ISC
-Repository: https://github.com/isaacs/node-glob
+Repository: https://github.com/npm/inflight
 Publisher: Isaac Z. Schlueter
 
 --------------------------------------------------------------------------------
 
 The ISC License
 
-Copyright (c) 2009-2022 Isaac Z. Schlueter and Contributors
+Copyright (c) Isaac Z. Schlueter
 
 Permission to use, copy, modify, and/or distribute this software for any
 purpose with or without fee is hereby granted, provided that the above

@@ -267,7 +267,11 @@ const ChoreRepository = {
             'SELECT COALESCE(MAX(sort_order), 0) as max_val FROM chores'
         );
         const nextOrder = maxOrderRow[0].max_val + 1;
-        await dbExecute('INSERT INTO chores (name, sort_order) VALUES (?, ?)', [name, nextOrder]);
+        const res = await dbExecute('INSERT INTO chores (name, sort_order) VALUES (?, ?)', [
+            name,
+            nextOrder
+        ]);
+        return res ? res.lastID : null;
     },
 
     async removeChore(id) {

@@ -1,4 +1,4 @@
-Package: @xmldom/xmldom@0.8.11
+Package: @xmldom/xmldom@0.9.8
 License: MIT
 Repository: https://github.com/xmldom/xmldom
 
