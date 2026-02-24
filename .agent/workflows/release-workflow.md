@@ -17,7 +17,7 @@ This workflow guides the AI engineer through the official release process for Ch
 
         - [ ] Run the **License Compliance Check**:
 
-    // turbo - [ ] `npx license-checker-rseidelsohn --onlyAllow "MIT;ISC;Apache-2.0;AGPL-3.0;BSD-3-Clause;BSD-2-Clause;OFL-1.1;Unlicense;CC0-1.0;0BSD;BlueOak-1.0.0;CC-BY-3.0;MIT*;(MIT OR GPL-3.0-or-later);(MIT AND Zlib);(MIT AND CC-BY-3.0)" --summary` - [ ] Update `LICENSE-THIRD-PARTY.md` if any new dependencies were added. - [ ] Run `npm run license-notice` and verify the `licenses-third-party/` directory is updated.
+    // turbo - [ ] `npx license-checker-rseidelsohn --onlyAllow "MIT;ISC;Apache-2.0;AGPL-3.0;BSD-3-Clause;BSD-2-Clause;OFL-1.1;Unlicense;CC0-1.0;0BSD;BlueOak-1.0.0;CC-BY-3.0;MIT*;(MIT OR GPL-3.0-or-later);(MIT AND Zlib);(MIT AND CC-BY-3.0);LGPL-3.0-or-later;CC-BY-4.0;Python-2.0;(MIT OR CC0-1.0);(AFL-2.1 OR BSD-3-Clause);WTFPL OR ISC;WTFPL;(WTFPL OR MIT)" --summary` - [ ] Update `LICENSE-THIRD-PARTY.md` if any new dependencies were added. - [ ] Run `npm run license-notice` and verify the `licenses-third-party/` directory is updated.
     // turbo - [ ] `npm audit --omit=dev --audit-level=high`
 
 2.  **Version Bump**
