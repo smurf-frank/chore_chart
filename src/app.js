@@ -6,20 +6,16 @@
  */
 
 function tryVibrate(pattern) {
+    console.log('Vibrate called with pattern:', pattern);
     if (navigator.vibrate) {
         try {
             navigator.vibrate(pattern);
-        } catch (e) {}
+        } catch (e) {
+            console.error('Vibrate failed:', e);
+        }
+    } else {
+        console.warn('navigator.vibrate not supported');
     }
-}
-
-// Initialize mobile drag and drop polyfill
-window.addEventListener('touchmove', function () {}, { passive: false });
-if (window.MobileDragDrop) {
-    window.MobileDragDrop.polyfill({
-        holdToDrag: 150,
-        dragImageTranslateOverride: window.MobileDragDrop.scrollBehaviourDragImageTranslateOverride
-    });
 }
 
 const ALL_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -117,27 +113,40 @@ async function renderBoard() {
 
     const resizeHandle = document.createElement('div');
     resizeHandle.className = 'resize-handle';
-    resizeHandle.addEventListener('mousedown', async (e) => {
-        e.preventDefault();
-        const startX = e.pageX;
+    const handleResizeStart = async (e) => {
+        if (e.type !== 'touchstart') e.preventDefault();
+        const startX = e.type === 'touchstart' ? e.touches[0].pageX : e.pageX;
         const startWidth = await ChoreRepository.getChoreColumnWidth();
         resizeHandle.classList.add('resizing');
 
-        const onMouseMove = async (moveEvent) => {
-            const newWidth = Math.max(100, Math.min(600, startWidth + (moveEvent.pageX - startX)));
+        const onMove = async (moveEvent) => {
+            if (moveEvent.cancelable) moveEvent.preventDefault();
+            const currentX = moveEvent.type.includes('touch')
+                ? moveEvent.touches[0].pageX
+                : moveEvent.pageX;
+            const newWidth = Math.max(100, Math.min(600, startWidth + (currentX - startX)));
             board.style.setProperty('--chore-col-width', `${newWidth}px`);
             await ChoreRepository.setChoreColumnWidth(newWidth);
         };
 
-        const onMouseUp = () => {
-            document.removeEventListener('mousemove', onMouseMove);
-            document.removeEventListener('mouseup', onMouseUp);
+        const onEnd = () => {
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onEnd);
+            document.removeEventListener('touchmove', onMove);
+            document.removeEventListener('touchend', onEnd);
+            document.removeEventListener('touchcancel', onEnd);
             resizeHandle.classList.remove('resizing');
         };
 
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', onMouseUp);
-    });
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onEnd);
+        document.addEventListener('touchmove', onMove, { passive: false });
+        document.addEventListener('touchend', onEnd);
+        document.addEventListener('touchcancel', onEnd);
+    };
+
+    resizeHandle.addEventListener('mousedown', handleResizeStart);
+    resizeHandle.addEventListener('touchstart', handleResizeStart, { passive: false });
     corner.appendChild(resizeHandle);
 
     board.appendChild(corner);

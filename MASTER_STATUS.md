@@ -10,7 +10,7 @@
 
 **Phase Name**: Capacitor Cross-Platform Integration
 **Version**: v0.0.3
-**Dates**: 2026-02-15 → 2026-02-19
+**Dates**: 2026-02-15 → 2026-02-23
 
 ### This Week's Priority
 
@@ -38,6 +38,10 @@
     - Android Studio & SDK installed locally.
     - Android platform added and synced.
     - Manual verification of Android build, emulator, and native storage persistence complete.
+- ✅ **Capacitor 8.1.0 Upgrade**:
+    - Migrated core packages from v6.2 to v8.1.0 using non-interactive CLI tooling.
+    - Updated Android SDK targets to API 36/Java 21 to satisfy Capacitor 8 requirements.
+    - Implemented `env(safe-area-inset)` CSS fallback to support Android 15 Edge-to-Edge window rendering.
 
 ### Done
 
@@ -73,9 +77,14 @@
 - [x] **Test Modularization**: Separated the test suite into specific domains (`chores`, `assignments`, `actors`, `settings`, `groups`, `rotations`, `database`).
 - [x] **Framework Validation**: Created a meta-test (`tests/framework/framework.spec.js`) to permanently validate the DOM-based runner logic.
 - ✅ **Tactile UX for Mobile**:
-    - Implemented `mobile-drag-drop` polyfill for seamless touch interactions.
-    - Added CSS visual feedback (lifting scale effect and shadow) during dragging.
-    - Built-in `navigator.vibrate` haptic feedback for grabbing and dropping markers.
+    - Implemented `DragDropTouch.js` polyfill for seamless routing of W3C touch gestures to HTML5 Drag algorithms across modern Android WebViews.
+    - Handled pure JS touch events (`touchstart`/`touchmove`) for column resizer handles.
+    - Implemented global `touch-action: none` to mitigate native pinch/scroll conflict during UI interactions.
+- ✅ **E2E Android Testing Pipeline**:
+    - Established architecture referencing Appium + WebdriverIO + W3C Actions for cross-context WebView testing.
+    - Created `docs/automated_e2e_testing.md` guide for Local and CI (GitHub Actions macOS HA) runs.
+- ✅ **Security Audits**:
+    - Resolved `minimatch` ReDoS vulnerability via `npm overrides`.
 
 ---
 
@@ -83,15 +92,14 @@
 
 ### Where You Left Off
 
-**Last Worked On**: 2026-02-21
+**Last Worked On**: 2026-02-23
 
-**Status**: **Release v0.0.3** is live! The project now features Capacitor integration, an async data layer, a modularized Playwright test suite, and a modern linting/formatting strategy with Husky. PR #29 (Capacitor 8.1.0 upgrade) is open but deferred for verification.
+**Status**: The critical upgrade to Capacitor 8.1.0 has been finalized, tested, and documented. Tactile mobile UX regressions (drag/drop and resizing) caused by WebView updates have been squashed. Application security is verified clean (0 vulnerabilities).
 
 ### Next Steps (For Resuming)
 
-1. **PR #29 Verification**: Manually verify and merge the Capacitor 8.1.0 upgrade. Check for any breaking changes in CLI patterns or Android SDK requirements.
-2. **CI Pipeline Optimization**: Follow the `docs/playwright_sharding_strategy.md` to optimize the GitHub Actions runner.
-3. **Postgres/MySQL Migration (v2)**: Begin transitioning the `ChoreRepository` and `StorageStrategy` to support remote SQL backends.
+1. **Test Suite Expansion**: Consider implementing the Appium + WebdriverIO architecture designed in `docs/automated_e2e_testing.md` into actual CI workflows.
+2. **Postgres/MySQL Migration (v2)**: Begin transitioning the `ChoreRepository` and `StorageStrategy` to support remote SQL backends.
 
 ---
 
@@ -112,3 +120,4 @@
 | 2026-02-21 | Antigravity | Restructured and recovered legacy test suite using modular Playwright runner.  |
 | 2026-02-21 | Antigravity | Cleaned up obsolete documentation and finalized Mobile Tactile UX markers.     |
 | 2026-02-21 | Antigravity | Released v0.0.3.                                                               |
+| 2026-02-23 | Antigravity | Upgraded to Capacitor 8, replaced DragDrop polyfill, created E2E Architecture. |
