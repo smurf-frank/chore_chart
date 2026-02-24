@@ -135,7 +135,7 @@ graph LR
 ### Versioning
 
 - **Semantic Versioning**: The project follows [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
-- **Current Version**: `v0.0.3` (Capacitor & Async Storage).
+- **Current Version**: `v1.0.0` (Official Native Release).
 
 ### Artifact Naming Convention
 

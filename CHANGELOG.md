@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-02-23
+
+### Added
+
+- **Production Tagging**: Automated pipeline for official artifact signing (APK, ZIP, SHA256) via GitHub Releases.
+- **E2E Mobile Architecture**: Formalized Appium and WebDriverIO native interface bindings for Android testing in `docs/automated_e2e_testing.md`.
+- **Target OS Compatibility**: Android 15 Edge-to-Edge compliance established via CSS `env(safe-area-inset)` fallbacks.
+
+### Changed
+
+- **Capacitor 8 Upgrade**: Migrated Android mobile bindings to `v8.1.0` utilizing API 36 compiling with Java 21 logic.
+- **Native User Interface**: Replaced generic polyfill with `DragDropTouch.js` to restore tactile UX and properly dispatch nested `touchmove` events for column resize handles.
+
+### Security
+
+- **Strict Dependency Overrides**: Forced secure `minimatch` resolution to address high-severity Regular Expression Denial of Service (ReDoS) vulnerability.
+
 ## [0.0.3] - 2026-02-21
 
 ### Added
