@@ -1,4 +1,4 @@
-Package: eslint@10.0.1
+Package: eslint@10.0.2
 License: MIT
 Repository: https://github.com/eslint/eslint
 Publisher: Nicholas C. Zakas

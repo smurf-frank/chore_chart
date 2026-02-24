@@ -1,4 +1,4 @@
-Package: @capacitor/core@6.2.1
+Package: @capacitor/core@8.1.0
 License: MIT
 Repository: https://github.com/ionic-team/capacitor
 Publisher: Ionic Team
