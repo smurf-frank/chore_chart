@@ -1,6 +1,6 @@
 {
     "name": "chore-chart",
-    "version": "0.0.3",
+    "version": "1.0.0",
     "description": "Digital magnetic bulletin board chore chart",
     "main": "app.js",
     "scripts": {
