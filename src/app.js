@@ -511,7 +511,6 @@ async function openSettings() {
 
     // Detect current channel from URL path
     // Path is like /chore_chart/ (stable) or /chore_chart/master/ (branch)
-    const pathParts = window.location.pathname.replace(/\/$/, '').split('/');
     const repoBase = '/chore_chart';
     const afterBase = window.location.pathname
         .replace(repoBase, '')
@@ -850,9 +849,6 @@ async function renderGroupsList() {
                 eligibleGroups.push(g);
             }
         }
-        const memberGroups = groups.filter(
-            (g) => g.id !== group.id && group.memberIds.includes(g.id)
-        );
 
         // Combine for display: show matches or currently added ones (even if invalid now, though that shouldn't happen)
         // Actually, just show all eligible candidates + current members

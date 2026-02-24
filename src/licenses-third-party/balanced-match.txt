@@ -1,4 +1,4 @@
-Package: balanced-match@4.0.3
+Package: balanced-match@4.0.4
 License: MIT
 Repository: https://github.com/juliangruber/balanced-match
 
