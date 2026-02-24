@@ -121,3 +121,4 @@
 | 2026-02-21 | Antigravity | Cleaned up obsolete documentation and finalized Mobile Tactile UX markers.     |
 | 2026-02-21 | Antigravity | Released v0.0.3.                                                               |
 | 2026-02-23 | Antigravity | Upgraded to Capacitor 8, replaced DragDrop polyfill, created E2E Architecture. |
+| 2026-02-23 | Antigravity | Merged PR 42 and cut official production release v1.0.0.                       |
