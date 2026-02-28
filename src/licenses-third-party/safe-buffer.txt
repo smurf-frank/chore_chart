@@ -1,4 +1,4 @@
-Package: safe-buffer@5.2.1
+Package: safe-buffer@5.1.2
 License: MIT
 Repository: https://github.com/feross/safe-buffer
 Publisher: Feross Aboukhadijeh

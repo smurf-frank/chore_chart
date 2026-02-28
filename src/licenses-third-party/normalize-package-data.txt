@@ -1,4 +1,4 @@
-Package: normalize-package-data@8.0.0
+Package: normalize-package-data@5.0.0
 License: BSD-2-Clause
 Repository: https://github.com/npm/normalize-package-data
 Publisher: GitHub Inc.

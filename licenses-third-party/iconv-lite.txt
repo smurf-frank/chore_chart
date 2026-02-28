@@ -1,6 +1,6 @@
-Package: iconv-lite@0.7.2
+Package: iconv-lite@0.6.3
 License: MIT
-Repository: https://github.com/pillarjs/iconv-lite
+Repository: https://github.com/ashtuchkin/iconv-lite
 Publisher: Alexander Shtuchkin
 
 --------------------------------------------------------------------------------

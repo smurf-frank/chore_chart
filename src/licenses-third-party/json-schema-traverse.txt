@@ -1,4 +1,4 @@
-Package: json-schema-traverse@1.0.0
+Package: json-schema-traverse@0.4.1
 License: MIT
 Repository: https://github.com/epoberezkin/json-schema-traverse
 Publisher: Evgeny Poberezkin
