@@ -84,7 +84,7 @@ async function renderBoard() {
     addBtn.textContent = '+';
     addBtn.title = 'Add Chore';
     addBtn.addEventListener('click', async () => {
-        const newChore = await ChoreRepository.addChore('New Chore');
+        await ChoreRepository.addChore('New Chore');
         await renderBoard();
         // Focus the newly added chore's input
         const inputs = document.querySelectorAll('.chore-name-input');
