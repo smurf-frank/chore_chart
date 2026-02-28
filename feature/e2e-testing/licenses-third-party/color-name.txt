@@ -1,7 +1,7 @@
-Package: color-name@2.1.0
+Package: color-name@1.1.4
 License: MIT
 Repository: https://github.com/colorjs/color-name
-Publisher: Dmitry Iv
+Publisher: DY
 
 --------------------------------------------------------------------------------
 

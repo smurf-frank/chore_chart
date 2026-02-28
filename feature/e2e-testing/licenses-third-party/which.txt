@@ -1,7 +1,7 @@
-Package: which@6.0.1
+Package: which@2.0.2
 License: ISC
-Repository: https://github.com/npm/node-which
-Publisher: GitHub Inc.
+Repository: https://github.com/isaacs/node-which
+Publisher: Isaac Z. Schlueter
 
 --------------------------------------------------------------------------------
 

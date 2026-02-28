@@ -1,11 +1,13 @@
-Package: iconv-lite@0.6.3
+Package: portfinder@1.0.38
 License: MIT
-Repository: https://github.com/ashtuchkin/iconv-lite
-Publisher: Alexander Shtuchkin
+Repository: https://github.com/http-party/node-portfinder
+Publisher: Charlie Robbins
 
 --------------------------------------------------------------------------------
 
-Copyright (c) 2011 Alexander Shtuchkin
+node-portfinder
+
+Copyright (c) 2012 Charlie Robbins
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -25,4 +27,3 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
 LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-

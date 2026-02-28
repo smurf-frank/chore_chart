@@ -37,6 +37,10 @@ async function init() {
     await renderBoard();
     await renderPalette();
     bindEvents();
+
+    // Expose for E2E testing
+    window.ChoreRepository = window.ChoreRepository || window.repository; // fallback depending on how it's imported
+    window.renderBoard = renderBoard;
 }
 
 /**
@@ -80,10 +84,14 @@ async function renderBoard() {
     addBtn.textContent = '+';
     addBtn.title = 'Add Chore';
     addBtn.addEventListener('click', async () => {
-        const name = prompt('Enter chore name:');
-        if (name && name.trim()) {
-            await ChoreRepository.addChore(name.trim());
-            await renderBoard();
+        const newChore = await ChoreRepository.addChore('New Chore');
+        await renderBoard();
+        // Focus the newly added chore's input
+        const inputs = document.querySelectorAll('.chore-name-input');
+        const lastInput = inputs[inputs.length - 1];
+        if (lastInput) {
+            lastInput.focus();
+            lastInput.select();
         }
     });
     corner.appendChild(addBtn);
@@ -185,6 +193,10 @@ async function renderBoard() {
                 nameInput.value = chore.name;
             }
         });
+        // Prevent drag interference when interacting with input
+        ['mousedown', 'touchstart', 'click'].forEach((evt) => {
+            nameInput.addEventListener(evt, (e) => e.stopPropagation());
+        });
         nameCell.appendChild(nameInput);
 
         const deleteBtn = document.createElement('button');
@@ -193,9 +205,22 @@ async function renderBoard() {
         deleteBtn.title = `Delete ${chore.name}`;
         deleteBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
-            if (confirm(`Delete "${chore.name}" and all its assignments?`)) {
+            if (deleteBtn.classList.contains('confirm-delete')) {
                 await ChoreRepository.removeChore(chore.id);
                 await renderBoard();
+            } else {
+                deleteBtn.classList.add('confirm-delete');
+                deleteBtn.textContent = '✓';
+                deleteBtn.title = 'Click again to confirm delete';
+                tryVibrate(50);
+                // Reset after 3 seconds if not clicked again
+                setTimeout(() => {
+                    if (document.body.contains(deleteBtn)) {
+                        deleteBtn.classList.remove('confirm-delete');
+                        deleteBtn.textContent = '×';
+                        deleteBtn.title = `Delete ${chore.name}`;
+                    }
+                }, 3000);
             }
         });
         nameCell.appendChild(deleteBtn);

@@ -1,13 +1,13 @@
-Package: safe-buffer@5.1.2
+Package: mime@1.6.0
 License: MIT
-Repository: https://github.com/feross/safe-buffer
-Publisher: Feross Aboukhadijeh
+Repository: https://github.com/broofa/node-mime
+Publisher: Robert Kieffer
 
 --------------------------------------------------------------------------------
 
 The MIT License (MIT)
 
-Copyright (c) Feross Aboukhadijeh
+Copyright (c) 2010 Benjamin Thomas, Robert Kieffer
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
