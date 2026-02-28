@@ -1,9 +1,0 @@
-Package: @esbuild/linux-x64@0.27.3
-License: MIT
-Repository: https://github.com/evanw/esbuild
-
---------------------------------------------------------------------------------
-
-# esbuild
-
-This is the Linux 64-bit binary for esbuild, a JavaScript bundler and minifier. See https://github.com/evanw/esbuild for details.
