@@ -1,11 +1,10 @@
-Package: emoji-regex@10.6.0
+Package: http-server@14.1.1
 License: MIT
-Repository: https://github.com/mathiasbynens/emoji-regex
-Publisher: Mathias Bynens
+Repository: https://github.com/http-party/http-server
 
 --------------------------------------------------------------------------------
 
-Copyright Mathias Bynens <https://mathiasbynens.be/>
+Copyright (c) 2011-2022 Charlie Robbins, Marak Squires, Jade Michael Thornton and the Contributors.
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
