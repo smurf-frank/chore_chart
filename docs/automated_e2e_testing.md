@@ -126,7 +126,7 @@ on:
 
 jobs:
     test:
-        runs-on: macos-latest # macOS provides hardware acceleration (HAXM) natively, required for fast Android emulators in CI
+        runs-on: ubuntu-latest # Recommended: 2-3x faster and free vs macOS
 
         steps:
             - name: Checkout Code
@@ -135,7 +135,7 @@ jobs:
             - name: Setup Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: '24' # Or your project's version
+                  node-version: '24'
                   cache: 'npm'
 
             - name: Set up JDK
@@ -155,6 +155,12 @@ jobs:
               working-directory: ./android
               run: ./gradlew assembleDebug
 
+            - name: Enable KVM group perms
+              run: |
+                  echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+                  sudo udevadm control --reload-rules
+                  sudo udevadm trigger --name-match=kvm
+
             - name: Run E2E Tests on Emulator
               uses: reactivecircus/android-emulator-runner@v2
               with:
@@ -167,5 +173,6 @@ jobs:
 
 ### CI Considerations
 
-- **`macos-latest` runner**: It is highly recommended to use macOS runners for Android emulator tests in GitHub Actions. Linux runners require nested virtualization, which is complex and incredibly slow. macOS runners have hardware acceleration out of the box.
+- **`ubuntu-latest` runner (recommended)**: The `android-emulator-runner` action now officially recommends Ubuntu over macOS. Linux runners with KVM are **2-3x faster** than macOS runners and are free for public repositories with no minute multiplier. A one-time `Enable KVM group perms` step is required before running the emulator action.
+- **`macos-latest` (legacy)**: Previously required for hardware acceleration. Now only preferred if macOS-specific behavior needs testing.
 - **Flakiness**: E2E UI tests are notoriously flaky due to timing issues. Utilize WebdriverIO's built-in wait commands (e.g., `waitForDisplayed()`, `waitForClickable()`) heavily, rather than hardcoded `.pause()` timeouts.

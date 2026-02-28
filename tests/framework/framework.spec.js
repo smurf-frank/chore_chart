@@ -1,6 +1,5 @@
 const { test, expect } = require('@playwright/test');
 const path = require('path');
-const fs = require('fs');
 
 test('Framework Validation (Meta-Test)', async ({ page }) => {
     const baseUrl = `file://${path.resolve(__dirname, 'base.html')}`;

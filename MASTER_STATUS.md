@@ -8,13 +8,13 @@
 
 ### Active Sprint / Phase
 
-**Phase Name**: Capacitor Cross-Platform Integration
-**Version**: v0.0.3
-**Dates**: 2026-02-15 → 2026-02-23
+**Phase Name**: Web Application Optimization & UI Refinement
+**Version**: v1.1.0-alpha
+**Dates**: 2026-02-23 → 2026-02-28
 
 ### This Week's Priority
 
-**Priority**: Integrate Capacitor for cross-platform deployment (Web + Android).
+**Priority**: Finalize Web/PWA features and resolve UI interaction bugs. Next: Complete browser verification and persistence audits.
 
 ### Status: 🟢 On Track
 
@@ -33,17 +33,22 @@
 
 ### In Progress
 
-- ✅ **Capacitor Integration**:
+- [/] **Browser Verification**:
+    - Initial verification confirmed UI focus and persistence for edits.
+    - Second round of verification (for new tactile UI) was interrupted; needs final sign-off.
+- ⏸️ **Capacitor Integration (ON HOLD)**:
     - Project restructured (`src/`, `tests/`, `docs/`).
     - Android Studio & SDK installed locally.
     - Android platform added and synced.
-    - Manual verification of Android build, emulator, and native storage persistence complete.
-- ✅ **Capacitor 8.1.0 Upgrade**:
-    - Migrated core packages from v6.2 to v8.1.0 using non-interactive CLI tooling.
-    - Updated Android SDK targets to API 36/Java 21 to satisfy Capacitor 8 requirements.
-    - Implemented `env(safe-area-inset)` CSS fallback to support Android 15 Edge-to-Edge window rendering.
+    - Note: Native Android APK builds are currently suspended to focus on Web/PWA stability.
 
-### Done
+- ✅ **Web Focus Pivot**: Updated `PROJECT_BIBLE.md` and `MASTER_STATUS.md` to prioritize Web/PWA.
+- ✅ **Dependency Cleanup**: Removed Capacitor and WDIO dependencies from `package.json` to simplify the environment.
+- ✅ **Tactile UI Fixes**:
+    - Replaced `prompt` with direct row addition and auto-focus for new chores.
+    - Replaced `confirm` with a tactile, non-blocking two-click confirmation.
+    - Increased button contrast for better accessibility.
+    - Prevented drag-and-drop interference during input editing.
 
 - ✅ **Project Restructuring**:
     - Separated concerns by migrating application code to `src/`, testing suite to `tests/`, and planning documents to `docs/`.
@@ -122,3 +127,4 @@
 | 2026-02-21 | Antigravity | Released v0.0.3.                                                               |
 | 2026-02-23 | Antigravity | Upgraded to Capacitor 8, replaced DragDrop polyfill, created E2E Architecture. |
 | 2026-02-23 | Antigravity | Merged PR 42 and cut official production release v1.0.0.                       |
+| 2026-02-23 | Antigravity | Fixed missing WDIO dependencies causing GitHub Actions failure.                |
