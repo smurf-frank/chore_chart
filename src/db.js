@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /**
  * db.js - Database Initialization & Schema
  *

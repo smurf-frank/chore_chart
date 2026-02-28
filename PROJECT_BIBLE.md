@@ -126,6 +126,8 @@ graph LR
 1.  **Update Master Status**: Before submitting a PR, `MASTER_STATUS.md` must be updated to reflect all work done in that branch. This ensures the living document is always in sync with the codebase.
 2.  **Security Review**: After creating a PR, review it for any identified security issues (e.g., CodeQL alerts, dependency vulnerabilities). All security findings **must** be resolved before merging.
 3.  **Third-Party License Tracking**: Any new library or asset (fonts, icons, WASM blobs) added to the repository must be documented in `LICENSE-THIRD-PARTY.md` with its source, files, and license.
+4.  **Human Approval**: An explicit, human-provided approval is mandatory before any Pull Request can be merged. Auto-merging or assuming consent is strictly prohibited.
+5.  **Branch Protections**: You must _never_ bypass branch protections. The use of admin overrides (e.g. `--admin` flags) to force a merge is strictly prohibited.
 
 ### Commit Signing
 

@@ -1,0 +1,4 @@
+# Agent System Rules
+
+- **Branch Protections**: NEVER bypass branch protections. Do not use admin overrides (e.g. `--admin` flags in GitHub CLI) to force a merge.
+- **Pull Request Merging**: You need EXPLICIT human approval to merge pull requests. Never merge a PR automatically or assume consent.

@@ -4,7 +4,10 @@ description: how to merge an approved pull request into master
 
 # Merge PR Workflow
 
-Run this only after the human has reviewed and approved the PR. Never merge without explicit approval.
+**CRITICAL RULES:**
+
+- You must require **EXPLICIT APPROVAL FROM THE HUMAN** before merging anything. Do not assume consent.
+- You must **NEVER BYPASS BRANCH PROTECTIONS** under any circumstance. Do not use `--admin` flags.
 
 // turbo
 
