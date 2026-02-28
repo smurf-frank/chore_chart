@@ -448,3 +448,6 @@ const ChoreRepository = {
         await this.setSetting('chore_col_width', width);
     }
 };
+
+// Expose globally for app.js and E2E tests
+window.ChoreRepository = ChoreRepository;

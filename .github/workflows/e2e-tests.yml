@@ -1,13 +1,16 @@
 name: Android E2E Tests
 
 on:
-    push:
-        branches: [master]
-    pull_request:
-        branches: [master]
+  workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+    branches: [master]
+  push:
+    branches: [master]
 
 jobs:
     e2e:
+        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'run-android-e2e'))
         runs-on: ubuntu-latest # Linux with KVM is 2-3x faster and free vs macOS
 
         steps:

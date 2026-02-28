@@ -21,6 +21,7 @@
         "@playwright/test": "^1.49.0",
         "eslint": "^10.0.1",
         "eslint-config-prettier": "^10.1.8",
+        "http-server": "^14.1.1",
         "husky": "^9.1.7",
         "license-checker-rseidelsohn": "^4.4.2",
         "lint-staged": "^16.2.7",

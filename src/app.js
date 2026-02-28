@@ -37,6 +37,10 @@ async function init() {
     await renderBoard();
     await renderPalette();
     bindEvents();
+
+    // Expose for E2E testing
+    window.ChoreRepository = window.ChoreRepository || window.repository; // fallback depending on how it's imported
+    window.renderBoard = renderBoard;
 }
 
 /**
