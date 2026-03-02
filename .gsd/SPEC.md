@@ -13,6 +13,7 @@ To create a digital equivalent of a physical magnetic chore chart that is tactil
 3. **Multi-Board Support**: Allow users to switch between different chore charts or household boards within the same application.
 4. **Platform Versatility**: Primary target is the Cozyla digital calendar (Android), but delivered via a high-performance Web/PWA for universal access.
 5. **Self-Hosting Path**: Transition from local-only storage to a self-hostable remote backend (Postgres/MySQL) to support multi-user synchronization.
+6. **Calendar Integration**: Support sending calendar invites for assigned tasks to ensure visibility across personal schedules.
 
 ## Non-Goals (Out of Scope)
 
@@ -22,7 +23,7 @@ To create a digital equivalent of a physical magnetic chore chart that is tactil
 
 ## Users
 
-- **Household Members**: View their assignments and move markers to indicate completion/status.
+- **Household Members**: View their assignments on the main board or from their phones while out and about; move markers to indicate completion/status.
 - **Chore Managers**: Configure chores, participants, and rotation schedules.
 - **Remote Family**: Check in on household tasks from different locations.
 
@@ -39,3 +40,4 @@ To create a digital equivalent of a physical magnetic chore chart that is tactil
 - [ ] State changes on one device are reflected on another device within < 2 seconds.
 - [ ] Users can switch between at least two independent boards seamlessly.
 - [ ] The app is installable as a PWA and functions on the Cozyla hardware.
+- [ ] Users can trigger/receive a calendar invite for a specific chore assignment.

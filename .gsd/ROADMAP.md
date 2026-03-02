@@ -20,8 +20,8 @@
 ### Phase 2: Remote Bridge (v2)
 
 **Status**: ⬜ Not Started
-**Objective**: Implement the remote SQL repository and sync layer to enable multi-device concurrency.
-**Requirements**: REQ-02, REQ-04, REQ-06
+**Objective**: Implement the remote SQL repository, sync layer, and calendar integrations to enable multi-device concurrency and external visibility.
+**Requirements**: REQ-02, REQ-04, REQ-06, REQ-07
 
 ### Phase 3: Hardware & Performance Optimization
 
