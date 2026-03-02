@@ -20,6 +20,7 @@ To create a digital equivalent of a physical magnetic chore chart that is tactil
 10. **Voice Interface (Alexa)**: Allow natural language queries ("Who is on dishes?") and commands ("Re-assign X to Y") via voice assistants.
 11. **Automation & Hooks**: Support time-of-day triggers that send customizable payloads to external webhook endpoints.
 12. **Agentic Autonomy (MCP)**: Implement Model Context Protocol (MCP) to allow external AI agents to query state and assign future chores.
+13. **Persistent Audit Logging**: Maintain a queryable record of all activities (assignments, moves, setting changes) to provide transparency and accountability (e.g., "Who assigned me this chore?").
 
 ## Non-Goals (Out of Scope)
 
@@ -29,8 +30,8 @@ To create a digital equivalent of a physical magnetic chore chart that is tactil
 
 ## Users
 
-- **Household Members**: View assignments on the board/phone; move markers; query status via Alexa.
-- **Chore Managers**: Configure chores, participants, rotation schedules, "topology", and automation triggers.
+- **Household Members**: View assignments on the board/phone; move markers; query status via Alexa; view audit history for their tasks.
+- **Chore Managers**: Configure chores, participants, rotation schedules, "topology", automation triggers, and review comprehensive audit logs.
 - **Remote Family**: Check in on household tasks from different locations.
 - **AI Agents**: Interface via MCP to manage or optimize future chore distributions.
 
@@ -51,5 +52,6 @@ To create a digital equivalent of a physical magnetic chore chart that is tactil
 - [ ] Alexa can correctly identify the person assigned to a chore for "today" or "tomorrow".
 - [ ] A webhook payload is successfully sent at a configured "Time of Day" trigger.
 - [ ] An external AI agent can assign a chore to an actor via the MCP interface.
+- [ ] **Audit Query**: Users can view a list of recent changes for any specific chore or cell, showing who performed the action and when.
 - [ ] Users can "swap" a marker temporarily for a single instance.
 - [ ] Users can toggle distinct visual "skins" and sound profiles.

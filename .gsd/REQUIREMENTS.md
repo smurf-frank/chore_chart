@@ -21,3 +21,5 @@
 | REQ-15 | Time-of-Day Scheduler / Trigger         | SPEC Goal 11 | Pending |
 | REQ-16 | Webhook Payload Customizer & Sender     | SPEC Goal 11 | Pending |
 | REQ-17 | MCP Server Implementation (State/Write) | SPEC Goal 12 | Pending |
+| REQ-18 | Audit Log Database Schema & Trigger     | SPEC Goal 13 | Pending |
+| REQ-19 | Audit Log Query Interface (UI)          | SPEC Goal 13 | Pending |

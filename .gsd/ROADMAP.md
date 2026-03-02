@@ -9,14 +9,15 @@
 - [ ] Multi-board support foundation and inter-chart linking.
 - [ ] Flexible grid unit configuration (topology).
 - [ ] Temporary assignment re-assignment logic.
+- [ ] Queryable audit log of all activities.
 
 ## Phases
 
 ### Phase 1: Polishing the Physical Foundation
 
 **Status**: ⬜ Not Started
-**Objective**: Finalize the local experience with enhanced tactility, flexible grid units, and temporary re-assignments.
-**Requirements**: REQ-01, REQ-03, REQ-08, REQ-09, REQ-10
+**Objective**: Finalize the local experience with enhanced tactility, flexible grid units, temporary re-assignments, and audit logging.
+**Requirements**: REQ-01, REQ-03, REQ-08, REQ-09, REQ-10, REQ-18, REQ-19
 
 ### Phase 2: Remote Bridge (v2)
 
