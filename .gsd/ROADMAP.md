@@ -21,8 +21,8 @@
 ### Phase 2: Remote Bridge (v2)
 
 **Status**: ⬜ Not Started
-**Objective**: Implement the remote SQL repository, sync layer, and calendar integrations to enable multi-device concurrency and external visibility.
-**Requirements**: REQ-02, REQ-04, REQ-06, REQ-07, REQ-13
+**Objective**: Implement the remote SQL repository, sync layer, and basic calendar/webhook integrations.
+**Requirements**: REQ-02, REQ-04, REQ-06, REQ-07, REQ-13, REQ-15, REQ-16
 
 ### Phase 3: Hardware & Aesthetics
 
@@ -30,7 +30,13 @@
 **Objective**: Optimize for the Cozyla digital calendar and implement the theming/sound engine.
 **Requirements**: REQ-05, REQ-11, REQ-12
 
-### Phase 4: Service Readiness
+### Phase 4: Advanced Integations & Autonomy
+
+**Status**: ⬜ Not Started
+**Objective**: Deploy the Alexa Skill and MCP server for voice interaction and AI-to-AI chore management.
+**Requirements**: REQ-14, REQ-17
+
+### Phase 5: Service Readiness
 
 **Status**: ⬜ Not Started
 **Objective**: Finalize self-hosting documentation and optional service offering infrastructure.

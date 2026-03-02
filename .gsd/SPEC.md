@@ -16,7 +16,10 @@ To create a digital equivalent of a physical magnetic chore chart that is tactil
 6. **Calendar Integration**: Support sending calendar invites for assigned tasks to ensure visibility across personal schedules.
 7. **Customizable Grid Topology**: Allow users to define the primary and sub-units of time (e.g., Months/Weeks, Weeks/Days) and orient them freely on any axis (Top/Bottom/Left/Right).
 8. **Themed Experience**: Support skins and custom soundscapes to allow households to personalize their "magnetic board" vibe.
-9. **Dynamic Interconnectivity**: Enable linking tasks to other charts, allowing for hierarchical task management (e.g., click "Kitchen Clean" to open a detailed "Kitchen Sub-Chart").
+9. **Dynamic Interconnectivity**: Enable linking tasks to other charts, allowing for hierarchical task management.
+10. **Voice Interface (Alexa)**: Allow natural language queries ("Who is on dishes?") and commands ("Re-assign X to Y") via voice assistants.
+11. **Automation & Hooks**: Support time-of-day triggers that send customizable payloads to external webhook endpoints.
+12. **Agentic Autonomy (MCP)**: Implement Model Context Protocol (MCP) to allow external AI agents to query state and assign future chores.
 
 ## Non-Goals (Out of Scope)
 
@@ -26,9 +29,10 @@ To create a digital equivalent of a physical magnetic chore chart that is tactil
 
 ## Users
 
-- **Household Members**: View their assignments on the main board or from their phones while out and about; move markers to indicate completion/status.
-- **Chore Managers**: Configure chores, participants, rotation schedules, and the physical "topology" of the board.
+- **Household Members**: View assignments on the board/phone; move markers; query status via Alexa.
+- **Chore Managers**: Configure chores, participants, rotation schedules, "topology", and automation triggers.
 - **Remote Family**: Check in on household tasks from different locations.
+- **AI Agents**: Interface via MCP to manage or optimize future chore distributions.
 
 ## Constraints
 
@@ -42,9 +46,10 @@ To create a digital equivalent of a physical magnetic chore chart that is tactil
 - [ ] Markers "snap" into cells with visible and tactile feedback.
 - [ ] State changes on one device are reflected on another device within < 2 seconds.
 - [ ] Users can switch between at least two independent boards seamlessly.
-- [ ] The app is installable as a PWA and functions on the Cozyla hardware.
 - [ ] Users can trigger/receive a calendar invite for a specific chore assignment.
-- [ ] Users can define a grid structure of 5 "Sub-units" within 1 "Primary unit" and label them.
-- [ ] Clicking a task successfully navigates to a linked sub-board.
-- [ ] Users can "swap" a marker for another peer's marker temporarily for a single instance.
-- [ ] Users can toggle between at least two distinct visual "skins" and sound profiles.
+- [ ] Users can define a grid structure and axis orientation.
+- [ ] Alexa can correctly identify the person assigned to a chore for "today" or "tomorrow".
+- [ ] A webhook payload is successfully sent at a configured "Time of Day" trigger.
+- [ ] An external AI agent can assign a chore to an actor via the MCP interface.
+- [ ] Users can "swap" a marker temporarily for a single instance.
+- [ ] Users can toggle distinct visual "skins" and sound profiles.
