@@ -14,6 +14,9 @@ To create a digital equivalent of a physical magnetic chore chart that is tactil
 4. **Platform Versatility**: Primary target is the Cozyla digital calendar (Android), but delivered via a high-performance Web/PWA for universal access.
 5. **Self-Hosting Path**: Transition from local-only storage to a self-hostable remote backend (Postgres/MySQL) to support multi-user synchronization.
 6. **Calendar Integration**: Support sending calendar invites for assigned tasks to ensure visibility across personal schedules.
+7. **Customizable Grid Topology**: Allow users to define the primary and sub-units of time (e.g., Months/Weeks, Weeks/Days) and orient them freely on any axis (Top/Bottom/Left/Right).
+8. **Themed Experience**: Support skins and custom soundscapes to allow households to personalize their "magnetic board" vibe.
+9. **Dynamic Interconnectivity**: Enable linking tasks to other charts, allowing for hierarchical task management (e.g., click "Kitchen Clean" to open a detailed "Kitchen Sub-Chart").
 
 ## Non-Goals (Out of Scope)
 
@@ -24,7 +27,7 @@ To create a digital equivalent of a physical magnetic chore chart that is tactil
 ## Users
 
 - **Household Members**: View their assignments on the main board or from their phones while out and about; move markers to indicate completion/status.
-- **Chore Managers**: Configure chores, participants, and rotation schedules.
+- **Chore Managers**: Configure chores, participants, rotation schedules, and the physical "topology" of the board.
 - **Remote Family**: Check in on household tasks from different locations.
 
 ## Constraints
@@ -41,3 +44,7 @@ To create a digital equivalent of a physical magnetic chore chart that is tactil
 - [ ] Users can switch between at least two independent boards seamlessly.
 - [ ] The app is installable as a PWA and functions on the Cozyla hardware.
 - [ ] Users can trigger/receive a calendar invite for a specific chore assignment.
+- [ ] Users can define a grid structure of 5 "Sub-units" within 1 "Primary unit" and label them.
+- [ ] Clicking a task successfully navigates to a linked sub-board.
+- [ ] Users can "swap" a marker for another peer's marker temporarily for a single instance.
+- [ ] Users can toggle between at least two distinct visual "skins" and sound profiles.
