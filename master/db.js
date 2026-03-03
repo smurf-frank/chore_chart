@@ -2,15 +2,12 @@
 /**
  * db.js - Database Initialization & Schema
  *
- * Uses sql.js (SQLite compiled to WebAssembly) for local persistence in browser,
- * and @capacitor-community/sqlite for native Android.
+ * Uses sql.js (SQLite compiled to WebAssembly) for local persistence in browser.
  */
 
 const DB_NAME = 'chore_chart_db';
 
 // _db holds the platform-specific database object
-// For web: { isNative: false, client: SQL.Database }
-// For native: { isNative: true, plugin: CapacitorSQLite }
 let _db = null;
 
 /**
@@ -20,30 +17,17 @@ let _db = null;
 async function initDatabase() {
     if (_db) return _db;
 
-    if (StorageStrategy.isNative()) {
-        const sqlite = window.Capacitor.Plugins.CapacitorSQLite;
-        await sqlite.createConnection({
-            database: DB_NAME,
-            encrypted: false,
-            mode: 'no-encryption',
-            version: 1,
-            readonly: false
-        });
-        await sqlite.open({ database: DB_NAME, readonly: false });
-        _db = { isNative: true, plugin: sqlite };
-    } else {
-        const SQL = await initSqlJs({
-            locateFile: (file) => `vendor/${file}`
-        });
+    const SQL = await initSqlJs({
+        locateFile: (file) => `vendor/${file}`
+    });
 
-        // Try to restore from localStorage
-        const savedData = localStorage.getItem(DB_NAME);
-        if (savedData) {
-            const buf = Uint8Array.from(atob(savedData), (c) => c.charCodeAt(0));
-            _db = { isNative: false, client: new SQL.Database(buf) };
-        } else {
-            _db = { isNative: false, client: new SQL.Database() };
-        }
+    // Try to restore from localStorage
+    const savedData = localStorage.getItem(DB_NAME);
+    if (savedData) {
+        const buf = Uint8Array.from(atob(savedData), (c) => c.charCodeAt(0));
+        _db = new SQL.Database(buf);
+    } else {
+        _db = new SQL.Database();
     }
 
     // Run migrations / ensure schema
@@ -63,13 +47,9 @@ async function initDatabase() {
  */
 async function dbExecute(sql, params = []) {
     if (!_db) return;
-    if (_db.isNative) {
-        return await _db.plugin.run({ database: DB_NAME, statement: sql, values: params });
-    } else {
-        const res = _db.client.run(sql, params);
-        saveDatabase();
-        return res;
-    }
+    const res = _db.run(sql, params);
+    saveDatabase();
+    return res;
 }
 
 /**
@@ -80,19 +60,14 @@ async function dbExecute(sql, params = []) {
  */
 async function dbQuery(sql, params = []) {
     if (!_db) return [];
-    if (_db.isNative) {
-        const res = await _db.plugin.query({ database: DB_NAME, statement: sql, values: params });
-        return res.values || [];
-    } else {
-        const res = _db.client.exec(sql, params);
-        if (!res.length) return [];
-        const columns = res[0].columns;
-        return res[0].values.map((row) => {
-            const obj = {};
-            columns.forEach((col, i) => (obj[col] = row[i]));
-            return obj;
-        });
-    }
+    const res = _db.exec(sql, params);
+    if (!res.length) return [];
+    const columns = res[0].columns;
+    return res[0].values.map((row) => {
+        const obj = {};
+        columns.forEach((col, i) => (obj[col] = row[i]));
+        return obj;
+    });
 }
 
 /**
@@ -279,8 +254,8 @@ async function seedVisualSettings() {
  * Automatically called by dbExecute when needed.
  */
 function saveDatabase() {
-    if (!_db || _db.isNative) return;
-    const data = _db.client.export();
+    if (!_db) return;
+    const data = _db.export();
     const base64 = btoa(String.fromCharCode(...data));
     localStorage.setItem(DB_NAME, base64);
 }
