@@ -25,7 +25,7 @@ jobs:
 
       - name: Import GPG key
         id: import_gpg
-        uses: crazy-max/ghaction-import-gpg@v6
+        uses: crazy-max/ghaction-import-gpg@v7
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -38,7 +38,7 @@ jobs:
           gpg --batch --yes --armor --detach-sign "${ZIP_PATH}.sha256"
 
       - name: Upload Archive & Verification Files
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: chore-chart-src--${{ steps.meta.outputs.branch }}--${{ steps.meta.outputs.timestamp }}
           path: |
