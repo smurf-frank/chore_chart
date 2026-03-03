@@ -57,7 +57,7 @@ async function runTests() {
 
             // Fresh DB for each test using direct assignment to the global db.js variable
             localStorage.removeItem(DB_NAME);
-            _db = { isNative: false, client: new SQL.Database() };
+            _db = new SQL.Database();
 
             if (suite.beforeEachFn) {
                 try {

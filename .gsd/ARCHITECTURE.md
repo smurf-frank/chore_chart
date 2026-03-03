@@ -4,14 +4,13 @@
 
 ## Overview
 
-Chore Chart is a "Digital magnetic bulletin board" application designed for managing household chores. It supports both web-based usage and native Android deployment via Capacitor.
+Chore Chart is a "Digital magnetic bulletin board" application designed for managing household chores. It supports web-based usage as a PWA.
 
 ```mermaid
 graph TD
     UI[src/index.html & src/app.js] -->|calls| Repository[src/repository.js]
     Repository -->|SQL queries| DB[src/db.js]
     DB -->|sql.js| WebStorage[Browser LocalStorage]
-    DB -->|Capacitor SQLite| NativeStorage[Android SQLite]
 ```
 
 ## Components
@@ -39,9 +38,9 @@ graph TD
 - **Purpose**: Manages low-level SQLite database operations and schema.
 - **Location**: `src/db.js`
 - **Responsibilities**:
-    - Platform detection (Web vs Native).
+    - Platform detection.
     - Database initialization and schema migrations.
-    - Executing SQL queries and handling persistence to LocalStorage (for web) or native storage (for Android).
+    - Executing SQL queries and handling persistence to LocalStorage (for web).
 
 ## Data Flow
 
@@ -53,17 +52,14 @@ graph TD
 
 ## Integration Points
 
-| Service          | Type           | Purpose                               |
-| ---------------- | -------------- | ------------------------------------- |
-| sql.js           | Library (WASM) | SQLite engine for web browsers.       |
-| Capacitor SQLite | Plugin         | SQLite engine for native Android.     |
-| Capacitor        | Framework      | Native bridge for Android deployment. |
+| Service | Type           | Purpose                         |
+| ------- | -------------- | ------------------------------- |
+| sql.js  | Library (WASM) | SQLite engine for web browsers. |
 
 ## Technical Debt
 
 - No standard `TODO`/`FIXME` markers found in `src/`.
 - Heavy reliance on global `window` objects for exposing `ChoreRepository` and `renderBoard` (primarily for E2E testing).
-- Dual storage logic in `db.js` adds complexity for maintenance.
 
 ## Conventions
 
