@@ -229,18 +229,23 @@ body {
 }
 
 .chore-delete-btn {
-    display: none;
+    display: inline-flex;
     background: none;
     border: none;
-    color: #ccc;
+    color: #888;
+    /* Increased from #ccc for better visibility */
     font-size: 1.2rem;
     cursor: pointer;
     padding: 2px 6px;
     border-radius: 4px;
     line-height: 1;
-    transition:
-        color 0.15s,
-        background 0.15s;
+    transition: all 0.2s ease;
+}
+
+.chore-delete-btn.confirm-delete {
+    color: white;
+    background: #dc2626;
+    display: inline-flex;
 }
 
 .chore-delete-btn:hover {
@@ -248,12 +253,11 @@ body {
     background: #fee2e2;
 }
 
-.board-cell.chore-name:hover .chore-delete-btn {
-    display: inline-flex;
-}
+/* Removed hover visibility for buttons to support mobile/accessibility */
 
 .chore-rotate-btn {
-    display: none;
+    display: inline-flex;
+    color: #888;
     background: none;
     border: none;
     font-size: 0.85rem;
@@ -268,9 +272,7 @@ body {
     background: #dbeafe;
 }
 
-.board-cell.chore-name:hover .chore-rotate-btn {
-    display: inline-flex;
-}
+/* Removed hover visibility for buttons */
 
 /* Select Input */
 .select-input {

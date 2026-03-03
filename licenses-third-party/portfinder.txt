@@ -1,11 +1,13 @@
-Package: emoji-regex@10.6.0
+Package: portfinder@1.0.38
 License: MIT
-Repository: https://github.com/mathiasbynens/emoji-regex
-Publisher: Mathias Bynens
+Repository: https://github.com/http-party/node-portfinder
+Publisher: Charlie Robbins
 
 --------------------------------------------------------------------------------
 
-Copyright Mathias Bynens <https://mathiasbynens.be/>
+node-portfinder
+
+Copyright (c) 2012 Charlie Robbins
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
