@@ -4,21 +4,19 @@
 
 ## Runtime
 
-| Technology  | Version | Purpose                                |
-| ----------- | ------- | -------------------------------------- |
-| Web Browser | Latest  | Primary user interface environment.    |
-| Android     | 11+     | Native mobile runtime (via Capacitor). |
-| Node.js     | ^20.0.0 | Development and build environment.     |
+| Technology  | Version | Purpose                             |
+| ----------- | ------- | ----------------------------------- |
+| Web Browser | Latest  | Primary user interface environment. |
+| Node.js     | ^20.0.0 | Development and build environment.  |
 
 ## Dependencies
 
 ### Production
 
-| Package                     | Version | Purpose                                |
-| --------------------------- | ------- | -------------------------------------- |
-| drag-drop-touch             | ^1.3.1  | Touch support for HTML5 drag and drop. |
-| sql.js                      | ^1.10.x | SQLite engine for browser.             |
-| @capacitor-community/sqlite | ^5.x.x  | SQLite engine for native Android.      |
+| Package         | Version | Purpose                                |
+| --------------- | ------- | -------------------------------------- |
+| drag-drop-touch | ^1.3.1  | Touch support for HTML5 drag and drop. |
+| sql.js          | ^1.10.x | SQLite engine for browser.             |
 
 ### Development
 

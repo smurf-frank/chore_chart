@@ -11,7 +11,7 @@ To create a digital equivalent of a physical magnetic chore chart that is tactil
 1. **Tactile UX**: Refine the "magnetic" interaction to include pronounced snapping when markers are placed or moved.
 2. **Multi-Device Sync**: Enable concurrent use where multiple users/devices can interact with and view the same chart state in real-time.
 3. **Multi-Board Support**: Allow users to switch between different chore charts or household boards within the same application.
-4. **Platform Versatility**: Primary target is the Cozyla digital calendar (Android), but delivered via a high-performance Web/PWA for universal access.
+4. **Platform Versatility**: Primary target is the Cozyla digital calendar, delivered via a high-performance Web/PWA for universal access.
 5. **Self-Hosting Path**: Transition from local-only storage to a self-hostable remote backend (Postgres/MySQL) to support multi-user synchronization.
 6. **Calendar Integration**: Support sending calendar invites for assigned tasks to ensure visibility across personal schedules.
 7. **Customizable Grid Topology**: Allow users to define the primary and sub-units of time (e.g., Months/Weeks, Weeks/Days) and orient them freely on any axis (Top/Bottom/Left/Right).
@@ -24,7 +24,6 @@ To create a digital equivalent of a physical magnetic chore chart that is tactil
 
 ## Non-Goals (Out of Scope)
 
-- Building a native-only Android app (PWA/Web is the delivery vehicle).
 - Complex social networking features (focus is on household utility).
 - Real-time video/voice chat within the app.
 
@@ -39,7 +38,7 @@ To create a digital equivalent of a physical magnetic chore chart that is tactil
 
 - **Tactility**: Interactions must feel physical, not just functional.
 - **Privacy**: Local-first DNA must be preserved; remote sync should be optional or self-hostable.
-- **Hardware**: Must perform smoothly on the Cozyla digital calendar (limited Android hardware).
+- **Hardware**: Must perform smoothly on the Cozyla digital calendar (limited hardware).
 - **SQL Portability**: All data storage must use standard SQL for easy migration between SQLite and Postgres/MySQL.
 
 ## Success Criteria
