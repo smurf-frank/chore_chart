@@ -38,7 +38,7 @@ jobs:
           gpg --batch --yes --armor --detach-sign "${ZIP_PATH}.sha256"
 
       - name: Upload Archive & Verification Files
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: chore-chart-src--${{ steps.meta.outputs.branch }}--${{ steps.meta.outputs.timestamp }}
           path: |
